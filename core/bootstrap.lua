@@ -4,23 +4,28 @@ function bootstrap()
     function internal:build()
 
         -- Class resources.
-        self.packets        = require('packets')
         self.res            = require('resources')
+        self.packets        = require('packets')
         self.extdata        = require('extdata')
+        self.images         = require('images')
+        self.queues         = require('queues')
         self.files          = require('files')
         self.texts          = require('texts')
         self.sets           = require('sets')
-        self.images         = require('images')
-        self.queues         = require('queues')
         require('actions')
         require('strings')
-        require('lists')
-        require('tables')
-        require('chat')
+        require('vectors')
         require('logger')
+        require('tables')
+        require('lists')
+        require('chat')
         require('pack')
 
         -- Class variables.
+        self.player         = windower.ffxi.get_player()
+        self.party          = windower.ffxi.get_party()
+        self.me             = windower.ffxi.get_mob_by_target('me') or {}
+        self.pinger         = (os.clock() + 10)
         self.delay          = 0.25
         self.enabled        = false
         self.authorized     = false
@@ -31,7 +36,9 @@ function bootstrap()
         self.WS             = {}
         self.IT             = {}
         self.BUFFS          = {}
-        self.libraries      = {}
+        self.displays       = {}
+        self.libs           = {}
+        self.helpers        = {}
 
         -- Private Functions
         local buildResources = function()
@@ -74,9 +81,10 @@ function bootstrap()
         end
         buildResources()
 
+        -- Setup all the libraries before building helpers.
         local loadLibraries = function()
             local directory = string.format('"%s%s"', windower.addon_path, 'core/libraries/')
-        
+
             for filename in io.popen(string.format('dir %s /b', directory)):lines() do 
                 
                 if filename:match('.lua') then
@@ -86,7 +94,11 @@ function bootstrap()
                         local library = dofile(string.format('%s%s.lua', directory:gsub("\"", ''), name))
 
                         if library and library.new then
-                            self.libraries[name] = library:new(self)
+                            self.libs[name] = library:new(self)
+
+                        else
+                            self.libs[name] = library
+
                         end
                         
                     end
@@ -98,11 +110,86 @@ function bootstrap()
         end
         loadLibraries()
 
+        -- Setup all the helper classes.
+        local loadHelpers = function()
+            local directory = string.format('"%s%s"', windower.addon_path, 'core/helpers/')
+
+            for filename in io.popen(string.format('dir %s /b', directory)):lines() do 
+                
+                if filename:match('.lua') then
+                    local name = filename:gsub('.lua', '')
+
+                    if name then
+                        local helper = dofile(string.format('%s%s.lua', directory:gsub("\"", ''), name))
+
+                        if helper and helper.new then
+                            self.helpers[name] = helper:new(self)
+
+                        else
+                            self.helpers[name] = helper
+
+                        end
+                        
+                    end
+
+                end
+
+            end
+
+        end
+        loadHelpers()
+
+        local buildCore = function()
+    
+            if self.player and seelf.files then
+    
+                --if self.files.new('core/logic.lua'):exists() then
+                    --self.core = dofile(string.format('%sbp/core/logic.lua', windower.addon_path))    
+                --end
+    
+            end
+    
+        end
+        --buildCore()
+
+        -- BP Main Event Loop.
+        windower.register_event('prerender', function()
+            self.party  = windower.ffxi.get_party() or false
+            self.player = windower.ffxi.get_player() or false
+            self.info   = windower.ffxi.get_info() or false
+            self.me     = windower.ffxi.get_mob_by_target('me') or false
+            --self.hideUI = (self.info.mog_house or self.info.chat_open or (self.info.menu_open and self.player.status ~= 1)) and true or false
+    
+            if self.player and self.enabled and not self.libs.__zones:isInJail() then
+    
+                if not self.libs.__zones:isInTown() and (os.clock() - self.pinger) > self.delay then
+                    
+                    --if not self.helpers['buffs'].buffActive(69) and not self.helpers['buffs'].buffActive(71) then
+                        --self.core.handleAutomation()
+                        --self.helpers['items'].queueItems()
+                    --end
+                    self.pinger = os.clock()
+    
+                elseif self.libs.__zones:isInTown() and (os.clock() - self.pinger) > self.delay then
+    
+                    --if not self.helpers['buffs'].buffActive(69) and not self.helpers['buffs'].buffActive(71) then
+                        --self.helpers['items'].queueItems()
+                        --self.helpers['queue'].handle()
+    
+                    --end
+                    self.pinger = os.clock()
+    
+                end
+                
+            end
+    
+        end)
+
         return setmetatable({}, {__index = self})
 
     end
 
-    return internal
+    return internal:build()
 
 end
 return bootstrap()

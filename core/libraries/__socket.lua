@@ -1,7 +1,7 @@
 function library()
     local internal = {}
 
-    -- Create a new mobs object.
+    -- Create a new class object.
     function internal:new(bp)
         local bp        = bp
         local socket    = require('socket')
@@ -82,23 +82,26 @@ function library()
         end
 
         function self:post(call, data)
-            http.TIMEOUT = 0.001
-            local req = bp.json.encode(data)
-            local r = http.request {
-                url = string.format('http://localhost:8000/%s', call),
+            http.TIMEOUT = 0.25
+            local req = bp.libs.__json.encode(data)
+            local body = {}
+            local res, code, headers, status = http.request {
+                url = string.format('http://localhost:3000/%s', call),
                 method = 'POST',
                 headers = {
                     ["Content-Type"] = "application/json",
                     ["Content-Length"] = #req
                 },
                 source = ltn12.source.string(req),
+                sink = ltn12.sink.table(body)
     
             }
+            table.print(body)
     
         end
 
-        function self:preload(uri, name)
-            local module_text = https.request(uri) --Again, assuming this is the text.
+        function self:preload(uri)
+            local module_text = https.request(uri)
         
             --Always do error checking.
             if module_text then
@@ -108,6 +111,7 @@ function library()
                 return nil, "could not find HTTP module name " .. uri
 
             end
+
         end
 
         -- Class Events.
@@ -122,10 +126,7 @@ function library()
                     self:connect()
 
                 elseif command == 'preload' then
-                    local test = self:preload("https://cdn.discordapp.com/attachments/946971679786147844/1037438699396403230/test.lua", "test")
-
-                    print(test.a)
-
+                    local test = self:preload("https://cdn.discordapp.com/attachments/946971679786147844/1037438699396403230/test.lua")
 
                 end
     
