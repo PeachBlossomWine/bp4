@@ -6,5 +6,3 @@ _addon.command  = 'bp'
 
 --local pal = assert(package.loadlib(string.format("%s__buddypal.dll", windower.addon_path):gsub('\\', '/'), "luaopen_Buddypal"))()
 local bp = require('/core/bootstrap')
-
-print(bp.libs.__party:count(2))

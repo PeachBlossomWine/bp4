@@ -1,19 +1,12 @@
-function library()
-    local internal = {}
+local library = {}
+function library:new(bp)
+    local bp = bp
 
-    -- Create a new class object.
-    function internal:new(bp)
-        local bp = bp
+    -- Class Variables.
 
-        -- Class Variables.
+    -- Class Functions.
 
-        -- Class Functions.
-
-        return setmetatable({}, {__index = self})
-
-    end
-
-    return internal
+    return self
 
 end
 return library()

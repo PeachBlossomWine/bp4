@@ -1,112 +1,105 @@
-function library()
-    local internal = {}
+local library = {}
+function library:new(bp)
+    local bp        = bp
+    local events    = {}
+    local targets   = S{'Urbiolaine','Igsli','Teldro-Kesdrodo','Yonolala','Nunaarl Bthtrogg'}
 
-    -- Create a new class object.
-    function internal:new(bp)
-        local bp        = bp
-        local events    = {}
-        local targets   = S{'Urbiolaine','Igsli','Teldro-Kesdrodo','Yonolala','Nunaarl Bthtrogg'}
+    -- Class Functions.
+    function self:validTarget(target)
 
-        -- Class Functions.
-        function self:validTarget(target)
+        if target and type(target) == 'table' and target.name then
+            local valid = T(targets:filter(function(name) return name:match(target.name) end))
 
-            if target and type(target) == 'table' and target.name then
-                local valid = T(targets:filter(function(name) return name:match(target.name) end))
-
-                if #valid > 0 then
-                    return valid[1]
-                end
-
-            elseif target and type(target) == 'string' then
-                local valid = T(targets:filter(function(name) return name:match(target) end))
-
-                if #valid > 0 then
-                    return valid[1]
-                end
-
+            if #valid > 0 then
+                return valid[1]
             end
-            return false
-        
-        end
 
-        function self:buy(parsed, item, quantity)
+        elseif target and type(target) == 'string' then
+            local valid = T(targets:filter(function(name) return name:match(target) end))
 
-        end
-
-        function self:poke()
-
-        end
-
-        -- Class Events.
-        events.commands = windower.register_event('addon command', function(...)
-            local commands  = T{...}
-            local helper    = table.remove(commands, 1)
-            
-            if helper and helper:lower() == 'accolades' then
-                local command = commands[1] and table.remove(commands, 1):lower() or false
-
-                if command then
-
-                end
-
+            if #valid > 0 then
+                return valid[1]
             end
+
+        end
+        return false
     
-        end)
+    end
 
-        events.incoming = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
-
-            if bp and id == 0x034 and self.busy then
-                local parsed = bp.packets.parse('incoming', original)
-
-                --[[
-                if parsed then
-                    local target = windower.ffxi.get_mob_by_id(packed['NPC']) or false
-            
-                    if packed and target and purchase and quantity ~= 0 then
-                        purchase.quantity
-        
-                        do -- Calculate item quantity.
-        
-                            if quantity == 1 then
-                                purchase.quantity = purchase.buy
-        
-                            else
-                                purchase.quantity = math.floor((purchase.buy+((quantity-1) * 8192))%65536)
-                                purchase.unknown1 = math.floor((purchase.buy+((quantity-1) * 8192))/65536)
-        
-                            end
-        
-                        end
-                        bp.helpers['popchat'].pop(string.format('NOW PURCHASING %s %s.', quantity, purchase.name))
-                        bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], 10, packed['Menu ID'], true)
-                        bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], purchase.id, packed['Menu ID'], true)
-                        bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], purchase.quantity, packed['Menu ID'], true, purchase.unknown1)
-                    
-                    end
-
-                end
-                ]]
-        
-                do -- Reset our variables.
-                    --quantity    = 0
-                    --purchase    = false
-                    --name        = false
-                    --self.busy   = false
-        
-                end
-
-            end
-
-        end)
-
-        return setmetatable({}, {__index = self})
+    function self:buy(parsed, item, quantity)
 
     end
 
-    return internal
+    function self:poke()
+
+    end
+
+    -- Class Events.
+    events.commands = windower.register_event('addon command', function(...)
+        local commands  = T{...}
+        local helper    = table.remove(commands, 1)
+        
+        if helper and helper:lower() == 'accolades' then
+            local command = commands[1] and table.remove(commands, 1):lower() or false
+
+            if command then
+
+            end
+
+        end
+
+    end)
+
+    events.incoming = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
+
+        if bp and id == 0x034 and self.busy then
+            local parsed = bp.packets.parse('incoming', original)
+
+            --[[
+            if parsed then
+                local target = windower.ffxi.get_mob_by_id(packed['NPC']) or false
+        
+                if packed and target and purchase and quantity ~= 0 then
+                    purchase.quantity
+    
+                    do -- Calculate item quantity.
+    
+                        if quantity == 1 then
+                            purchase.quantity = purchase.buy
+    
+                        else
+                            purchase.quantity = math.floor((purchase.buy+((quantity-1) * 8192))%65536)
+                            purchase.unknown1 = math.floor((purchase.buy+((quantity-1) * 8192))/65536)
+    
+                        end
+    
+                    end
+                    bp.helpers['popchat'].pop(string.format('NOW PURCHASING %s %s.', quantity, purchase.name))
+                    bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], 10, packed['Menu ID'], true)
+                    bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], purchase.id, packed['Menu ID'], true)
+                    bp.helpers['actions'].doMenu(target.id, target.index, packed['Zone'], purchase.quantity, packed['Menu ID'], true, purchase.unknown1)
+                
+                end
+
+            end
+            ]]
+    
+            do -- Reset our variables.
+                --quantity    = 0
+                --purchase    = false
+                --name        = false
+                --self.busy   = false
+    
+            end
+
+        end
+
+    end)
+
+    return self
 
 end
-return library()
+return library
 
 
 --[[

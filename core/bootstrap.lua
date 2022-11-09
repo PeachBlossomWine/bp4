@@ -1,3 +1,4 @@
+local buildManager = dofile(string.format("%score/manager.lua", windower.addon_path))
 function bootstrap()
     local internal = {}
 
@@ -31,6 +32,7 @@ function bootstrap()
         self.authorized     = false
 
         -- Class Objects.
+        self.helpers        = buildManager(self)
         self.JA             = {}
         self.MA             = {}
         self.WS             = {}
@@ -38,7 +40,6 @@ function bootstrap()
         self.BUFFS          = {}
         self.displays       = {}
         self.libs           = {}
-        self.helpers        = {}
 
         -- Private Functions
         local buildResources = function()
@@ -122,14 +123,10 @@ function bootstrap()
                     if name then
                         local helper = dofile(string.format('%s%s.lua', directory:gsub("\"", ''), name))
 
-                        if helper and helper.new then
-                            self.helpers[name] = helper:new(self)
-
-                        else
-                            self.helpers[name] = helper
-
+                        if helper then
+                            self.helpers:add(helper, name)
                         end
-                        
+
                     end
 
                 end
@@ -152,7 +149,58 @@ function bootstrap()
         end
         --buildCore()
 
-        -- BP Main Event Loop.
+        -- Class Functions.
+        self.clearEvents = function(events)
+
+            for id in T(events):it() do
+                windower.unregister_event(id)
+            end
+
+        end
+
+        self.toggleOption = function(option, setting, message)
+
+            if option and message and setting ~= nil and type(setting) == 'boolean' then
+
+                if option == '!' then
+                    setting = true
+                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
+
+                elseif option == '#' then
+                    setting = false
+                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
+
+                else
+                    setting = setting ~= true and true
+                    --bp.helpers['popchat'].pop(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
+
+                end
+
+            end
+
+        end
+
+        self.setOption = function(option, setting, updated, message)
+            
+            if option and setting and updated and message and type(updated) == 'table' and #updated == 2 then
+
+                if option == '!' then
+                    setting = updated[1]
+                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
+                    print('on')
+
+                elseif option == '#' then
+                    setting = updated[2]
+                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
+                    print('off')
+
+                end
+
+            end
+
+        end
+
+        -- Class Events.
         windower.register_event('prerender', function()
             self.party  = windower.ffxi.get_party() or false
             self.player = windower.ffxi.get_player() or false
@@ -185,7 +233,7 @@ function bootstrap()
     
         end)
 
-        return setmetatable({}, {__index = self})
+        return self
 
     end
 
