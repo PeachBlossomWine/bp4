@@ -169,4 +169,5 @@ return {{name="none", id=0, index=0},
 {name="", id=17785002, index=170},
 {name="", id=17785003, index=171},
 {name="", id=17785004, index=172},
+{name="Munitions Moogle", id=17785005, index=173},
 }

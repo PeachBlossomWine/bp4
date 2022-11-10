@@ -266,4 +266,6 @@ return {{name="none", id=0, index=0},
 {name="", id=16822550, index=278},
 {name="Geomagnetic Fount", id=16822551, index=279},
 {name="Survival Guide", id=16822552, index=280},
+{name="", id=16822553, index=281},
+{name="Gloom Phantom", id=16822554, index=282},
 }

@@ -386,4 +386,8 @@ return {{name="none", id=0, index=0},
 {name="", id=17580426, index=394},
 {name="Hazy Rune", id=17580427, index=395},
 {name="Survival Guide", id=17580428, index=396},
+{name="", id=17580429, index=397},
+{name="Hedrov", id=17580430, index=398},
+{name="Magh Bihu", id=17580431, index=399},
+{name="Dazbog", id=17580432, index=400},
 }
