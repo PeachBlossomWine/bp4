@@ -1,12 +1,13 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
-    local helper    = {events={}}
+    local helper    = setmetatable({}, hmt)
 
-    -- Set Metamethods to helper.
-    setmetatable(helper, hmt)
+    -- Class Variables.
+    helper.display  = bp.libs.__displays.new()
 
+    -- Class Methods.
     helper.new = function()
-        local t = {}
+        local t = setmetatable({}, hmt)
 
         -- Private Variables.
         

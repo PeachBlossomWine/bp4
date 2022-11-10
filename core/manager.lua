@@ -49,9 +49,10 @@ local buildManager = function(bp)
 
     end
 
-    meta.__call = function(t, index)
+    meta.__call = function(t, ...)
+        local options = T{...}
 
-        if index then
+        if #options > 0 then
             -- Future needs.
 
         else

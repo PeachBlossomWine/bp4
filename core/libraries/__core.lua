@@ -9,4 +9,4 @@ function library:new(bp)
     return self
 
 end
-return library()
+return library

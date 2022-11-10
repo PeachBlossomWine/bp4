@@ -23,6 +23,7 @@ function bootstrap()
         require('pack')
 
         -- Class variables.
+        self.info           = windower.ffxi.get_info()
         self.player         = windower.ffxi.get_player()
         self.party          = windower.ffxi.get_party()
         self.me             = windower.ffxi.get_mob_by_target('me') or {}
