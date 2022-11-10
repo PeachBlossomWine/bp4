@@ -79,7 +79,7 @@ function library:new(bp)
 
     -- Private Events.
     windower.register_event('prerender', calculate)
-    windower.register_event('login','load','job change', function()  private.calculate:schedule(1) end)
+    windower.register_event('login','load','job change', function()  setStratagems:schedule(1) end)
     windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
         
         if bp and id == 0x028 then
