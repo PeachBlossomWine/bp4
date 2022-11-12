@@ -207,7 +207,6 @@ function bootstrap()
             self.player = windower.ffxi.get_player() or false
             self.info   = windower.ffxi.get_info() or false
             self.me     = windower.ffxi.get_mob_by_target('me') or false
-            --self.hideUI = (self.info.mog_house or self.info.chat_open or (self.info.menu_open and self.player.status ~= 1)) and true or false
     
             if self.player and self.enabled and not self.libs.__zones:isInJail() then
     
