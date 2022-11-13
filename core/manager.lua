@@ -13,7 +13,7 @@ local buildManager = function(bp)
     local addClass = function(helper)
         local helper = helper(bp, hmt)
 
-        if helper then
+        if helper and helper.new then
             return helper, helper.new()
         end
         
@@ -31,14 +31,20 @@ local buildManager = function(bp)
     function manager:reload(name)
 
         if bp and name and classes[name] then
-            self.helpers[name] = classes[name]:reload()
+            classes[name].events = {}
+
+            do -- Reload the class.
+                self.helpers[name] = classes[name]:reload()
+
+            end
+
         end
 
     end
 
     -- Manager Metas.
     meta.__index = function(t, index)
-        
+
         if t.helpers and t.helpers[index] then
             return t.helpers[index]
 
