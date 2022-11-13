@@ -13,7 +13,7 @@ local buildHelper = function(bp, hmt)
         do
             settings.mode       = settings.mode or 1
             settings.layout     = settings.layout or layout
-            settings.display    = bp and not settings.display and bp.libs.__displays.new(settings.layout)
+            settings.display    = settings:getDisplay()
 
         end
 
@@ -108,16 +108,6 @@ local buildHelper = function(bp, hmt)
         end)
 
         return new
-
-    end
-
-    function helper:reload()
-        bp.clearEvents(self.events)
-
-        do -- Create a new helper object.
-            return self.new()
-
-        end
 
     end
 

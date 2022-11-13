@@ -8,11 +8,13 @@ local buildHelper = function(bp, hmt)
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
 
+        print(settings.display)
+
         -- Private Variables.
         settings.layout     = settings.layout or layout
         settings.speed      = settings.speed or 70
         settings.zones      = settings.zones or {}
-        settings.display    = bp and bp.libs.__displays.new(settings.layout)
+        settings.display    = settings:getDisplay()
 
         -- Save after all settings have been initialized.
         settings:save()
@@ -93,16 +95,6 @@ local buildHelper = function(bp, hmt)
         end)
 
         return new
-
-    end
-
-    function helper:reload()
-        bp.clearEvents(self.events)
-
-        do -- Create a new helper object.
-            return self.new()
-
-        end
 
     end
 
