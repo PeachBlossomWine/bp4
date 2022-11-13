@@ -1,3 +1,4 @@
+
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
@@ -8,18 +9,22 @@ local buildHelper = function(bp, hmt)
         local new = setmetatable({events={}}, hmt)
 
         -- Private Variables.
+        settings.layout     = settings.layout or layout
         settings.speed      = settings.speed or 70
         settings.zones      = settings.zones or {}
-        settings.display    = bp and bp.libs.__displays.new(settings.layout or layout)
+        settings.display    = bp and bp.libs.__displays.new(settings.layout)
 
         -- Save after all settings have been initialized.
         settings:save()
 
         -- Private Methods.
         local render = function()
-            
+
             bp.libs.__ui.renderUI(settings.display, function()
-                settings.display:text(string.format("{  %d%%  }", settings.speed*2))
+
+                if settings.speed then
+                    settings.display:text(string.format("{  %d%%  }", settings.speed*2))
+                end
             
             end)
 
@@ -42,7 +47,10 @@ local buildHelper = function(bp, hmt)
                 if command then
     
                     if command == 'pos' and commands[1] then
-                        bp.libs.__displays.position(settings.display, settings.layout, commands[1], commands[2])
+                        bp.libs.__displays.position(settings, commands[1], commands[2])
+
+                    elseif command == 'test' then
+                        print(settings.mode)
 
                     elseif tonumber(command) ~= nil then
                         new.set(tonumber(command))
@@ -84,7 +92,7 @@ local buildHelper = function(bp, hmt)
         
         end)
 
-        return t
+        return new
 
     end
 
