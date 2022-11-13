@@ -19,6 +19,19 @@ local buildManager = function(bp)
         
     end
 
+    local clearEvents = function(class)
+        
+        if class and class.events then
+
+            for id in T(class.events):it() do
+                windower.unregister_event(id)
+            end
+            class.events = {}
+
+        end
+
+    end
+
     -- Public Methods.    
     function manager:add(helper, name)
         
@@ -31,10 +44,10 @@ local buildManager = function(bp)
     function manager:reload(name)
 
         if bp and name and classes[name] then
-            classes[name].events = {}
+            clearEvents(classes[name])
 
             do -- Reload the class.
-                self.helpers[name] = classes[name]:reload()
+                self.helpers[name] = classes[name].new()
 
             end
 
