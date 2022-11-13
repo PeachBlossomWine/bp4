@@ -3,26 +3,26 @@ function library:new(bp)
     local bp = bp
 
     -- Private Variables.
-    local resolution    = {x=windower.get_windower_settings().x_res, y=windower.get_windower_settings().y_res}
-    local settings      = {pos={x=1, y=1}, bg={alpha=200, red=0, green=0, blue=0, visible=true}, flags={draggable=false, bold=true}, text={size=9, fonts={'Lucida Console','Arial'}, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=1}
+    local resolution = {x=windower.get_windower_settings().x_res, y=windower.get_windower_settings().y_res}
+    local layout = {pos={x=1, y=1}, bg={alpha=200, red=0, green=0, blue=0, visible=true}, flags={draggable=false, bold=true}, text={size=9, fonts={'Lucida Console','Arial'}, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=1}
 
     -- Public Methods.
     self.new = function(s)
-        return bp.texts.new(s or settings)
+        return bp.texts.new(s or layout)
     end
 
-    self.position = function(display, layout, x, y)
+    self.position = function(settings, x, y)
 
-        if display and layout then
-            local x = tonumber(x) or layout.pos.x
-            local y = tonumber(y) or layout.pos.y
+        if settings.display and settings.layout then
+            local x = tonumber(x) or settings.layout.pos.x
+            local y = tonumber(y) or settings.layout.pos.y
 
             if x and y then
-                display:pos(x, y)
+                settings.display:pos(x, y)
 
                 do -- Update the settings positions
-                    layout.pos.x = x
-                    layout.pos.y = y
+                    settings.layout.pos.x = x
+                    settings.layout.pos.y = y
 
                 end
             
