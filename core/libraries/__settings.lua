@@ -37,6 +37,10 @@ function library:new(bp)
 
         end
 
+        function settings:getDisplay()
+            return not self.display and bp.libs.__displays.new(self.layout) or self.display
+        end
+
         -- Metatable Functions.
         mt.__index = function(t, k)
 
