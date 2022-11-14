@@ -23,6 +23,7 @@ function bootstrap()
         require('pack')
 
         -- Class variables.
+        self.accounts       = false
         self.info           = windower.ffxi.get_info()
         self.player         = windower.ffxi.get_player()
         self.party          = windower.ffxi.get_party()
@@ -41,6 +42,11 @@ function bootstrap()
         self.BUFFS          = {}
         self.displays       = {}
         self.libs           = {}
+        self.colors         = {
+
+            important = string.format('%s,%s,%s', 25, 165, 200)
+    
+        }
 
         -- Private Functions
         local buildResources = function()
@@ -139,69 +145,9 @@ function bootstrap()
 
         local buildCore = function()
     
-            if self.player and seelf.files then
-    
-                --if self.files.new('core/logic.lua'):exists() then
-                    --self.core = dofile(string.format('%sbp/core/logic.lua', windower.addon_path))    
-                --end
-    
-            end
-    
-        end
-        --buildCore()
-
-        -- Class Functions.
-        self.clearEvents = function(events)
-
-            for id in T(events):it() do
-                windower.unregister_event(id)
-            end
-
         end
 
-        self.toggleOption = function(option, setting, message)
-
-            if option and message and setting ~= nil and type(setting) == 'boolean' then
-
-                if option == '!' then
-                    setting = true
-                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
-
-                elseif option == '#' then
-                    setting = false
-                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
-
-                else
-                    setting = setting ~= true and true
-                    --bp.helpers['popchat'].pop(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
-
-                end
-
-            end
-
-        end
-
-        self.setOption = function(option, setting, updated, message)
-            
-            if option and setting and updated and message and type(updated) == 'table' and #updated == 2 then
-
-                if option == '!' then
-                    setting = updated[1]
-                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
-                    print('on')
-
-                elseif option == '#' then
-                    setting = updated[2]
-                    --bp.helpers['console'].log(string.format('BLOCK SPELL INTERRUPTIONS: %s.', tostring(private.__castlock)))
-                    print('off')
-
-                end
-
-            end
-
-        end
-
-        -- Class Events.
+        -- Addon Events.
         windower.register_event('prerender', function()
             self.party  = windower.ffxi.get_party() or false
             self.player = windower.ffxi.get_player() or false
@@ -229,6 +175,14 @@ function bootstrap()
     
                 end
                 
+            end
+    
+        end)
+
+        windower.register_event('unhandled command', function(command, ...)
+        
+            if command:sub(1,1) == '/' then
+                windower.send_command(string.format('bp %s %s', command:sub(2), table.concat(T{...}, ' ')))
             end
     
         end)

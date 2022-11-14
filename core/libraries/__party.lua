@@ -64,12 +64,12 @@ function library:new(bp)
             local target = bp.libs.__target.get(target)
 
             for index, member in pairs(bp.party) do
-                
+
                 if index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.mob and target.id == member.mob.id then
-                    return v
+                    return member
 
                 elseif alliance and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.mob and target.id == member.mob.id then
-                    return v
+                    return member
 
                 end
 
@@ -102,6 +102,16 @@ function library:new(bp)
 
     end
 
+    self.isInZone = function(target)
+        local member = self.getMember(target)
+
+        if member and member.mob and member.zone == bp.info.zone then
+            return true
+        end
+        return false
+
+    end
+
     self.inRange = function(distance)
         local count, pass = (bp.party.party1_count + bp.party.party2_count or 0 + bp.party.party3_count or 0), 0
 
@@ -111,7 +121,7 @@ function library:new(bp)
                 
                 if (index:sub(1,1) == "p" or index:sub(1,1) == "a") and tonumber(index:sub(2)) ~= nil and member.mob and not member.mob.is_npc then
                     
-                    if bp.libs.__distance.get(v.mob) <= distance and v.zone == bp.info.zone then
+                    if bp.libs.__distance.get(v.mob) <= distance and member.zone == bp.info.zone then
                         pass = (pass + 1)
                     end
 

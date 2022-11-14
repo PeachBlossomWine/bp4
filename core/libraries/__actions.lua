@@ -3,7 +3,7 @@ function library:new(bp)
     local bp = bp
 
     -- Private Variables.
-    local anchor        = {__set=false, __position={x=0, y=0, z=0}}
+    local anchor        = {__set=true, __position={x=0, y=0, z=0}}
     local unique        = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
     local __position    = {x=0, y=0, z=0}
     local __moving      = false
@@ -522,10 +522,10 @@ function library:new(bp)
 
         if bp and bp.player and bp.player.status == 0 then
             self.engage(target)
-            --windower.send_command(string.format('ord r* bp action switch! %s', target.id))
+            bp.libs.__orders.deliver('r*', ('bp action switch! %s'):format(target.id))
 
         elseif bp and bp.player and bp.player.status == 1 then
-            --windower.send_command(string.format('ord r* bp action switch! %s', target.id))
+            bp.libs.__orders.deliver('r*', ('bp action switch! %s'):format(target.id))
 
         end
 
@@ -623,7 +623,7 @@ function library:new(bp)
 
     end
 
-    -- Class Events.
+    -- Private Events.
     windower.register_event('addon command', function(...)
         local commands  = T{...}
         local command   = table.remove(commands, 1)
@@ -659,22 +659,14 @@ function library:new(bp)
 
     end)
 
-    windower.register_event('prerender', function()
-        updatePosition()
-
-    end)
-
-    windower.register_event('zone change', function()
-        anchor.__set = false
-
-    end)
-
+    windower.register_event('prerender', updatePosition)
+    windower.register_event('zone change', function() anchor.__set = false end)
     windower.register_event('outgoing chunk', function(id, original, modified, injected, blocked)
 
         if bp and not blocked and id == 0x015 and self.__castlock then
             local parsed = bp.packets.parse('outgoing', original)
 
-            if parsed and anchor.__set and anchor.__position then
+            if parsed and anchor.__set and anchor.__position and T(anchor.__position):sum() > 0 then
 
                 do
                     parsed['Run Count'] = 2
@@ -721,7 +713,15 @@ function library:new(bp)
                 end
     
             end
-    
+
+        elseif id == 0x029 then
+            local parsed = bp.packets.parse('incoming', original)
+
+            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{16,17,18}:contains(parsed['Message']) then
+                print('failed')
+                anchor.__set = false
+            end
+
         end
         
     end)

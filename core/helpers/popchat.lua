@@ -69,7 +69,7 @@ local buildHelper = function(bp, hmt)
         end
 
         -- Private Events.
-        helper('time change', render)
+        helper('prerender', render)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)

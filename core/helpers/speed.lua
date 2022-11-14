@@ -8,8 +8,6 @@ local buildHelper = function(bp, hmt)
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
 
-        print(settings.display)
-
         -- Private Variables.
         settings.layout     = settings.layout or layout
         settings.speed      = settings.speed or 70
