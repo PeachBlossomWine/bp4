@@ -28,7 +28,7 @@ function bootstrap()
         self.player         = windower.ffxi.get_player()
         self.party          = windower.ffxi.get_party()
         self.me             = windower.ffxi.get_mob_by_target('me') or {}
-        self.pinger         = (os.clock() + 10)
+        self.pinger         = (os.clock() + 3)
         self.delay          = 0.25
         self.enabled        = false
         self.authorized     = false
@@ -154,26 +154,16 @@ function bootstrap()
             self.info   = windower.ffxi.get_info() or false
             self.me     = windower.ffxi.get_mob_by_target('me') or false
     
-            if self.player and self.enabled and not self.libs.__zones:isInJail() then
+            if self.player and self.enabled and not self.libs.__zones:isInJail() and (os.clock() - self.pinger) > self.delay and not self.libs.__buffs.silent() then
+
+                if not self.libs.__zones:isInTown() then
+                    self.helpers.core.handleAutomation()
     
-                if not self.libs.__zones:isInTown() and (os.clock() - self.pinger) > self.delay then
+                elseif self.libs.__zones:isInTown() then
                     
-                    --if not self.helpers['buffs'].buffActive(69) and not self.helpers['buffs'].buffActive(71) then
-                        --self.core.handleAutomation()
-                        --self.helpers['items'].queueItems()
-                    --end
-                    self.pinger = os.clock()
-    
-                elseif self.libs.__zones:isInTown() and (os.clock() - self.pinger) > self.delay then
-    
-                    --if not self.helpers['buffs'].buffActive(69) and not self.helpers['buffs'].buffActive(71) then
-                        --self.helpers['items'].queueItems()
-                        --self.helpers['queue'].handle()
-    
-                    --end
-                    self.pinger = os.clock()
     
                 end
+                self.pinger = os.clock()
                 
             end
     

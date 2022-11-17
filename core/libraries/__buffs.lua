@@ -152,18 +152,39 @@ function library:new(bp)
     end
 
     -- Public Methods.
-    self.hasVorseals = function() return bp and bp.player and T(bp.player.buffs):contains(602) and true or false end
-    self.isLvRestricted = function() return bp and bp.player and T(bp.player.buffs):contains(143) and true or false end
+    self.hasSpikes = function() return self.active({34,35,38,173}) end
+    self.hasShadows = function() return self.active({444,445,446}) end
+    self.hasWHMBoost = function() return self.active({119,120,121,122,123,124,125}) end
+    self.hasStorm = function() return self.active({178,179,180,181,182,183,184,185}) end
+    self.hasEnspell = function() return self.active({94,95,96,97,98,99,277,278,279,280,281,282}) end
+    self.hasVorseals = function() return self.active(602) end
+    self.isLvRestricted = function() return self.active(143) end
     self.hasRads = function() return bp and bp.player and bp.libs.__inventory.hasKeyItem(3031) and true or false end
     self.hasTribs = function() return bp and bp.player and bp.libs.__inventory.hasKeyItem(2894) and true or false end
+    self.silent = function() return self.active(69) and self.active(71) and true or false end
 
-    self.active = function(bid)
-        if not bp or not bid then return false end
+    self.active = function(search)
+        if not bp or not search then return false end
 
-        for buff in T(bp.player.buffs):it() do
+        if type(search) == 'table' then
 
-            if buff == bid then
-                return true
+            for buff in T(search):it() do
+
+                if not T(bp.player.buffs):contains(buff) then
+                    return true
+                end
+
+            end
+            return false
+
+        else
+
+            for buff in T(bp.player.buffs):it() do
+
+                if buff == search then
+                    return true
+                end
+
             end
 
         end

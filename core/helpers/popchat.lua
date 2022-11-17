@@ -36,11 +36,11 @@ local buildHelper = function(bp, hmt)
 
         local remove = function()
             local map = messages:map(function(m) return (os.time()-m.time) >= settings.delay and m or nil end)
-            
+
             if #map > 0 then
 
-                for _,index in map:it() do
-                    messages:remove(index)
+                for m in map:it() do
+                    messages:remove(1)
                 end
                 updateDisplay()
 
@@ -63,7 +63,7 @@ local buildHelper = function(bp, hmt)
 
         -- Public Methods.
         new.pop = function(message)
-            table.insert(messages, {message=string.format('[  %s  ]', message:upper()), time=os.time()})
+            table.insert(messages, {message=string.format('[  %s  ]', tostring(message):upper()), index=(#messages + 1), time=os.time()})
             updateDisplay()
 
         end

@@ -36,3 +36,9 @@ do -- Initial add-on settings.
     })
 
 end
+
+bp.libs.__queue.add(bp.IT["Wind Crystal"], bp.player, 2)
+bp.libs.__queue.add(bp.IT["Frayed Sack (D)"], bp.player, 1)
+bp.libs.__queue.add(bp.IT["Frayed Pouch (G)"], bp.player, 3)
+bp.libs.__queue.add(bp.IT["Pluton Box"], bp.player, 5)
+bp.libs.__queue.add(bp.IT["Wind Cluster"], bp.player, 10)

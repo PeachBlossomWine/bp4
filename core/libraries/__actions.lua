@@ -3,53 +3,11 @@ function library:new(bp)
     local bp = bp
 
     -- Private Variables.
-    local anchor        = {__set=true, __position={x=0, y=0, z=0}}
+    local anchor        = {__set=false, __position={x=0, y=0, z=0}}
     local unique        = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
     local __position    = {x=0, y=0, z=0}
     local __moving      = false
-    local categories    = {
-            
-        [6]     = 'JobAbility',
-        [7]     = 'WeaponSkill',
-        [8]     = 'Magic',
-        [9]     = 'Item',
-        [12]    = 'Ranged',
-        [13]    = 'JobAbility',
-        [14]    = 'JobAbility',
-        [15]    = 'JobAbility',
-    
-    }
-
-    local types = {
-            
-        ['Magic']       = {res='spells'},
-        ['Trust']       = {res='spells'},
-        ['JobAbility']  = {res='job_abilities'},
-        ['WeaponSkill'] = {res='weapon_skills'},
-        ['Item']        = {res='items'},
-        ['Ranged']      = {res='none'},
-    
-    }
-
-    local ranges = {
-            
-        [0]     = 255,
-        [2]     = 03.40,
-        [3]     = 04.47,
-        [4]     = 05.76,
-        [5]     = 06.89,
-        [6]     = 07.80,
-        [7]     = 08.40,
-        [8]     = 10.40,
-        [9]     = 12.40,
-        [10]    = 14.50,
-        [11]    = 16.40,
-        [12]    = 20.40,
-        [13]    = 23.40,
-    
-    }
-
-    local actions = {
+    local __actions     = {
 
         ['interact']    = 0,    ['engage']          = 2,    ['/magic']          = 3,    ['magic']           = 3,    ['/mount'] = 26,
         ['disengage']   = 4,    ['/help']           = 5,    ['help']            = 5,    ['/weaponskill']    = 7,
@@ -61,25 +19,12 @@ function library:new(bp)
 
     }
 
-    local delays = {
-
-        ['Misc']        = 1.5,  ['WeaponSkill']     = 1.2,  ['Item']            = 2.5,    ['JobAbility']    = 1.2,
-        ['CorsairRoll'] = 1.2,  ['CorsairShot']     = 1.2,  ['Samba']           = 1.2,    ['Waltz']         = 1.2,
-        ['Jig']         = 1.2,  ['Step']            = 1.2,  ['Flourish1']       = 1.2,    ['Flourish2']     = 1.2,
-        ['Flourish3']   = 1.2,  ['Scholar']         = 1.2,  ['Effusion']        = 1.2,    ['Rune']          = 1.2,
-        ['Ward']        = 1.2,  ['BloodPactRage']   = 1.2,  ['BloodPactWard']   = 1.2,    ['PetCommand']    = 1.2,
-        ['Monster']     = 1.2,  ['Dismount']        = 1.2,  ['Ranged']          = 1.0,    ['WhiteMagic']    = 2.3,
-        ['BlackMagic']  = 2.3,  ['BardSong']        = 2.6,  ['Ninjutsu']        = 2.3,    ['SummonerPact']  = 2.3,
-        ['BlueMagic']   = 2.3,  ['Geomancy']        = 2.3,  ['Trust']           = 2.3,
-
-    }
-
     -- Public Variables.
     self.__castlock     = true
 
     -- Private Methods.
     local updatePosition = function()
-        
+
         if bp.me then
             __moving        = (bp.me.x ~= __position.x or bp.me.y ~= __position.y) and true or false
             __position.x    = bp.me.x
@@ -97,108 +42,15 @@ function library:new(bp)
     end
 
     -- Public Functions.
-    self.getRanges = function() return ranges end
-    self.getDelays = function() return delays end
-
-    self.getRange = function(action)
-        return action and action.range and ranges[action.range] or 0
-    end
-
-    self.isMoving = function()
-        return __moving
-    end
-
-    self.buildAction = function(category, param)
-
-        if bp and category and param and categories[category] then
-            local name = categories[category]
-
-            if types[categories[category]] then
-                local resource = bp.res[types[categories[category]].res]
-
-                if type(resource) == 'table' then
-                    return resource[param]
-
-                elseif type(resource) == nil then
-
-                    if name == 'Ranged' then
-                        return name    
-                    end
-
-                end
-
-            end
-
-        end
-        return false
-
-    end
-
-    self.getActionType = function(action)
-
-        if bp and action and type(action) == 'table' then
-
-            if action.prefix then
-
-                if action.type then
-                    return action.type
-
-                elseif action.prefix == '/weaponskill' then
-                    return ('WeaponSkill')
-
-                end
-
-            elseif action.category then
-                return ('Item')
-
-            end
-
-        elseif action and type(action) == 'string' and action == ('Ranged') then
-            return ('Ranged')
-
-        end
-
-    end
-
-    self.getActionDelay = function(action)
-        local action = action or 1
-
-        if bp and action and type(action) == 'table' then
-            local helpers = bp.helpers
-
-            if action.prefix then
-
-                if action.prefix == '/jobability' or action.prefix == '/pet' then
-
-                    return (delays[action.type])
-
-                elseif action.prefix == '/magic' or action.prefix == '/ninjutsu' or action.prefix == '/song' then
-                    return (delays[action.type] + action.cast_time)
-
-                elseif action.prefix == '/weaponskill' then
-                    return (delays['WeaponSkill'])
-
-                end
-
-            elseif action.category then
-                return (delays['Item'] + action.cast_time)
-
-            end
-
-        elseif action and type(action) == 'string' and action == 'Ranged' then
-            return delays['Ranged'] + math.ceil( 550/106 )
-
-        end
-
-    end
-
+    self.isMoving = function() return __moving end
+    
     self.perform = function(target, param, action, x, y, z)
         local target = bp.libs.__target.get(target)
 
-        if target and action and actions[action] and not windower.ffxi.get_info().mog_house then
+        if target and action and __actions[action] and not windower.ffxi.get_info().mog_house then
             bp.packets.inject(bp.packets.new('outgoing', 0x01A, {
                 ['Target Index']    = target.index,
-                ['Category']        = actions[action],
+                ['Category']        = __actions[action],
                 ['Target']          = target.id,
                 ['Param']           = param or 0,
                 ['X Offset']        = x or 0,
@@ -364,7 +216,7 @@ function library:new(bp)
 
     self.canAct = function()
 
-        if bp and bp.player and {[0]=0,[1]=1}[player.status] then
+        if bp and bp.player and {[0]=0,[1]=1}[bp.player.status] then
             local bad = T{[0]=0,[2]=2,[7]=7,[10]=10,[14]=14,[16]=16,[17]=17,[19]=19,[22]=22,[193]=193,[252]=252,[261]=261}
 
             for buff in T(bp.player.buffs):it() do
@@ -382,7 +234,7 @@ function library:new(bp)
 
     self.canItem = function()
 
-        if bp and bp.player and {[0]=0,[1]=1}[player.status] and not __moving then
+        if bp and bp.player and {[0]=0,[1]=1}[bp.player.status] and not __moving then
             local bad = T{[473]=473,[252]=252}
 
             for buff in T(bp.player.buffs):it() do
@@ -400,7 +252,7 @@ function library:new(bp)
 
     self.canMove = function()
 
-        if bp and bp.player and {[0]=0,[1]=1,[10]=10,[11]=11,[85]=85}[player.status] then
+        if bp and bp.player and {[0]=0,[1]=1,[10]=10,[11]=11,[85]=85}[bp.player.status] then
             local bad = T{[0]=0,[2]=2,[7]=7,[11]=11,[14]=14,[17]=17,[19]=19,[193]=193}
 
             for buff in T(bp.player.buffs):it() do
@@ -491,6 +343,43 @@ function library:new(bp)
                             return true
                         end
 
+                    end
+
+                end
+
+            end
+
+        end
+        return false
+
+    end
+
+    self.isAvailable = function(name)
+
+        if bp and bp.player and name then
+
+            if bp.JA[name] then
+
+                for id in T(windower.ffxi.get_abilities().job_abilities):it() do
+
+                    if id == bp.JA[name].id then
+                        return true
+                    end
+
+                end
+
+            elseif bp.MA[name] then
+
+                if windower.ffxi.get_spells()[bp.MA[name].id] then
+                    return true
+                end
+
+            elseif bp.WS[name] then
+
+                for id in T(windower.ffxi.get_abilities().weapon_skills):it() do
+                    
+                    if id == bp.WS[name].id then
+                        return true
                     end
 
                 end
@@ -718,7 +607,6 @@ function library:new(bp)
             local parsed = bp.packets.parse('incoming', original)
 
             if bp.player and parsed and parsed['Actor'] == bp.player.id and T{16,17,18}:contains(parsed['Message']) then
-                print('failed')
                 anchor.__set = false
             end
 

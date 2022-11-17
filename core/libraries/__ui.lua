@@ -7,20 +7,23 @@ function library:new(bp)
 
     -- Private Methods.
     local update = function()
-        self.visible = bp and (not bp.info.mog_house or not bp.info.chat_open or (bp.info.chat_open and bp.player.status == 1)) and true or false
+        self.visible = bp and (not bp.info.mog_house and not bp.info.menu_open and not bp.info.chat_open) and true or false
     end
 
     -- Public Methods.
     self.renderUI = function(display, render)
 
-        if display and bp.libs.__ui.visible and type(render) == 'function' then
-            render()
+        if bp and display and self.visible then
+
+            if render and type(render) == 'function' then
+                render()
+            end
 
             if not display:visible() then
                 display:show()
             end
 
-        elseif display and bp.libs.__ui.visible and display:visible() then
+        elseif display and not self.visible and display:visible() then
             display:hide()
 
         end

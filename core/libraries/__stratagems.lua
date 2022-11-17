@@ -6,14 +6,15 @@ function library:new(bp)
     local rate = 0
 
     -- Public Variables.
-    self.stratagems = {current=0, max=0}
+    self.current    = 0
+    self.max        = 0
 
     -- Private Methods.
     local calculate = function()
-        local current = math.floor((self.stratagems.max-(windower.ffxi.get_ability_recasts()[231] or 0/rate)))
+        local current = math.floor((self.max-(windower.ffxi.get_ability_recasts()[231] or 0/rate)))
 
         do -- Set the current stratagem count.
-            self.stratagems.current = current > -math.huge and current < math.huge and current or 0
+            self.current = current > -math.huge and current < math.huge and current or 0
 
         end
 
@@ -27,24 +28,24 @@ function library:new(bp)
                 local main = {job=bp.player.main_job, lvl=bp.player.main_job_level}
             
                 if (main.lvl >= 10 and main.lvl <= 29) then
-                    self.stratagems.max, rate = 1, 240
+                    self.max, rate = 1, 240
 
                 elseif (main.lvl >= 30 and main.lvl <= 49) then
-                    self.stratagems.max, rate = 2, 120
+                    self.max, rate = 2, 120
 
                 elseif (main.lvl >= 50 and main.lvl <= 69) then
-                    self.stratagems.max, rate = 3, 80
+                    self.max, rate = 3, 80
 
                 elseif (main.lvl >= 70 and main.lvl <= 89) then
-                    self.stratagems.max, rate = 4, 60
+                    self.max, rate = 4, 60
                         
                 elseif main.lvl >= 90 then
 
                     if bp.player['job_points'][main.job:lower()].jp_spent >= 550 then
-                        self.stratagems.max, rate = 5, 33
+                        self.max, rate = 5, 33
 
                     else
-                        self.stratagems.max, rate = 5, 48
+                        self.max, rate = 5, 48
 
                     end
                         
@@ -54,18 +55,18 @@ function library:new(bp)
                 local sub = {job=bp.player.sub_job, lvl=bp.player.sub_job_level}
                 
                 if (sub.lvl >= 10 and sub.lvl <= 29) then
-                    self.stratagems.max, rate = 1, 240
+                    self.max, rate = 1, 240
 
                 elseif (sub.lvl >= 30 and sub.lvl <= 49) then
-                    self.stratagems.max, rate = 2, 120
+                    self.max, rate = 2, 120
 
                 elseif (sub.lvl >= 50 and sub.lvl <= 69) then
-                    self.stratagems.max, rate = 3, 80
+                    self.max, rate = 3, 80
 
                 end            
                     
             else
-                self.stratagems.max, rate = 0, 255
+                self.max, rate = 0, 255
                     
             end
 

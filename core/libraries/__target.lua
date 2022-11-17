@@ -108,7 +108,7 @@ function library:new(bp)
 
             if target.spawn_type == 16 and not target.charmed and not self.isDead(target) and target.valid_target then
 
-                if (target.claim_id == 0 or bp.libs.__party.isMember(target.claim_id, true) or bp.helpers['buffs'].buffActive(603) or bp.helpers['buffs'].buffActive(511) or bp.helpers['buffs'].buffActive(257) or bp.helpers['buffs'].buffActive(267)) then
+                if (target.claim_id == 0 or bp.libs.__party.isMember(target.claim_id, true) or bp.libs.__buffs.active(603) or bp.libs.__buffs.active(511) or bp.libs.__buffs.active(257) or bp.libs.__buffs.active(267)) then
                     return true
                 end
     
