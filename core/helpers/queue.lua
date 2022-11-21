@@ -49,7 +49,7 @@ local buildHelper = function(bp, hmt)
 
                             if index == 1 then
                                 table.insert(update, string.format("\n%s[ ACTION QUEUE (%05.2f) ]%s\n", (''):lpad(' ', 25), __ready, (''):rpad(' ', 25)))
-                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s\\cr%s►%s\\cs(%s)%s\\cr",
+                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s►%s\\cs(%s)%s\\cr",
                                     (''):lpad(' ', 5),
                                     colors.attempts,
                                     attempts,
@@ -64,7 +64,7 @@ local buildHelper = function(bp, hmt)
                                 ))
 
                             else
-                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s\\cr%s►%s\\cs(%s)%s\\cr",
+                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s►%s\\cs(%s)%s\\cr",
                                     (''):lpad(' ', 5),
                                     colors.attempts,
                                     attempts,
@@ -99,10 +99,9 @@ local buildHelper = function(bp, hmt)
 
         end
 
-        -- Public Methods.
-
         -- Private Events.
         helper('prerender', pvt.render)
+        helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
