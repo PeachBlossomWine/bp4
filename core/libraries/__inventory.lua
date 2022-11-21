@@ -36,6 +36,10 @@ function library:new(bp)
         
     end
 
+    self.getByIndex = function(bag, index)
+        return windower.ffxi.get_items(bag, index)
+    end
+
     self.findByName = function(search, bag)
         local items = {}
 
