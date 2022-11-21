@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=300, y=450}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=false, bold=false}, text={size=20, font='Impact', alpha=255, red=100, green=215, blue=0, stroke={width=0, alpha=0, red=0, green=0, blue=0}}, padding=2}
+    local layout    = {pos={x=300, y=450}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=false, bold=false}, text={size=20, font='Impact', alpha=255, red=100, green=215, blue=0, stroke={width=2, alpha=175, red=0, green=0, blue=0}}, padding=2}
     local settings  = bp.libs.__settings.new('popchat')
 
     helper.new = function()
@@ -63,7 +63,7 @@ local buildHelper = function(bp, hmt)
 
         -- Public Methods.
         new.pop = function(message)
-            table.insert(messages, {message=string.format('[  %s  ]', tostring(message):upper()), index=(#messages + 1), time=os.time()})
+            table.insert(messages, {message=string.format('[  %s  ]', tostring(message)), index=(#messages + 1), time=os.time()})
             updateDisplay()
 
         end
