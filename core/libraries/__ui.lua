@@ -19,11 +19,14 @@ function library:new(bp)
                 render()
             end
 
-            if not display:visible() then
+            if not display:visible() and display:text() ~= "" then
+                display:bg_visible(true)
                 display:show()
+
             end
 
-        elseif display and not self.visible and display:visible() then
+        elseif display and not self.visible and display:visible() and display:text() == "" then
+            display:bg_visible(false)
             display:hide()
 
         end
