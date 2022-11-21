@@ -44,7 +44,8 @@ function bootstrap()
         self.libs           = {}
         self.colors         = {
 
-            important = string.format('%s,%s,%s', 25, 165, 200)
+            important   = string.format('%s,%s,%s', 025, 165, 200),
+            setting     = string.format('%s,%s,%s', 200, 200, 200),
     
         }
 
@@ -157,9 +158,10 @@ function bootstrap()
             if self.player and self.enabled and not self.libs.__zones:isInJail() and (os.clock() - self.pinger) > self.delay and not self.libs.__buffs.silent() then
 
                 if not self.libs.__zones:isInTown() then
-                    self.helpers.core.handleAutomation()
-    
+                    self.helpers.core.automate()
+
                 elseif self.libs.__zones:isInTown() then
+                    self.helpers.core.automate()
                     
     
                 end
