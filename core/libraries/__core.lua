@@ -3,14 +3,6 @@ function library:new(bp)
     local bp = bp
     local pm = {}
 
-    -- Shortcuts to libraries.
-    local __d = bp.libs.__distance
-    local __a = bp.libs.__actions
-    local __t = bp.libs.__target
-    local __p = bp.libs.__party
-    local __q = bp.libs.__queue
-    local __b = bp.libs.__buffs
-
     -- Private Variables.
     local subjobs   = bp.files.new('core/jobs/resources/subjobs.lua'):exists() and dofile(string.format('%score/jobs/resources/subjobs.lua', windower.addon_path)) or {}
     local switches  = bp.files.new('core/jobs/resources/switches.lua'):exists() and dofile(string.format('%score/jobs/resources/switches.lua', windower.addon_path)) or {}
@@ -332,9 +324,9 @@ function library:new(bp)
 
     }
 
-    -- Public Variables.
-    self.loadSubLogic = function(job) return subjobs[job] and subjobs[job] end
-    self.loadMainLogic = function(job)
+    -- Public Methods.
+    self.getSubjob = function(job) return subjobs[job] and subjobs[job] end
+    self.getJob = function(job)
         if not job then return end
         local file = bp.files.new(string.format('core/jobs/%s.lua', job:lower()))
 
@@ -345,9 +337,6 @@ function library:new(bp)
     
     end
 
-    -- Private Methods.
-
-    -- Public Methods.
     self.newSettings = function() return T(base):copy() end
     self.updateSettings = function(settings)
         local flagged = false
@@ -399,97 +388,35 @@ function library:new(bp)
     self.set = function(settings, commands)
         local command = commands[1] and table.remove(commands, 1):lower() or false
 
-        if switches and settings and commands and command then
-            local core = T(settings.core)
+        if switches and settings and commands then
+            local match = false
 
-            if switches[command] then
-                switches[command](bp, core, commands, command)
-
-            else
+            for _,switch in T(switches):it() do
                 
-                if core:containskey(command) then
-                    
-                    if core[command] ~= nil and type(core[command]) == 'boolean' then
-                            
-                        if S{"!","#"}:contains(commands[1]) then
-                            self.hardSet(bp, core, commands, command)
+                if switch:lower():startswith(command) and switches[switch] then
+                    switches[switch](bp, settings[switch], commands)
+                    match = true
 
-                        else
-                            core[command] = core[command] ~= true and true or false
+                end 
+            
+            end
 
-                        end
+            if not match and settings[command] ~= nil then
 
-                    end
+                if switches[command] then
+                    switches[command](bp, settings[command], commands)
 
                 else
-                    
-                    for setting, name in T(core[bp.player.main_job]):it() do
                         
-                        if name:startswith(command) then
+                    if S{"!","#"}:contains(commands[1]) then
+                        self.hardSet(settings[command], commands)
 
-                            if switches[name] then
-                                switches[name](bp, core, commands, name)
-
-                            else
-                            
-                                if core[bp.player.main_job][name] ~= nil and type(core[bp.player.main_job][name]) == 'boolean' then
-
-                                    if S{"!","#"}:contains(commands[1]) then
-                                        self.hardSet(bp, core[bp.player.main_job], commands, name)
-            
-                                    else
-                                        core[bp.player.main_job][name] = core[bp.player.main_job][name] ~= true and true or false
-            
-                                    end
-
-                                else
-                                    -- ## NEEDS AN ERROR LOGGED.
-            
-                                end
-
-                            end
-
-                        end
+                    else
+                        settings[command] = settings[command] ~= true and true or false
+                        bp.helpers.popchat.pop(string.format('%s: \\cs(%s)%s\\cr', command:upper(), bp.colors.setting, tostring(settings[command]):upper()))
 
                     end
 
-                end
-
-            end            
-
-        end
-
-    end
-
-    self.hardSet = function(bp, settings, commands, command)
-        local settings = settings[command] or settings[bp.player.sub_job][command] or settings[bp.player.main_job][command] or false
-
-        if bp and settings and commands and command and settings ~= nil and #commands > 0 then
-
-            if type(settings) == 'table' and settings.enabled ~= nil then
-                local option = S{"!","#"}:contains(commands[1]) and table.remove(commands, 1) or false
-
-                if option == "!" then
-                    settings[command].enabled = true
-                    bp.helpers.popchat.pop(string.format("%s: ENABLED!", command))
-    
-                elseif option == "#" then
-                    settings[command].enabled = false
-                    bp.helpers.popchat.pop(string.format("%s: DISABLED!", command))
-    
-                end
-
-            elseif type(settings) == 'boolean' and settings ~= nil then
-                local option = S{"!","#"}:contains(commands[1]) and table.remove(commands, 1) or false
-
-                if option == "!" then
-                    settings[command].enabled = true
-                    bp.helpers.popchat.pop(string.format("%s: ENABLED!", command))
-    
-                elseif option == "#" then
-                    settings[command].enabled = false
-                    bp.helpers.popchat.pop(string.format("%s: DISABLED!", command))
-    
                 end
 
             end
@@ -498,18 +425,19 @@ function library:new(bp)
 
     end
 
-    self.get = function(settings, name)
-        if not settings or not name then return {} end
+    self.hardSet = function(setting, commands)
 
-        if settings.core[bp.player.main_job][name] ~= nil then
-            return settings.core[bp.player.main_job][name]
+        if #commands > 0 then
+            local option = S{"!","#"}:contains(commands[1]) and table.remove(commands, 1) or false
 
-        elseif settings.core[bp.player.sub_job][name] ~= nil then
-            return settings.core[bp.player.sub_job][name]
+            if type(setting) == 'table' and setting.enabled ~= nil then
+                setting.enabled = (option == "!") and true or false
 
-        elseif settings.core[name] ~= nil then
-            return settings.core[name]
-        
+            elseif type(setting) == 'boolean' then
+                setting = (option == "!") and true or false
+
+            end
+
         end
 
     end
