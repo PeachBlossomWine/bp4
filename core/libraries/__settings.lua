@@ -11,7 +11,8 @@ function library:new(bp)
         local data = file and file:exists() and dofile(string.format('%score/settings/%s/%s.lua', windower.addon_path, bp.player.name:lower(), setting:lower())) or {}
 
         -- Public Object Variables.
-        settings.display  = false
+        settings.display    = false
+        settings.isNew      = data and T(data):length() == 0 and true or false
 
         -- Public Object Methods.
         function settings:save()
@@ -43,9 +44,23 @@ function library:new(bp)
 
         -- Metatable Functions.
         mt.__index = function(t, k)
-
-            if rawget(data, k) then
+            
+            if rawget(data, k) ~= nil then
                 return rawget(data, k)
+
+            elseif data.core then
+                
+                if rawget(data.core, k) ~= nil then
+                    return rawget(data.core, k)
+
+                elseif data.core[bp.player.sub_job] ~= nil then
+                    return rawget(data.core[bp.player.sub_job], k)
+
+                elseif data.core[bp.player.main_job] ~= nil then
+                    return rawget(data.core[bp.player.main_job], k)
+
+                end
+
             else
                 return nil
 
@@ -54,7 +69,32 @@ function library:new(bp)
         end
 
         mt.__newindex = function(t, k, v)
-            rawset(data, k, v)
+
+            if name:sub(1, 5) == 'jobs/' then
+                
+                if k == 'core' then
+                    rawset(data, k, v)
+
+                elseif data.core then
+                    
+                    if data.core[k] ~= nil then
+                        rawset(data.core, k, v)
+    
+                    elseif data.core[bp.player.sub_job] and data.core[bp.player.sub_job][k] ~= nil then
+                        rawset(data.core[bp.player.sub_job], k, v)
+    
+                    elseif data.core[bp.player.main_job] and data.core[bp.player.main_job][k] ~= nil then
+                        rawset(data.core[bp.player.main_job], k, v)
+    
+                    end
+
+                end
+            
+            else
+                rawset(data, k, v)
+
+            end
+
         end
 
         return setmetatable(settings, mt)
