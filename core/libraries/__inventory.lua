@@ -22,6 +22,7 @@ function library:new(bp)
     end
 
     -- Public Methods.
+    self.getBags = function(region, equippable) return pm.getBagType(region, equippable) end
     self.hasKeyItem = function(id)
         if not id then return false end
             
@@ -196,6 +197,10 @@ function library:new(bp)
         end
         return false
 
+    end
+
+    self.isEquippable = function(bag)
+        return T(__bags.equippable):contains(bag)
     end
 
     return self

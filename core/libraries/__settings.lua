@@ -49,29 +49,27 @@ function library:new(bp)
                 return rawget(data, k)
 
             elseif data.core then
-                
+
                 if rawget(data.core, k) ~= nil then
                     return rawget(data.core, k)
 
-                elseif data.core[bp.player.sub_job] ~= nil then
+                elseif data.core[bp.player.sub_job] ~= nil and rawget(data.core[bp.player.sub_job], k) ~= nil then
                     return rawget(data.core[bp.player.sub_job], k)
 
-                elseif data.core[bp.player.main_job] ~= nil then
+                elseif data.core[bp.player.main_job] ~= nil and rawget(data.core[bp.player.main_job], k) ~= nil then
                     return rawget(data.core[bp.player.main_job], k)
 
                 end
 
-            else
-                return nil
-
             end
+            return nil
 
         end
 
         mt.__newindex = function(t, k, v)
 
             if name:sub(1, 5) == 'jobs/' then
-                
+
                 if k == 'core' then
                     rawset(data, k, v)
 
@@ -92,6 +90,23 @@ function library:new(bp)
             
             else
                 rawset(data, k, v)
+
+            end
+
+        end
+
+        mt.__call = function(t, k)
+            
+            if k then
+
+            elseif k == nil then
+
+                if not data.core then
+
+                else
+                    return T(data.core)
+
+                end
 
             end
 

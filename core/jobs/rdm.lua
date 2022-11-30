@@ -1,292 +1,584 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
     -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {}
-    local flags     = {}
+    local __flags     = {}
+    local __timers    = {}
+    local __events    = {}
+    local __sublogic  = bp.libs.__core.getSubjob(bp.player.sub_job)
+    local __nukes     = T{}
 
-    self.getFlags = function()
-        return flags
+    -- Private Methods.
+    function self.unloadEvents()
+
+        for _,id in pairs(__events) do
+            windower.unregister_event(id)
+        end
+
     end
 
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
+    function self:useItems()
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        if settings.food and settings.skillup and not settings.skillup.enabled and self.canItem() then
 
-                if get('ja') and _act then
+        elseif self.canItem() then
+
+            if bp.player.status == 1 then
+
+            elseif bp.player.status == 0 then
+
+            end
+
+        end
+
+    end
+
+    function self:castNukes(target)
+
+        if target then
+
+            for spell in __nukes:it() do
+
+                if self.canCast() and self.isReady(spell) and not self.inQueue(spell) then
+                    self.add(spell, target, self.priority(spell))
+                end
+
+            end
+
+        end
+
+    end
+
+    -- Public Methods.
+    function self:automate()
+        local target = self.target()
+
+        self:useItems()
+        if self and bp.player.status == 1 then
+            local target = self.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- NOT IN NUKE MODE.
+            if not settings.nuke then
+
+                if settings.hate then
+                    __sublogic.hate(bp, settings, self)
+                end
+
+                if settings.ja and self.canAct() then
+
+                    -- ONE-HOURS.
+                    if settings['1hr'] then
+
+                        if self.isReady("Chain Spell") then
+                            self.add("Chain Spell", bp.player, self.priority("Chain Spell"))
+                        end
+                        
+                        if self.isReady("Stymie") then
+                            self.add("Stymie", bp.player, self.priority("Stymie"))
+                        end
+
+                    end
 
                     -- CONVERT.
-                    if get('convert').enabled and player['vitals'].hpp >= get('convert').hpp and player['vitals'].mpp <= get('convert').mpp then
+                    if settings.convert and settings.convert.enabled and self.vitals.hpp >= settings.convert.hpp and self.vitals.mpp <= settings.convert.mpp then
+                        local mpp, hpp = settings.convert.mpp, settings.convert.hpp
                                     
-                        if isReady('JA', "Convert") then
-                            add(bp.JA["Convert"], player)
+                        if self.vitals.hpp >= hpp and self.vitals.mpp <= mpp and self.isReady("Convert") then
+                            self.add("Convert", bp.player, self.priority("Convert"))
                         end
                         
                     end
 
                     -- SABOTEUR.
-                    if get('debuffs') and get('saboteur') and isReady('JA', "Saboteur") and not buff(454) then
-                        add(bp.JA["Saboteur"], player)
+                    if settings.debuffs and settings.saboteur and self.isReady("Saboteur") and not self.buff(454) then
+                        self.add("Saboteur", bp.player, self.priority("Saboteur"))
                     end
+                    __sublogic.ja(bp, settings, self)
 
-                    -- SPONTANEITY.
-                    if get('spontaneity') and isReady('JA', "Spontaneity") and not buff(230) and get('buffs') then
-                        add(bp.JA["Spontaneity"], player)
-                    end
-    
                 end
-    
-                if get('buffs') then
 
-                    if get('composure') and not buff(419) then
+                if settings.buffs then
 
-                        -- SABOTEUR.
-                        if get('composure') and isReady('JA', "Composure") and not buff(419) then
-                            add(bp.JA["Composure"], player)
-                        end
+                    -- COMPOSURE.
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                        self.add("Composure", bp.player, self.priority("Composure"))
 
-                    elseif (not get('composure') or buff(419)) and _cast then
+                    elseif (not settings.composure or self.buff(419)) and self.canCast() then
                     
                         -- HASTE.
-                        if not buff(33) and player.main_job_level >= 48 then
+                        if not self.buff(33) and self.mlevel >= 48 then
                             
-                            if player.main_job_level >= 96 and isReady('MA', "Haste II") then
-                                add(bp.MA["Haste II"], player)
+                            if self.mlevel >= 96 and self.isReady("Haste II") then
+                                self.add("Haste II", bp.player, self.priority("Haste II"))
 
-                            elseif player.main_job_level < 96 and isReady('MA', "Haste") then
-                                add(bp.MA["Haste"], player)
+                            elseif self.mlevel < 96 and self.isReady("Haste") then
+                                self.add("Haste", bp.player, self.priority("Haste"))
 
                             end
                         
                         end
 
                         -- TEMPER.
-                        if not buff(432) and player.main_job_level >= 95 then
+                        if not self.buff(432) and self.mlevel >= 95 then
 
-                            if player.job_points['rdm'].jp_spent >= 99 and isReady('MA', "Temper II") then
-                                add(bp.MA["Temper II"], player)
+                            if self.jp >= 1200 and self.isReady("Temper II") then
+                                self.add("Temper II", bp.player, self.priority("Temper II"))
 
-                            elseif player.job_points['rdm'].jp_spent < 99 and isReady('MA', "Temper") then
-                                add(bp.MA["Temper"], player)
+                            elseif self.jp < 1200 and self.isReady("Temper") then
+                                self.add("Temper", bp.player, self.priority("Temper"))
 
                             end
 
                         end
 
                         -- GAINS.
-                        if get('gain').enabled and not bp.core.hasBoost() and isReady('MA', get('gain').name) then
-                            add(bp.MA[get('gain').name], player)                                                
+                        if settings.gain and settings.gain.enabled and not bp.__buffs.hasWHMBoost() and self.isReady(settings.gain.name) then
+                            self.add(settings.gain.name, bp.player, self.priority(settings.gain.name))
                         end
                         
                         -- PHALANX.
-                        if isReady('MA', "Phalanx") and not buff(116) then
-                            add(bp.MA["Phalanx"], player)
+                        if not self.buff(116) and self.isReady("Phalanx") then
+                            self.add("Phalanx", bp.player, self.priority("Phalanx"))
                             
                         -- REFRESH.
-                        elseif not buff(43) and (not buff(187) or not buff(188)) then
+                        elseif not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
 
-                            if player.job_points['rdm'].jp_spent >= 1200 and isReady('MA', "Refresh III") then
-                                add(bp.MA["Refresh III"], player)
+                            if self.jp >= 1200 and self.isReady("Refresh III") then
+                                self.add("Refresh III", bp.player, self.priority("Refresh III"))
 
-                            elseif player.main_job_level >= 82 and player.job_points['rdm'].jp_spent < 1200 and isReady('MA', "Refresh II") then
-                                add(bp.MA["Refresh II"], player)
+                            elseif self.mlevel >= 82 and self.isReady("Refresh II") then
+                                self.add("Refresh II", bp.player, self.priority("Refresh II"))
 
-                            elseif player.main_job_level < 82 and player.job_points['rdm'].jp_spent < 1200 and isReady('MA', "Refresh") then
-                                add(bp.MA["Refresh"], player)
+                            elseif self.mlevel < 82 and self.isReady("Refresh") then
+                                self.add("Refresh", bp.player, self.priority("Refresh"))
                             
                             end
         
                         -- ENSPELLS.
-                        elseif get('en').enabled and not bp.core.hasEnspell() then
-                                
-                            if isReady('MA', get('en').name) then
-                                add(bp.MA[get('en').name], player)
-                            end
+                        elseif settings.en and settings.en.enabled and not bp.__buffs.hasEnspell() and self.isReady(settings.en.name) then
+                            self.add(settings.en.name, bp.player, self.priority(settings.en.name))
+                            
+                        -- BLINK.
+                        elseif settings.blink and not self.buff(36) and not bp.__buffs.hasShadows() and self.isReady("Blink") then
+                            self.add("Blink", bp.player, self.priority("Blink"))
+
+                        -- AQUAVEIL.
+                        elseif settings.aquaveil and not self.buff(39) and self.isReady("Aquaveil") then
+                            self.add("Aquaveil", bp.player, self.priority("Aquaveil"))
+
+                        -- STONESKIN.
+                        elseif settings.stoneskin and not self.buff(37) and self.isReady("Stoneskin") then
+                            self.add("Stoneskin", bp.player, self.priority("Stoneskin"))
                             
                         end
-                        helpers['buffs'].cast()
-
-                    end
-    
-                end
-
-                -- DEBUFFS.
-                if get('debuffs') and _cast then
-
-                    if get('saboteur') and buff(454) then
-                        helpers['debuffs'].cast()
-
-                    elseif get('saboteur') and not buff(454) and not isReady('JA', 'Saboteur') then
-                        helpers['debuffs'].cast()
-
-                    elseif not get('saboteur') then
-                        helpers['debuffs'].cast()
+                        __sublogic.buffs(bp, settings, self)
+                        bp.buffs.cast()
 
                     end
 
                 end
 
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+                if settings.debuffs then
+                    __sublogic.debuffs(bp, settings, self)
+                end
 
-                if get('ja') and _act then
+            -- NUKE MODE ENABLED.
+            elseif settings.nuke then
+                
+                if settings.hate and target then
+                    __sublogic.hate(bp, settings, self)
+                end
+
+                if settings.ja and self.canAct() then
+
+                    -- ONE-HOURS.
+                    if settings['1hr'] and target then
+
+                        if self.isReady("Chain Spell") then
+                            self.add("Chain Spell", bp.player, self.priority("Chain Spell"))
+                        end
+                        
+                        if self.isReady("Stymie") then
+                            self.add("Stymie", bp.player, self.priority("Stymie"))
+                        end
+
+                    end
 
                     -- CONVERT.
-                    if get('convert').enabled and player['vitals'].hpp >= get('convert').hpp and player['vitals'].mpp <= get('convert').mpp then
+                    if settings.convert and settings.convert.enabled and self.vitals.hpp >= settings.convert.hpp and self.vitals.mpp <= settings.convert.mpp then
+                        local mpp, hpp = settings.convert.mpp, settings.convert.hpp
                                     
-                        if isReady('JA', "Convert") then
-                            add(bp.JA["Convert"], player)                        
+                        if self.vitals.hpp >= hpp and self.vitals.mpp <= mpp and self.isReady("Convert") then
+                            self.add("Convert", bp.player, self.priority("Convert"))
                         end
                         
                     end
 
                     -- SABOTEUR.
-                    if target and get('debuffs') and get('saboteur') and isReady('JA', "Saboteur") and not buff(454) then
-                        add(bp.JA["Saboteur"], player)
+                    if settings.debuffs and settings.saboteur and self.isReady("Saboteur") and not self.buff(454) and target then
+                        self.add("Saboteur", bp.player, self.priority("Saboteur"))
                     end
+                    __sublogic.ja(bp, settings, self)
 
-                    -- SPONTANEITY.
-                    if target and get('spontaneity') and isReady('JA', "Spontaneity") and not buff(230) and get('buffs') then
-                        add(bp.JA["Spontaneity"], player)
-                    end
-    
                 end
-    
-                if get('buffs') then
 
-                    if get('composure') and not buff(419) then
+                if settings.buffs then
 
-                        -- SABOTEUR.
-                        if get('composure') and isReady('JA', "Composure") and not buff(419) then
-                            add(bp.JA["Composure"], player)
-                        end
+                    -- COMPOSURE.
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                        self.add("Composure", bp.player, self.priority("Composure"))
 
-                    elseif (not get('composure') or buff(419)) and _cast then
+                    elseif (not settings.composure or self.buff(419)) and self.canCast() then
                     
                         -- HASTE.
-                        if not buff(33) and player.main_job_level >= 48 then
-                            
-                            if player.main_job_level >= 96 and isReady('MA', "Haste II") then
-                                add(bp.MA["Haste II"], player)
+                        if not self.buff(33) and self.mlevel >= 48 then
 
-                            elseif player.main_job_level < 96 and isReady('MA', "Haste") then
-                                add(bp.MA["Haste"], player)
+                            if self.mlevel >= 96 and self.isReady("Haste II") then
+                                self.add("Haste II", bp.player, self.priority("Haste II"))
+
+                            elseif self.mlevel < 96 and self.isReady("Haste") then
+                                self.add("Haste", bp.player, self.priority("Haste"))
 
                             end
                         
                         end
 
                         -- GAINS.
-                        if get('gain').enabled and not bp.core.hasBoost() and isReady('MA', get('gain').name) then
-                            add(bp.MA[get('gain').name], player)                                                
+                        if settings.gain and settings.gain.enabled and not bp.__buffs.hasWHMBoost() and self.isReady(settings.gain.name) and target then
+                            self.add(settings.gain.name, bp.player, self.priority(settings.gain.name))
                         end
                         
                         -- PHALANX.
-                        if isReady('MA', "Phalanx") and not buff(116) then
-                            add(bp.MA["Phalanx"], player)
+                        if not self.buff(116) and self.isReady("Phalanx") then
+                            self.add("Phalanx", bp.player, self.priority("Phalanx"))
                             
                         -- REFRESH.
-                        elseif not buff(43) and (not buff(187) or not buff(188)) then
+                        elseif not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
 
-                            if player.job_points['rdm'].jp_spent >= 1200 and isReady('MA', "Refresh III") then
-                                add(bp.MA["Refresh III"], player)
+                            if self.jp >= 1200 and self.isReady("Refresh III") then
+                                self.add("Refresh III", bp.player, self.priority("Refresh III"))
 
-                            elseif player.main_job_level >= 82 and player.job_points['rdm'].jp_spent < 1200 and isReady('MA', "Refresh II") then
-                                add(bp.MA["Refresh II"], player)
+                            elseif self.mlevel >= 82 and self.isReady("Refresh II") then
+                                self.add("Refresh II", bp.player, self.priority("Refresh II"))
 
-                            elseif player.main_job_level < 82 and player.job_points['rdm'].jp_spent < 1200 and isReady('MA', "Refresh") then
-                                add(bp.MA["Refresh"], player)
+                            elseif self.mlevel < 82 and self.isReady("Refresh") then
+                                self.add("Refresh", bp.player, self.priority("Refresh"))
                             
                             end
-                            
-                        -- STONESKIN.
-                        elseif get('stoneskin') and isReady('MA', "Stoneskin") and not buff(37) then
-                            add(bp.MA["Stoneskin"], player)
-        
-                        -- AQUAVEIL.
-                        elseif get('aquaveil') and isReady('MA', "Aquaveil") and not buff(39) then
-                            add(bp.MA["Aquaveil"], player)
-        
+
                         -- BLINK.
-                        elseif get('blink') and isReady('MA', "Blink") and not get('utsusemi') and not buff(36) and not bp.core.hasShadows() then
-                            add(bp.MA["Blink"], player)
+                        elseif settings.blink and not self.buff(36) and not bp.__buffs.hasShadows() and self.isReady("Blink") then
+                            self.add("Blink", bp.player, self.priority("Blink"))
+
+                        -- AQUAVEIL.
+                        elseif settings.aquaveil and not self.buff(39) and self.isReady("Aquaveil") then
+                            self.add("Aquaveil", bp.player, self.priority("Aquaveil"))
+
+                        -- STONESKIN.
+                        elseif settings.stoneskin and not self.buff(37) and self.isReady("Stoneskin") then
+                            self.add("Stoneskin", bp.player, self.priority("Stoneskin"))
                             
-                        -- SPIKES.
-                        elseif isReady('MA', get('spikes').name) and not bp.core.hasSpikes() then
-                            add(bp.MA[get('spikes')], player)
-                            
+                        end
+                        __sublogic.buffs(bp, settings, self)
+                        bp.buffs.cast()
+
+                    end
+
+                end
+
+                if settings.debuffs then
+                    __sublogic.debuffs(bp, settings, self)
+                end
+                self:castNukes(target)
+
+            end
+
+        elseif self and bp.player.status == 0 then
+
+            if not settings.nuke then
+
+                if settings.hate and target then
+                    __sublogic.hate(bp, settings, self)
+                end
+
+                if settings.ja and self.canAct() then
+
+                    -- ONE-HOURS.
+                    if settings['1hr'] and target then
+
+                        if self.isReady("Chain Spell") then
+                            self.add("Chain Spell", bp.player, self.priority("Chain Spell"))
+                        end
+                        
+                        if self.isReady("Stymie") then
+                            self.add("Stymie", bp.player, self.priority("Stymie"))
                         end
 
                     end
-                    helpers['buffs'].cast()
-    
+
+                    -- CONVERT.
+                    if settings.convert and settings.convert.enabled and self.vitals.hpp >= settings.convert.hpp and self.vitals.mpp <= settings.convert.mpp then
+                        local mpp, hpp = settings.convert.mpp, settings.convert.hpp
+                                    
+                        if self.vitals.hpp >= hpp and self.vitals.mpp <= mpp and self.isReady("Convert") then
+                            self.add("Convert", bp.player, self.priority("Convert"))
+                        end
+                        
+                    end
+
+                    -- SABOTEUR.
+                    if settings.debuffs and settings.saboteur and self.isReady("Saboteur") and not self.buff(454) and target then
+                        self.add("Saboteur", bp.player, self.priority("Saboteur"))
+                    end
+                    __sublogic.ja(bp, settings, self)
+
                 end
 
-                if target and get('debuffs') and _cast then
+                if settings.buffs then
 
-                    if get('saboteur') and buff(454) then
-                        helpers['debuffs'].cast()
+                    -- COMPOSURE.
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                        self.add("Composure", bp.player, self.priority("Composure"))
 
-                    elseif get('saboteur') and not buff(454) and not isReady('JA', 'Saboteur') then
-                        helpers['debuffs'].cast()
+                    elseif (not settings.composure or self.buff(419)) and self.canCast() then
+                    
+                        -- HASTE.
+                        if not self.buff(33) and self.mlevel >= 48 then
 
-                    elseif not get('saboteur') then
-                        helpers['debuffs'].cast()
+                            if self.mlevel >= 96 and self.isReady("Haste II") then
+                                self.add("Haste II", bp.player, self.priority("Haste II"))
+
+                            elseif self.mlevel < 96 and self.isReady("Haste") then
+                                self.add("Haste", bp.player, self.priority("Haste"))
+
+                            end
+                        
+                        end
+
+                        -- TEMPER.
+                        if not self.buff(432) and self.mlevel >= 95 and target then
+
+                            if self.jp >= 1200 and self.isReady("Temper II") then
+                                self.add("Temper II", bp.player, self.priority("Temper II"))
+
+                            elseif self.jp < 1200 and self.isReady("Temper") then
+                                self.add("Temper", bp.player, self.priority("Temper"))
+
+                            end
+
+                        end
+
+                        -- GAINS.
+                        if settings.gain and settings.gain.enabled and not bp.__buffs.hasWHMBoost() and self.isReady(settings.gain.name) and target then
+                            self.add(settings.gain.name, bp.player, self.priority(settings.gain.name))
+                        end
+                        
+                        -- PHALANX.
+                        if not self.buff(116) and self.isReady("Phalanx") then
+                            self.add("Phalanx", bp.player, self.priority("Phalanx"))
+                            
+                        -- REFRESH.
+                        elseif not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
+
+                            if self.jp >= 1200 and self.isReady("Refresh III") then
+                                self.add("Refresh III", bp.player, self.priority("Refresh III"))
+
+                            elseif self.mlevel >= 82 and self.isReady("Refresh II") then
+                                self.add("Refresh II", bp.player, self.priority("Refresh II"))
+
+                            elseif self.mlevel < 82 and self.isReady("Refresh") then
+                                self.add("Refresh", bp.player, self.priority("Refresh"))
+                            
+                            end
+        
+                        -- ENSPELLS.
+                        elseif settings.en and settings.en.enabled and not bp.__buffs.hasEnspell() and self.isReady(settings.en.name) and target then
+                            self.add(settings.en.name, bp.player, self.priority(settings.en.name))
+
+                        -- BLINK.
+                        elseif settings.blink and not self.buff(36) and not bp.__buffs.hasShadows() and self.isReady("Blink") then
+                            self.add("Blink", bp.player, self.priority("Blink"))
+
+                        -- AQUAVEIL.
+                        elseif settings.aquaveil and not self.buff(39) and self.isReady("Aquaveil") then
+                            self.add("Aquaveil", bp.player, self.priority("Aquaveil"))
+
+                        -- STONESKIN.
+                        elseif settings.stoneskin and not self.buff(37) and self.isReady("Stoneskin") then
+                            self.add("Stoneskin", bp.player, self.priority("Stoneskin"))
+                            
+                        end
+                        __sublogic.buffs(bp, settings, self)
+                        bp.buffs.cast()
 
                     end
 
                 end
+
+                if settings.debuffs then
+                    __sublogic.debuffs(bp, settings, self)
+                end
+
+            -- NUKE MODE ENABLED.
+            elseif settings.nuke then
+
+                if settings.hate and target then
+                    __sublogic.hate(bp, settings, self)
+                end
+
+                if settings.ja and self.canAct() then
+
+                    -- ONE-HOURS.
+                    if settings['1hr'] and target then
+
+                        if self.isReady("Chain Spell") then
+                            self.add("Chain Spell", bp.player, self.priority("Chain Spell"))
+                        end
+                        
+                        if self.isReady("Stymie") then
+                            self.add("Stymie", bp.player, self.priority("Stymie"))
+                        end
+
+                    end
+
+                    -- CONVERT.
+                    if settings.convert and settings.convert.enabled and self.vitals.hpp >= settings.convert.hpp and self.vitals.mpp <= settings.convert.mpp then
+                        local mpp, hpp = settings.convert.mpp, settings.convert.hpp
+                                    
+                        if self.vitals.hpp >= hpp and self.vitals.mpp <= mpp and self.isReady("Convert") then
+                            self.add("Convert", bp.player, self.priority("Convert"))
+                        end
+                        
+                    end
+
+                    -- SABOTEUR.
+                    if settings.debuffs and settings.saboteur and self.isReady("Saboteur") and not self.buff(454) and target then
+                        self.add("Saboteur", bp.player, self.priority("Saboteur"))
+                    end
+                    __sublogic.ja(bp, settings, self)
+
+                end
+
+                if settings.buffs then
+
+                    -- COMPOSURE.
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                        self.add("Composure", bp.player, self.priority("Composure"))
+
+                    elseif (not settings.composure or self.buff(419)) and self.canCast() then
+                    
+                        -- HASTE.
+                        if not self.buff(33) and self.mlevel >= 48 then
+
+                            if self.mlevel >= 96 and self.isReady("Haste II") then
+                                self.add("Haste II", bp.player, self.priority("Haste II"))
+
+                            elseif self.mlevel < 96 and self.isReady("Haste") then
+                                self.add("Haste", bp.player, self.priority("Haste"))
+
+                            end
+                        
+                        end
+
+                        -- GAINS.
+                        if settings.gain and settings.gain.enabled and not bp.__buffs.hasWHMBoost() and self.isReady(settings.gain.name) and target then
+                            self.add(settings.gain.name, bp.player, self.priority(settings.gain.name))
+                        end
+                        
+                        -- PHALANX.
+                        if not self.buff(116) and self.isReady("Phalanx") then
+                            self.add("Phalanx", bp.player, self.priority("Phalanx"))
+                            
+                        -- REFRESH.
+                        elseif not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
+
+                            if self.jp >= 1200 and self.isReady("Refresh III") then
+                                self.add("Refresh III", bp.player, self.priority("Refresh III"))
+
+                            elseif self.mlevel >= 82 and self.isReady("Refresh II") then
+                                self.add("Refresh II", bp.player, self.priority("Refresh II"))
+
+                            elseif self.mlevel < 82 and self.isReady("Refresh") then
+                                self.add("Refresh", bp.player, self.priority("Refresh"))
+                            
+                            end
+
+                        -- BLINK.
+                        elseif settings.blink and not self.buff(36) and not bp.__buffs.hasShadows() and self.isReady("Blink") then
+                            self.add("Blink", bp.player, self.priority("Blink"))
+
+                        -- AQUAVEIL.
+                        elseif settings.aquaveil and not self.buff(39) and self.isReady("Aquaveil") then
+                            self.add("Aquaveil", bp.player, self.priority("Aquaveil"))
+
+                        -- STONESKIN.
+                        elseif settings.stoneskin and not self.buff(37) and self.isReady("Stoneskin") then
+                            self.add("Stoneskin", bp.player, self.priority("Stoneskin"))
+                            
+                        end
+                        __sublogic.buffs(bp, settings, self)
+                        bp.buffs.cast()
+
+                    end
+
+                end
+
+                if settings.debuffs then
+                    __sublogic.debuffs(bp, settings, self)
+                end
+                self:castNukes(target)
 
             end
 
         end
-        
-    end
-
-    private.items = function()
 
     end
 
     -- Private Events.
-    private.events.actions = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
+    __events.jobchange = windower.register_event('job change', self.unloadEvents)
+    __events.commands = windower.register_event('addon command', function(...)
+        local commands  = T{...}
+        local command   = table.remove(commands, 1)
+        
+        if bp and command and command:lower() == 'core' and #commands > 0 then
+            local command = commands[1] and table.remove(commands, 1):lower() or false
+
+            if ("nukes"):startswith(command) then
+                local option = commands[1] and table.remove(commands, 1):lower() or false
+
+                if option == '+' and #commands > 0 then
+                    bp.core.addNuke(__nukes, commands)
+
+                elseif option == '-' and #commands > 0 then
+                    bp.core.deleteNuke(__nukes, commands)
+
+                elseif option == 'clear' then
+                    bp.core.clearNukes(__nukes)
+
+                end
+
+            end
+
+        end
+
+    end)
+
+    __events.incoming = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
         
         if bp and id == 0x028 then
-            local pack      = bp.packets.parse('incoming', original)
-            local actor     = windower.ffxi.get_mob_by_id(pack['Actor'])
-            local target    = windower.ffxi.get_mob_by_id(pack['Target 1 ID'])
-            local count     = pack['Target Count']
-            local category  = pack['Category']
-            local param     = pack['Param']
-            local player    = bp.player
+            local parsed    = bp.packets.parse('incoming', original)
+            local actor     = windower.ffxi.get_mob_by_id(parsed['Actor'])
+            local target    = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])
+            local count     = parsed['Target Count']
+            local category  = parsed['Category']
+            local param     = parsed['Param']
             
-            if player and actor and target then
-
-                -- Finish Job Ability.
-                if pack['Category'] == 6 and player.id == actor.id and bp.res.job_abilities[param] and bp.res.job_abilities[param].en == 'Saboteur' then
-                    --bp.helpers['debuffs'].reset() Reset?
-                end
+            if bp.player and actor and target then
 
             end
 
@@ -294,33 +586,10 @@ function job.get(bp)
 
     end)
 
-    private.events.timechange = windower.register_event('time change', function()
-        local isReady   = bp.helpers['actions'].isReady
-        local add       = bp.helpers['queue'].add
-
-        if bp and bp.helpers['target'].getTarget() then
-            local target = bp.helpers['target'].getTarget()
-
-            if target and target.name == 'Brimboil' and not T{2,3}:contains(target.status) then
-
-                if isReady('MA', "Blizzard") and bp.helpers['actions'].canCast() then
-                    add(bp.MA["Blizzard"], target)
-                end
-
-            end
-
-        end
+    __events.timechange = windower.register_event('time change', function()
 
     end)
-
-    private.events.jobchange = windower.register_event('job change', function()
-        
-        for _,id in pairs(private.events) do
-            windower.unregister_event(id)
-        end
-
-    end)
-
+    
     return self
 
 end

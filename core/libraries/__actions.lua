@@ -3,7 +3,7 @@ function library:new(bp)
     local bp = bp
 
     -- Private Variables.
-    local anchor        = {__set=false, __position={x=0, y=0, z=0}}
+    local anchor        = {__set=false, __midcast=false, __position={x=0, y=0, z=0}}
     local unique        = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
     local __position    = {x=0, y=0, z=0}
     local __moving      = false
@@ -268,60 +268,22 @@ function library:new(bp)
 
     end
 
-    self.isReady = function(name)
+    self.isReady = function(action)
 
         if bp and bp.player then
+            local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
 
-            if bp.JA[name] then
-                local action = bp.JA[name]
+            if action and S{'/jobability','/pet'}:contains(action.prefix) then
+                local skills = windower.ffxi.get_abilities().job_abilities
+                local recast = windower.ffxi.get_ability_recasts()
 
-                if action and (action.prefix == '/jobability' or action.prefix == '/pet') then
-                    local skills = windower.ffxi.get_abilities().job_abilities
-                    local recast = windower.ffxi.get_ability_recasts()
+                if skills then
 
-                    if skills then
+                    for _,v in ipairs(skills) do
 
-                        for _,v in ipairs(skills) do
+                        if v == action.id then
 
-                            if v == action.id then
-
-                                if recast[action.recast_id] and recast[action.recast_id] < 1 then
-                                    return true
-                                end
-
-                            end
-
-                        end
-
-                    end
-
-                end
-
-            elseif bp.MA[name] then
-                local action  = bp.MA[name]
-                local jpoints = bp.player['job_points'][bp.player.main_job:lower()].jp_spent
-                local job     = {main = {id=bp.player.main_job_id, level=bp.player.main_job_level}, sub = {id=bp.player.sub_job_id, level=bp.player.sub_job_level}}
-
-                if action then
-                    local spells = windower.ffxi.get_spells()
-                    local recast = windower.ffxi.get_spell_recasts()
-
-                    if spells and spells[action.id] and recast[action.recast_id] and recast[action.recast_id] < 1 then
-                        local main    = action.levels[job.main.id] or false
-                        local sub     = action.levels[job.sub.id] or false
-
-                        if main then
-
-                            if main < 100 and job.main.level >= main then
-                                return true
-
-                            elseif main >= 100 and jpoints >= main then
-                                return true
-                            end
-
-                        elseif sub then
-
-                            if sub < 100 and job.sub.level >= sub then
+                            if recast[action.recast_id] and recast[action.recast_id] < 1 then
                                 return true
                             end
 
@@ -331,11 +293,39 @@ function library:new(bp)
 
                 end
 
-            elseif bp.WS[name] then
-                local action = bp.WS[name]
+            elseif action and S{'/magic','/ninjutsu','/song'}:contains(action.prefix) then
+                local spells    = windower.ffxi.get_spells()
+                local recast    = windower.ffxi.get_spell_recasts()
+                local jpoints   = bp.player['job_points'][bp.player.main_job:lower()].jp_spent
+                local job       = {main = {id=bp.player.main_job_id, level=bp.player.main_job_level}, sub = {id=bp.player.sub_job_id, level=bp.player.sub_job_level}}
+
+                if spells and spells[action.id] and recast[action.recast_id] and recast[action.recast_id] < 1 then
+                    local main  = action.levels[job.main.id] or false
+                    local sub   = action.levels[job.sub.id] or false
+
+                    if main then
+
+                        if main < 100 and job.main.level >= main then
+                            return true
+
+                        elseif main >= 100 and jpoints >= main then
+                            return true
+                        end
+
+                    elseif sub then
+
+                        if sub < 100 and job.sub.level >= sub then
+                            return true
+                        end
+
+                    end
+
+                end
+
+            elseif action and S{'/weaponskill'}:contains(action.prefix) then
                 local skills = windower.ffxi.get_abilities().weapon_skills
 
-                if action and player['vitals'].tp > 999 then
+                if bp.player['vitals'].tp > 999 then
 
                     for skill in T(skills):it() do
 
@@ -555,7 +545,7 @@ function library:new(bp)
         if bp and not blocked and id == 0x015 and self.__castlock then
             local parsed = bp.packets.parse('outgoing', original)
 
-            if parsed and anchor.__set and anchor.__position and T(anchor.__position):sum() > 0 then
+            if parsed and anchor.__set and anchor.__position and math.abs(T(anchor.__position):sum()) > 0 then
 
                 do
                     parsed['Run Count'] = 2
@@ -574,7 +564,7 @@ function library:new(bp)
         elseif bp and not blocked and id == 0x01a and self.__castlock then
             local parsed = bp.packets.parse('outgoing', original)
 
-            if parsed['Category'] == 3 then
+            if parsed['Category'] == 3 and not anchor.__set then
                 anchor.__set = true
             end
 
@@ -593,20 +583,20 @@ function library:new(bp)
                 if category == 8 and parsed['Actor'] == bp.player.id then
 
                     if parsed['Param'] ~= 24931 then
-                        anchor.__set = false
+                        anchor.__set, anchor.__midcast = false, true
                     end
 
                 elseif category == 4 then
-                    anchor.__set = false
+                    anchor.__set, anchor.__midcast = false, false
 
                 end
-    
+
             end
 
         elseif id == 0x029 then
             local parsed = bp.packets.parse('incoming', original)
 
-            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{16,17,18}:contains(parsed['Message']) then
+            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{16,17,18}:contains(parsed['Message']) and not anchor.__midcast then
                 anchor.__set = false
             end
 

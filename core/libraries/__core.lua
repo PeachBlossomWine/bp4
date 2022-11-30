@@ -11,13 +11,14 @@ function library:new(bp)
 
         ["__version"]               = {_addon.version},
         ["am"]                      = {enabled=false, tp=3000},
-        ["ra"]                      = {enabled=false, tp=1000, name="Hot Shot"},
+        ["rws"]                     = {enabled=false, tp=1000, name="Hot Shot"},
         ["ws"]                      = {enabled=false, tp=1000, name="Combo"},
         ["hate"]                    = {enabled=false, delay=2, aoe=false},
         ["mb"]                      = {enabled=false, element="Fire", tier=2, multi=false},
         ["skillup"]                 = {enabled=false, skill="Enhancing Magic"},
         ["food"]                    = {enabled=false, name=""},
-        ["limit"]                   = {enabled=false, hpp=10},
+        ["limit"]                   = {enabled=false, hpp=10, option=">"},
+        ["ra"]                      = false,
         ["items"]                   = false,
         ["buffs"]                   = false,
         ["debuffs"]                 = false,
@@ -224,7 +225,6 @@ function library:new(bp)
         },
 
         ["BLU"] = {
-            ["tickle"]              = {enabled=false, delay=45},
             ["sanguine blade"]      = {enabled=false, hpp=55},
             ["moonlight"]           = {enabled=false, mpp=45},
             ["aspir"]               = {enabled=false, mpp=45},
@@ -235,6 +235,7 @@ function library:new(bp)
             ["diffusion"]           = false,
             ["efflux"]              = false,
             ["winds"]               = false,
+            ["tickle"]              = false,
             ["unbridled learning"]  = false,
         },
 
@@ -268,8 +269,8 @@ function library:new(bp)
 
         ["SCH"] = {
             ['gems']                = {enabled=false, penury={}, celerity={}, accession={}, rapture={}, perpetuance={}, parsimony={}, alacrity={}, manifestation={}, ebullience={}},
+            ["helix"]               = {enabled=false, name="Pyrohelix", tier=1},
             ["spikes"]              = {enabled=false, name="Blaze Spikes"},
-            ["helix"]               = {enabled=false, name="Pyrohelix"},
             ["storms"]              = {enabled=false, name="Firestorm"},
             ["skillchain"]          = {enabled=false, mode="Fusion"},
             ["sublimation"]         = {enabled=false, mpp=65},
@@ -325,7 +326,7 @@ function library:new(bp)
     }
 
     -- Public Methods.
-    self.getSubjob = function(job) return subjobs[job] and subjobs[job] end
+    self.getSubjob = function(job) return subjobs[job] and setmetatable(subjobs[job], subjobs.mt) end
     self.getJob = function(job)
         if not job then return end
         local file = bp.files.new(string.format('core/jobs/%s.lua', job:lower()))
@@ -380,42 +381,38 @@ function library:new(bp)
         end
         
         if flagged then
-            bp.helpers.popchat.pop("SETTINGS HAVE BEEN UPDATED TO THE LATEST VERSION!")
+            bp.popchat.pop("SETTINGS HAVE BEEN UPDATED TO THE LATEST VERSION!")
         end
 
     end
 
     self.set = function(settings, commands)
         local command = commands[1] and table.remove(commands, 1):lower() or false
-
-        if switches and settings and commands then
+        
+        if switches and settings and command then
+            local setting = settings():keyfind(function(key) return key:startswith(command) end) or T(settings[bp.player.sub_job]):keyfind(function(key) return key:startswith(command) end) or T(settings[bp.player.main_job]):keyfind(function(key) return key:startswith(command) end)
             local match = false
 
-            for _,switch in T(switches):it() do
+            if switches[setting] then
+
+                for _,switch in T(switches):it() do
+
+                    if switch:lower():startswith(command) and switches[switch] then
+                        switches[switch](bp, settings[switch], commands)
+
+                    end 
                 
-                if switch:lower():startswith(command) and switches[switch] then
-                    switches[switch](bp, settings[switch], commands)
-                    match = true
+                end
 
-                end 
-            
-            end
+            elseif settings[setting] ~= nil then
 
-            if not match and settings[command] ~= nil then
-
-                if switches[command] then
-                    switches[command](bp, settings[command], commands)
+                if S{"!","#"}:contains(commands[1]) then
+                    settings[setting] = self.hardSet(settings[setting], commands)
+                    bp.popchat.pop(string.format('%s: \\cs(%s)%s\\cr', setting:upper(), bp.colors.setting, tostring(settings[setting]):upper()))
 
                 else
-                        
-                    if S{"!","#"}:contains(commands[1]) then
-                        self.hardSet(settings[command], commands)
-
-                    else
-                        settings[command] = settings[command] ~= true and true or false
-                        bp.helpers.popchat.pop(string.format('%s: \\cs(%s)%s\\cr', command:upper(), bp.colors.setting, tostring(settings[command]):upper()))
-
-                    end
+                    settings[setting] = settings[setting] ~= true and true or false
+                    bp.popchat.pop(string.format('%s: \\cs(%s)%s\\cr', setting:upper(), bp.colors.setting, tostring(settings[setting]):upper()))
 
                 end
 
@@ -426,15 +423,15 @@ function library:new(bp)
     end
 
     self.hardSet = function(setting, commands)
-
+        
         if #commands > 0 then
             local option = S{"!","#"}:contains(commands[1]) and table.remove(commands, 1) or false
 
-            if type(setting) == 'table' and setting.enabled ~= nil then
+            if option and type(setting) == 'table' and setting.enabled ~= nil then
                 setting.enabled = (option == "!") and true or false
 
-            elseif type(setting) == 'boolean' then
-                setting = (option == "!") and true or false
+            elseif option and type(setting) == 'boolean' then
+                return (option == "!") and true or false
 
             end
 
@@ -458,12 +455,7 @@ function library:new(bp)
                     local spell = bp.res.spells[param]
 
                     if spell.type then
-                        local is_nin = (player.main_job == 'NIN' or player.sub_job == 'NIN') and true or false
-
-                        if is_nin and (spell.en):match('Utsusemi') then
-                            timers.utsusemi = os.clock()
-                        end
-
+                        timers.utsusemi = (bp.player.main_job == 'NIN' or bp.player.sub_job == 'NIN') and os.clock() or timers.utsusemi
                     end
 
                 end

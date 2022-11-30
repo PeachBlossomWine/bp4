@@ -117,6 +117,29 @@ local buildHelper = function(bp, hmt)
             end
     
         end
+
+        new.cast = function()
+            
+            for data in T(__buffing):it() do
+                local target = data.player
+
+                for id, spell in pairs(data.spells) do
+                    
+                    if spell.last and spell.status and not bp.__buffs.hasBuff(target.id, spell.status) and (os.clock()-spell.last) > spell.delay then
+                        
+                        if bp.res.spells[id] and not bp.__queue.inQueue(bp.res.spells[id], target) then
+                            bp.__queue.add(bp.res.spells[id], target, bp.priorities.get(bp.res.spells[id].en, true))
+                            spell.last = os.clock()
+
+                        end
+
+                    end
+
+                end
+
+            end
+    
+        end
         
         -- Private Events.
         helper('prerender', pvt.render)

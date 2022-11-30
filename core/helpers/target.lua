@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=10, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=5}
+    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=15, font='Arial', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
     local settings  = bp.libs.__settings.new('target')
 
     helper.new = function()
@@ -55,11 +55,11 @@ local buildHelper = function(bp, hmt)
         pvt.updateDisplay = function()
 
             if new.targets.player and new.targets.player.name then
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s (%s)\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, new.targets.player.name:sub(1, 8), #new.targets.player.name > 8 and '...' or '', new.targets.player.index))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, new.targets.player.name:sub(1, 10), #new.targets.player.name > 10 and '...' or '', new.targets.player.index))
                 settings.display:update()
 
             else
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s (%s)\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, '........', 0))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, '........', 0))
                 settings.display:update()
 
             end
@@ -154,6 +154,14 @@ local buildHelper = function(bp, hmt)
     
             end        
     
+        end)
+
+        helper('status change', function(ns, os)
+
+            if ns == 0 and os == 1 then
+                new.clear()
+            end
+        
         end)
 
         return new

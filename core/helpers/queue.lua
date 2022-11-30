@@ -12,7 +12,7 @@ local buildHelper = function(bp, hmt)
 
         do -- Private Settings.
             settings.layout     = settings.layout or layout
-            settings.max        = settings.max or 20
+            settings.max        = settings.max or 30
             settings.display    = settings:getDisplay()
 
         end
@@ -64,7 +64,7 @@ local buildHelper = function(bp, hmt)
                                 ))
 
                             else
-                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s►%s\\cs(%s)%s\\cr",
+                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s %s\\cs(%s)%s\\cr",
                                     (''):lpad(' ', 5),
                                     colors.attempts,
                                     attempts,
@@ -92,6 +92,7 @@ local buildHelper = function(bp, hmt)
 
                 else
                     settings.display:text("")
+                    settings.display:hide()
 
                 end
             

@@ -170,7 +170,7 @@ function library:new(bp)
 
             for buff in T(search):it() do
 
-                if not T(bp.player.buffs):contains(buff) then
+                if T(bp.player.buffs):contains(buff) then
                     return true
                 end
 

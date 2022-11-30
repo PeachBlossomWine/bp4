@@ -25,6 +25,10 @@ local buildHelper = function(bp, hmt)
         local updateDisplay = function()
     
             if #messages > 0 then
+
+                if #messages > 10 then
+                    messages:remove(1)
+                end
                 settings.display:text(table.concat(messages:map(function(m) return m.message end), '\n'))
 
             else

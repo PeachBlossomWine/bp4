@@ -2,7 +2,7 @@ local switches = {}
 switches['am'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local value = tonumber(commands[1])
@@ -11,73 +11,16 @@ switches['am'] = function(bp, setting, commands)
                 setting.tp = (value * 1000)
 
             else
-                bp.helpers.popchat.pop('VALUE MUST BE BETWEEN 1 & 3!')
+                bp.popchat.pop('VALUE MUST BE BETWEEN 1 & 3!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-AFTERMATH (\\cs(%s)%s\\cr): LEVEL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp/1000))
+        bp.popchat.pop(string.format('AUTO-AFTERMATH (\\cs(%s)%s\\cr): LEVEL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp/1000))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-AFTERMATH (\\cs(%s)%s\\cr): LEVEL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp/1000))
-
-    end
-
-end
-
-switches['ra'] = function(bp, setting, commands)
-
-    if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
-
-        for i=1, #commands do
-            
-            if tonumber(commands[i]) then
-                local value = tonumber(commands[i])
-
-                if value and value >= 1000 and value <= 3000 then
-                    setting.tp = value
-                    table.remove(commands, i)
-
-                else
-                    bp.helpers.popchat.pop('VALUE MUST BE BETWEEN 1000 & 3000!')
-
-                end
-
-            end
-
-        end
-
-        if #commands > 0 then
-            local range = bp.libs.__inventory.getByIndex(bp.libs.__equipment.get(2).bag, bp.libs.__equipment.get(2).index)
-            local skill = windower.convert_auto_trans(table.concat(commands, " ")):lower()
-
-            for i=1, #commands do
-
-                if range and skill then
-                    local options = bp.res.items[range.id] and bp.res.items[range.id].skill and T(bp.res.weapon_skills:skill(bp.res.items[range.id].skill)):map(function(r) return r.en end) or T{}
-
-                    for ws in options:it() do
-                        
-                        if ws:lower():startswith(skill) then
-                            setting.name = ws
-                            break
-
-                        end
-
-                    end
-
-                end
-
-            end
-        
-        end
-        bp.helpers.popchat.pop(string.format('AUTO-RANGED (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
-
-    elseif setting and #commands == 0 then
-        setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-RANGED (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-AFTERMATH (\\cs(%s)%s\\cr): LEVEL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp/1000))
 
     end
 
@@ -86,7 +29,7 @@ end
 switches['ws'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         for i=1, #commands do
             
@@ -98,7 +41,7 @@ switches['ws'] = function(bp, setting, commands)
                     table.remove(commands, i)
 
                 else
-                    bp.helpers.popchat.pop('VALUE MUST BE BETWEEN 1000 & 3000!')
+                    bp.popchat.pop('VALUE MUST BE BETWEEN 1000 & 3000!')
 
                 end
 
@@ -107,8 +50,8 @@ switches['ws'] = function(bp, setting, commands)
         end
 
         if #commands > 0 then
-            local main  = bp.libs.__inventory.getByIndex(bp.libs.__equipment.get(0).bag, bp.libs.__equipment.get(0).index)
-            local range = bp.libs.__inventory.getByIndex(bp.libs.__equipment.get(2).bag, bp.libs.__equipment.get(2).index)
+            local main  = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
+            local range = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
             local skill = windower.convert_auto_trans(table.concat(commands, " ")):lower()
 
             for i=1, #commands do
@@ -137,11 +80,68 @@ switches['ws'] = function(bp, setting, commands)
             end
         
         end
-        bp.helpers.popchat.pop(string.format('AUTO-WEAPONSKILL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-WEAPONSKILL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-WEAPONSKILL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-WEAPONSKILL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
+
+    end
+
+end
+
+switches['rws'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        for i=1, #commands do
+            
+            if tonumber(commands[i]) then
+                local value = tonumber(commands[i])
+
+                if value and value >= 1000 and value <= 3000 then
+                    setting.tp = value
+                    table.remove(commands, i)
+
+                else
+                    bp.popchat.pop('VALUE MUST BE BETWEEN 1000 & 3000!')
+
+                end
+
+            end
+
+        end
+
+        if #commands > 0 then
+            local range = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
+            local skill = windower.convert_auto_trans(table.concat(commands, " ")):lower()
+
+            for i=1, #commands do
+
+                if range and skill then
+                    local options = bp.res.items[range.id] and bp.res.items[range.id].skill and T(bp.res.weapon_skills:skill(bp.res.items[range.id].skill)):map(function(r) return r.en end) or T{}
+
+                    for ws in options:it() do
+                        
+                        if ws:lower():startswith(skill) then
+                            setting.name = ws
+                            break
+
+                        end
+
+                    end
+
+                end
+
+            end
+        
+        end
+        bp.popchat.pop(string.format('AUTO-RANGED (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-RANGED (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr → @\\cs(%s)%s TP\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name, bp.colors.setting, setting.tp))
 
     end
 
@@ -150,7 +150,7 @@ end
 switches['skillup'] = function(bp, setting, commands)    
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{"Enhancing Magic","Divine Magic","Enfeebling Magic","Elemental Magic","Dark Magic","Singing","Summoning","Blue Magic","Geomancy"}
@@ -167,11 +167,11 @@ switches['skillup'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SKILLUP (\\cs(%s)%s\\cr): SKILL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.skill))
+        bp.popchat.pop(string.format('AUTO-SKILLUP (\\cs(%s)%s\\cr): SKILL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.skill))
     
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SKILLUP (\\cs(%s)%s\\cr): SKILL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.skill))
+        bp.popchat.pop(string.format('AUTO-SKILLUP (\\cs(%s)%s\\cr): SKILL → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.skill))
 
     end
 
@@ -180,30 +180,30 @@ end
 switches['food'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if #commands > 0 then
             local food = bp.IT[windower.convert_auto_trans(table.concat(commands, " ")):lower()]
 
             if food then
-                local index, count, id, status, bag, food = bp.libs.__inventory.findByName(food.en, 0)
+                local index, count, id, status, bag, food = bp.__inventory.findByName(food.en, 0)
 
                 if food then
                     setting.name = food.en
 
                 else
-                    bp.helpers.popchat.pop('UNABLE TO FIND THAT FOOD IN YOUR INVENTORY!')
+                    bp.popchat.pop('UNABLE TO FIND THAT FOOD IN YOUR INVENTORY!')
 
                 end
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-FOOD (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-FOOD (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-FOOD (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-FOOD (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -212,25 +212,45 @@ end
 switches['limit'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
-        if commands[1] then
-            local value = tonumber(commands[1])
+        if #commands > 0 then
+            bp.__core.hardSet(setting, commands)
 
-            if value and value >= 1 and value <= 100 then
-                setting.hpp = value
+            for i=1, #commands do
 
-            else
-                bp.helpers.popchat.pop('VALUE MUST BE BETWEEN 1 & 1000!')
+                if tonumber(commands[i]) ~= nil then
+                    local value = tonumber(commands[1])
+
+                    if value and value >= 1 and value <= 100 then
+                        setting.hpp = value
+
+                    else
+                        bp.popchat.pop('VALUE MUST BE BETWEEN 1 & 1000!')
+
+                    end
+
+                elseif S{'<','>'}:contains(commands[i]) then
+                    local option = commands[i]
+
+                    if option == '<' then
+                        setting.option = '<'
+
+                    elseif option == '>' then
+                        setting.option = '>'
+
+                    end
+
+                end
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('WS LIMIT (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s%%\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('WS LIMIT (\\cs(%s)%s\\cr): HP%% \\cs(%s)%s %s%%\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.option, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('WS LIMIT (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s%%\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('WS LIMIT (\\cs(%s)%s\\cr): HP%% \\cs(%s)%s %s%%\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.option, setting.hpp))
 
     end
 
@@ -239,7 +259,7 @@ end
 switches['hate'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         for i in ipairs(commands) do
             
@@ -250,7 +270,7 @@ switches['hate'] = function(bp, setting, commands)
                     setting.delay = value
 
                 else
-                    bp.helpers.popchat.pop('ENMITY DELAY VALUE MUST BE A NUMBER BETWEEN 0 & 30!')
+                    bp.popchat.pop('ENMITY DELAY VALUE MUST BE A NUMBER BETWEEN 0 & 30!')
 
                 end
 
@@ -260,11 +280,11 @@ switches['hate'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-ENMITY (\\cs(%s)%s\\cr): DELAY → \\cs(%s)%s\\cr, (AOE: \\cs(%s)%s\\cr) ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.delay, bp.colors.setting, tostring(setting.aoe)))
+        bp.popchat.pop(string.format('AUTO-ENMITY (\\cs(%s)%s\\cr): DELAY → \\cs(%s)%s\\cr, (AOE: \\cs(%s)%s\\cr) ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.delay, bp.colors.setting, tostring(setting.aoe)))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-ENMITY (\\cs(%s)%s\\cr): DELAY → \\cs(%s)%s\\cr, (AOE: \\cs(%s)%s\\cr) ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.delay, bp.colors.setting, tostring(setting.aoe)))
+        bp.popchat.pop(string.format('AUTO-ENMITY (\\cs(%s)%s\\cr): DELAY → \\cs(%s)%s\\cr, (AOE: \\cs(%s)%s\\cr) ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.delay, bp.colors.setting, tostring(setting.aoe)))
 
     end
 
@@ -273,7 +293,7 @@ end
 switches['mb'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         for i in ipairs(commands) do
             local options = S{'Fire','Ice','Earth','Wind','Water','Lightning','Random'}
@@ -285,7 +305,7 @@ switches['mb'] = function(bp, setting, commands)
                     setting.tier = value
 
                 else
-                    bp.helpers.popchat.pop('BURST TIER VALUE MUST BE A NUMBER BETWEEN 1 & 6!')
+                    bp.popchat.pop('BURST TIER VALUE MUST BE A NUMBER BETWEEN 1 & 6!')
 
                 end
 
@@ -306,11 +326,11 @@ switches['mb'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-MAGIC BURST (\\cs(%s)%s\\cr): \\cs(%s)%s %s\\cr → MULTI-NUKE: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.element, setting.tier, bp.colors.setting, tostring(setting.multi)))
+        bp.popchat.pop(string.format('AUTO-MAGIC BURST (\\cs(%s)%s\\cr): \\cs(%s)%s %s\\cr → MULTI-NUKE: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.element, setting.tier, bp.colors.setting, tostring(setting.multi)))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-MAGIC BURST (\\cs(%s)%s\\cr): \\cs(%s)%s %s\\cr → MULTI-NUKE: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.element, setting.tier, bp.colors.setting, tostring(setting.multi)))
+        bp.popchat.pop(string.format('AUTO-MAGIC BURST (\\cs(%s)%s\\cr): \\cs(%s)%s %s\\cr → MULTI-NUKE: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.element, setting.tier, bp.colors.setting, tostring(setting.multi)))
 
     end
 
@@ -319,7 +339,7 @@ end
 switches['sanguine blade'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -328,16 +348,16 @@ switches['sanguine blade'] = function(bp, setting, commands)
                 setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
+                bp.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SANGUINE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-SANGUINE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SANGUINE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-SANGUINE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     end
 
@@ -346,7 +366,7 @@ end
 switches['myrkr'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -355,16 +375,16 @@ switches['myrkr'] = function(bp, setting, commands)
                 setting.mpp = value
 
             else
-                bp.helpers.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
+                bp.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-MYRKR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-MYRKR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-MYRKR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-MYRKR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     end
 
@@ -373,7 +393,7 @@ end
 switches['moonlight'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -382,16 +402,16 @@ switches['moonlight'] = function(bp, setting, commands)
                 setting.mpp = value
 
             else
-                bp.helpers.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
+                bp.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-MOONLIGHT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-MOONLIGHT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-MOONLIGHT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-MOONLIGHT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     end
 
@@ -400,7 +420,7 @@ end
 switches['chakra'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local value = tonumber(commands[1])
@@ -409,16 +429,16 @@ switches['chakra'] = function(bp, setting, commands)
                 setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
+                bp.popchat.pop('ENTER A HP% VALUE BETWEEN 25 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-CHAKRA (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-CHAKRA (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-CHAKRA (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-CHAKRA (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     end
 
@@ -427,18 +447,18 @@ end
 switches['martyr'] = function(bp, setting, commands)    
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         for i in ipairs(commands) do
 
-            if bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
-                local target = bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
+            if bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
+                local target = bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
     
-                if target.name ~= bp.player.name and bp.libs.__party.isMember(target) then
+                if target.name ~= bp.player.name and bp.__party.isMember(target) then
                     setting.target = target.name
     
                 else
-                    bp.helpers.popchat.pop('INVALID TARGET SELECTED!')
+                    bp.popchat.pop('INVALID TARGET SELECTED!')
     
                 end
 
@@ -449,18 +469,18 @@ switches['martyr'] = function(bp, setting, commands)
                     setting.hpp = value
 
                 else
-                    bp.helpers.popchat.pop('ENTER A MP% VALUE BETWEEN 10 & 75!')
+                    bp.popchat.pop('ENTER A MP% VALUE BETWEEN 10 & 75!')
 
                 end
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-MARTYR (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-MARTYR (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.target or "None"))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-MARTYR (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-MARTYR (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.target or "None"))
 
     end
 
@@ -469,18 +489,18 @@ end
 switches['devotion'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         for i in ipairs(commands) do
 
-            if bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
-                local target = bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
+            if bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
+                local target = bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
     
-                if target.name ~= bp.player.name and bp.libs.__party.isMember(target) then
+                if target.name ~= bp.player.name and bp.__party.isMember(target) then
                     setting.target = target.name
     
                 else
-                    bp.helpers.popchat.pop('INVALID TARGET SELECTED!')
+                    bp.popchat.pop('INVALID TARGET SELECTED!')
     
                 end
 
@@ -491,18 +511,18 @@ switches['devotion'] = function(bp, setting, commands)
                     setting.mpp = value
 
                 else
-                    bp.helpers.popchat.pop('ENTER A MP% VALUE BETWEEN 25 & 75!')
+                    bp.popchat.pop('ENTER A MP% VALUE BETWEEN 25 & 75!')
 
                 end
     
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-DEVOTION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-DEVOTION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.target or "None"))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-DEVOTION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-DEVOTION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr TARGET @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.target or "None"))
 
     end
 
@@ -511,7 +531,7 @@ end
 switches['boost'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local options = S{'Boost-STR','Boost-DEX','Boost-INT','Boost-CHR','Boost-AGI','Boost-VIT','Boost-MND'}
@@ -528,11 +548,11 @@ switches['boost'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-WHM BOOST (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-WHM BOOST (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-WHM BOOST (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-WHM BOOST (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -541,7 +561,7 @@ end
 switches['cascade'] = function(bp, setting, commands)    
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -550,16 +570,16 @@ switches['cascade'] = function(bp, setting, commands)
                 setting.tp = value
 
             else
-                bp.helpers.popchat.pop('ENTER A TP% VALUE BETWEEN 1000 & 3000!')
+                bp.popchat.pop('ENTER A TP% VALUE BETWEEN 1000 & 3000!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-CASCADE (\\cs(%s)%s\\cr): TP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-CASCADE (\\cs(%s)%s\\cr): TP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-CASCADE (\\cs(%s)%s\\cr): TP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-CASCADE (\\cs(%s)%s\\cr): TP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.tp))
 
     end
 
@@ -568,40 +588,15 @@ end
 switches['gems'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
-        for _,ability in ipairs(commands) do
-            
-            for name, list in pairs(setting) do
-                
-                if ability == name:sub(1, #ability) then
-                    table.remove(commands, 1)
-
-                    do
-                        local spell = table.concat(commands, ' '):lower()
-
-                        if setting[name] and not T(flags[name]):contains(spell) and bp.MA[spell] then
-                            table.insert(flags[name], spell)
-                            bp.helpers.popchat.pop(string.format('%s ADDED TO AUTO-%s.', spell, name))
-
-                        elseif setting[name] and spell == 'Clear' then
-                            setting[name] = {}
-                            bp.helpers.popchat.pop(string.format('%s LIST CLEARED!', name))
-
-                        end
-
-                    end
-                    break
-                    
-                end
-
-            end
+        if #commands > 1 then
 
         end
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-STRATAGEMS: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+        bp.popchat.pop(string.format('AUTO-STRATAGEMS: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -610,7 +605,7 @@ end
 switches['spikes'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Blaze Spikes','Ice Spikes','Shock Spikes','Dread Spikes'}
@@ -618,7 +613,7 @@ switches['spikes'] = function(bp, setting, commands)
 
             for spikes in options:it() do
 
-                if spikes:lower():startswith(spell) and bp.libs.__actions.isAvailable(spikes) then
+                if spikes:lower():startswith(spell) and bp.__actions.isAvailable(spikes) then
                     setting.name = spikes
                     break
 
@@ -627,11 +622,11 @@ switches['spikes'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SPIKES (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-SPIKES (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SPIKES (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-SPIKES (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -640,7 +635,7 @@ end
 switches['footwork'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
 
@@ -649,11 +644,11 @@ switches['footwork'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
+        bp.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
+        bp.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
 
     end
 
@@ -662,25 +657,25 @@ end
 switches['drain'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
                     
             if value and value >= 1 and value <= 75 then
-                setting.mpp = value
+                setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('AUTO-DRAIN HP%% VALUE NEEDS TO BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('AUTO-DRAIN HP%% VALUE NEEDS TO BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-DRAIN (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-DRAIN (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-DRAIN (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-DRAIN (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     end
 
@@ -689,7 +684,7 @@ end
 switches['aspir'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -698,16 +693,16 @@ switches['aspir'] = function(bp, setting, commands)
                 setting.mpp = value
 
             else
-                bp.helpers.popchat.pop('AUTO-ASPIR MP%% VALUE NEEDS TO BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('AUTO-ASPIR MP%% VALUE NEEDS TO BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-ASPIR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-ASPIR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-ASPIR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-ASPIR (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     end
 
@@ -716,7 +711,7 @@ end
 switches['convert'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         print(commands)
         if #commands > 0 then
@@ -734,11 +729,11 @@ switches['convert'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-CONVERT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-CONVERT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-CONVERT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-CONVERT (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.hpp))
 
     end
 
@@ -747,7 +742,7 @@ end
 switches['gain'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local options = S{'Gain-VIT','Gain-DEX','Gain-CHR','Gain-MND','Gain-AGI','Gain-STR','Gain-INT'}
@@ -764,11 +759,11 @@ switches['gain'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-GAIN SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-GAIN SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-GAIN SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-GAIN SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -777,36 +772,41 @@ end
 switches['en'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
-        for i=1, #commands do
+        if #commands > 0 then
+            local update = ""
 
-            if tonumber(commands[i]) and T{1,2}:contains(tonumber(commands[i])) then
-                setting.tier = tonumber(commands[i])
-                setting.name = (setting.tier) == 2 and string.format('%s II', setting.name) or setting.name
+            for i=1, #commands do
 
-            else
-                local options = S{'Enfire','Enaero','Enblizzard','Enstone','Enthunder','Enwater'}
-                local spell = windower.convert_auto_trans(commands[i]):lower()
+                if tonumber(commands[i]) and T{1,2}:contains(tonumber(commands[i])) then
+                    setting.tier = tonumber(commands[i])
 
-                for enspell in options:it() do
+                else
+                    local options = S{'Enfire','Enaero','Enblizzard','Enstone','Enthunder','Enwater'}
+                    local spell = windower.convert_auto_trans(commands[i]):lower()
 
-                    if enspell:lower():startswith(spell) then
-                        setting.name = (setting.tier) == 2 and string.format('%s II', enspell) or enspell
-                        break
+                    for enspell in options:it() do
+
+                        if enspell:lower():startswith(spell) then
+                            update = enspell
+                            break
+
+                        end
 
                     end
 
                 end
 
             end
+            setting.name = string.format("%s%s", update, (setting.tier) == 2 and " II" or "")
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-ENSPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-ENSPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-ENSPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-ENSPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -815,25 +815,25 @@ end
 switches['cover'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
-        if bp.libs.__target(commands[1] or windower.ffxi.get_mob_by_target('t')) then
-            local target = bp.libs.__target(commands[1] or windower.ffxi.get_mob_by_target('t'))
+        if bp.__target(commands[1] or windower.ffxi.get_mob_by_target('t')) then
+            local target = bp.__target(commands[1] or windower.ffxi.get_mob_by_target('t'))
 
-            if target.name ~= bp.player.name and bp.libs.__party.isMember(target) then
+            if target.name ~= bp.player.name and bp.__party.isMember(target) then
                 setting.target = target.name
 
             else
-                bp.helpers.popchat.pop('INVALID TARGET SELECTED!')
+                bp.popchat.pop('INVALID TARGET SELECTED!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-COVER (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-COVER (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-COVER (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-COVER (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
 
     end
 
@@ -842,7 +842,7 @@ end
 switches['chivalry'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             
@@ -853,7 +853,7 @@ switches['chivalry'] = function(bp, setting, commands)
                     setting.mpp = value
 
                 else
-                    bp.helpers.popchat.pop('MP%% MUST BE A NUMBER BETWEEN 25 & 75!')
+                    bp.popchat.pop('MP%% MUST BE A NUMBER BETWEEN 25 & 75!')
 
                 end
 
@@ -866,18 +866,18 @@ switches['chivalry'] = function(bp, setting, commands)
                     setting.tp = value
 
                 else
-                    bp.helpers.popchat.pop('TP%% MUST BE A NUMBER BETWEEN 1000 & 3000!')
+                    bp.popchat.pop('TP%% MUST BE A NUMBER BETWEEN 1000 & 3000!')
 
                 end
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-CHIVALRY (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, TP → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-CHIVALRY (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, TP → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.tp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-CHIVALRY (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, TP → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-CHIVALRY (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr, TP → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp, bp.colors.setting, setting.tp))
 
     end
 
@@ -886,7 +886,7 @@ end
 switches['absorb'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local options = S{'Absorb-VIT','Absorb-DEX','Absorb-CHR','Absorb-MND','Absorb-AGI','Absorb-STR','Absorb-INT','Absorb-ACC','Absorb-TP','Absorb-Attri'}
@@ -903,11 +903,11 @@ switches['absorb'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-ABSORB SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-ABSORB SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-ABSORB SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-ABSORB SPELL (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -916,7 +916,7 @@ end
 switches['reward'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -925,16 +925,16 @@ switches['reward'] = function(bp, setting, commands)
                 setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-REWARD (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-REWARD (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-REWARD (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-REWARD (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     end
 
@@ -943,7 +943,7 @@ end
 switches['ready'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = windower.convert_auto_trans(commands[1])
@@ -952,7 +952,7 @@ switches['ready'] = function(bp, setting, commands)
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-READY: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+        bp.popchat.pop(string.format('AUTO-READY: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -961,25 +961,25 @@ end
 switches['decoy shot'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
-        if bp.libs.__target(commands[1] or windower.ffxi.get_mob_by_target('t')) then
-            local target = bp.libs.__target(commands[1] or windower.ffxi.get_mob_by_target('t'))
+        if bp.__target(commands[1] or windower.ffxi.get_mob_by_target('t')) then
+            local target = bp.__target(commands[1] or windower.ffxi.get_mob_by_target('t'))
 
-            if target.name ~= bp.player.name and bp.libs.__party.isMember(target) then
+            if target.name ~= bp.player.name and bp.__party.isMember(target) then
                 setting.target = target.name
 
             else
-                bp.helpers.popchat.pop('INVALID TARGET SELECTED!')
+                bp.popchat.pop('INVALID TARGET SELECTED!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-DECOY SHOT (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-DECOY SHOT (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-DECOY SHOT (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
+        bp.popchat.pop(string.format('AUTO-DECOY SHOT (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target or "None"))
 
     end
 
@@ -988,7 +988,7 @@ end
 switches['elemental siphon'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local value = tonumber(commands[1])
@@ -997,16 +997,16 @@ switches['elemental siphon'] = function(bp, setting, commands)
                 settings.mpp = value
 
             else
-                bp.helpers.popchat.pop('MP% MUST BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('MP% MUST BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-ELEMENTAL SIPHON (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-ELEMENTAL SIPHON (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-ELEMENTAL SIPHON (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-ELEMENTAL SIPHON (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     end
 
@@ -1015,7 +1015,7 @@ end
 switches['summon'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local summons = S{'Carbuncle','Cait Sith','Ifrit','Shiva','Garuda','Ramuh','Titan','Leviathan','Fenrir','Diabolos','Siren','Atomos'}
@@ -1032,11 +1032,11 @@ switches['summon'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SUMMON (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name or "None"))
+        bp.popchat.pop(string.format('AUTO-SUMMON (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name or "None"))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SUMMON (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name or "None"))
+        bp.popchat.pop(string.format('AUTO-SUMMON (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name or "None"))
 
     end
 
@@ -1061,7 +1061,7 @@ switches['bpr'] = function(bp, setting, commands)
     }
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 1 then
             local pet = windower.convert_auto_trans(commands[1]):lower()
@@ -1088,16 +1088,16 @@ switches['bpr'] = function(bp, setting, commands)
         end
         
         if message.summon and message.pact then
-            bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, message.summon, bp.colors.setting, message.pact))
+            bp.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, message.summon, bp.colors.setting, message.pact))
 
         else
-            bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+            bp.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
         end
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+        bp.popchat.pop(string.format('AUTO-BLOOD PACT: RAGE → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -1122,7 +1122,7 @@ switches['bpw'] = function(bp, setting, commands)
     }
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 1 then
             local pet = windower.convert_auto_trans(commands[1]):lower()
@@ -1149,16 +1149,16 @@ switches['bpw'] = function(bp, setting, commands)
         end
 
         if message.summon and message.pact then
-            bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: WARD (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, message.summon, bp.colors.setting, message.pact))
+            bp.popchat.pop(string.format('AUTO-BLOOD PACT: WARD (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, message.summon, bp.colors.setting, message.pact))
 
         else
-            bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: WARD → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+            bp.popchat.pop(string.format('AUTO-BLOOD PACT: WARD → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
         end
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-BLOOD PACT: WARD → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+        bp.popchat.pop(string.format('AUTO-BLOOD PACT: WARD → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -1167,18 +1167,18 @@ end
 switches['shikikoyo'] = function(bp, setting, commands)    
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         for i=1, #commands do
 
-            if bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
-                local target = bp.libs.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
+            if bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t')) then
+                local target = bp.__target(commands[i] or windower.ffxi.get_mob_by_target('t'))
 
-                if target.name ~= bp.player.name and bp.libs.__party.isMember(target) then
+                if target.name ~= bp.player.name and bp.__party.isMember(target) then
                     setting.target = target.name
 
                 else
-                    bp.helpers.popchat.pop('INVALID TARGET SELECTED!')
+                    bp.popchat.pop('INVALID TARGET SELECTED!')
 
                 end
 
@@ -1189,18 +1189,18 @@ switches['shikikoyo'] = function(bp, setting, commands)
                     setting.tp = value
 
                 else
-                    bp.helpers.popchat.pop('ENTER A TP VALUE BETWEEN 1000 & 3000!')
+                    bp.popchat.pop('ENTER A TP VALUE BETWEEN 1000 & 3000!')
 
                 end
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SHIKIKOYO (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr ( %s )', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-SHIKIKOYO (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr ( %s )', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target, bp.colors.setting, setting.tp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SHIKIKOYO (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr ( %s )', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target, bp.colors.setting, setting.tp))
+        bp.popchat.pop(string.format('AUTO-SHIKIKOYO (\\cs(%s)%s\\cr): @\\cs(%s)%s\\cr ( %s )', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.target, bp.colors.setting, setting.tp))
 
     end
 
@@ -1209,7 +1209,7 @@ end
 switches['quick draw'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local options = S{'Fire Shot','Water Shot','Thunder Shot','Earth Shot','Wind SHot','Ice SHot','Light Shot','Dark Shot'}
@@ -1226,11 +1226,11 @@ switches['quick draw'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-QUICK DRAW (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-QUICK DRAW (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-QUICK DRAW (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-QUICK DRAW (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1239,7 +1239,7 @@ end
 switches['repair'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local value = tonumber(commands[1])
@@ -1248,16 +1248,16 @@ switches['repair'] = function(bp, setting, commands)
                 setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-REPAIR(\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-REPAIR(\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-REPAIR(\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
+        bp.popchat.pop(string.format('AUTO-REPAIR(\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp))
 
     end
 
@@ -1266,7 +1266,7 @@ end
 switches['maneuvers'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if #commands > 0 then
             local options = S{'Fire Maneuver','Water Maneuver','Wind Maneuver','Ice Maneuver','Earth Maneuver','Thunder Maneuver','Light Maneuver','Dark Maneuver'}
@@ -1285,11 +1285,11 @@ switches['maneuvers'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+        bp.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(", ")))
+        bp.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(", ")))
 
     end
 
@@ -1298,7 +1298,7 @@ end
 switches['sambas'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Drain Samba','Aspir Samba','Haste Samba','Drain Samba II','Aspir Samba II','Drain Samba III'}
@@ -1315,11 +1315,11 @@ switches['sambas'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SAMBAS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-SAMBAS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SAMBAS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-SAMBAS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1328,7 +1328,7 @@ end
 switches['steps'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Quickstep','Box Step','Stutter Step','Feather Step'}
@@ -1345,11 +1345,11 @@ switches['steps'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-STEPS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-STEPS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-STEPS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-STEPS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1358,7 +1358,7 @@ end
 switches['flourishes'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local cat1 = T{'Animated Flourish','Desperate Flourish','Violent Flourish'}
@@ -1387,10 +1387,10 @@ switches['flourishes'] = function(bp, setting, commands)
                         end
 
                         if error then
-                            bp.helpers.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
+                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
 
                         else
-                            bp.helpers.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
+                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
 
                         end
 
@@ -1410,10 +1410,10 @@ switches['flourishes'] = function(bp, setting, commands)
                         end
 
                         if error then
-                            bp.helpers.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
+                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
 
                         else
-                            bp.helpers.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
+                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
 
                         end
 
@@ -1433,10 +1433,10 @@ switches['flourishes'] = function(bp, setting, commands)
                         end
 
                         if error then
-                            bp.helpers.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
+                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
 
                         else
-                            bp.helpers.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
+                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
 
                         end
 
@@ -1450,7 +1450,7 @@ switches['flourishes'] = function(bp, setting, commands)
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-FLOURISHES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
+        bp.popchat.pop(string.format('AUTO-FLOURISHES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -1459,7 +1459,7 @@ end
 switches['jigs'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Spectral Jig','Chocobo Jig','Chocobo Jig II'}
@@ -1476,11 +1476,11 @@ switches['jigs'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-JIGS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-JIGS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-JIGS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-JIGS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1489,7 +1489,7 @@ end
 switches['skillchain'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local options = S{'Compression','Liquefaction','Scission','Reverberation','Detonation','Induration','Impaction','Gravitation','Distortion','Fusion','Fragmentation'}
@@ -1506,11 +1506,11 @@ switches['skillchain'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SCHOLAR SKILLCHAIN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mode))
+        bp.popchat.pop(string.format('AUTO-SCHOLAR SKILLCHAIN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mode))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SCHOLAR SKILLCHAIN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mode))
+        bp.popchat.pop(string.format('AUTO-SCHOLAR SKILLCHAIN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mode))
 
     end
 
@@ -1519,7 +1519,7 @@ end
 switches['sublimation'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if commands[1] then
             local value = tonumber(commands[1])
@@ -1528,16 +1528,59 @@ switches['sublimation'] = function(bp, setting, commands)
                 setting.mpp = value
 
             else
-                bp.helpers.popchat.pop('VALUE MUST BE BETWEEN 1 & 60!')
+                bp.popchat.pop('VALUE MUST BE BETWEEN 1 & 60!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-SUBLIMATION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-SUBLIMATION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-SUBLIMATION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-SUBLIMATION (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+
+    end
+
+end
+
+switches['helix'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        if #commands > 0 then
+            local update = ""
+
+            for i=1, #commands do
+                
+                if tonumber(commands[i]) and T{1,2}:contains(tonumber(commands[i])) then
+                    setting.tier = tonumber(commands[i])
+
+                else
+                    local options = S{'Pyrohelix','Cryohelix','Anemohelix','Geohelix','Ionohelix','Hydrohelix','Luminohelix','Noctohelix'}
+                    local spell = windower.convert_auto_trans(table.concat(commands, ' ')):lower()
+
+                    for helix in options:it() do
+
+                        if helix:lower():startswith(spell) then
+                            update = helix
+                            break
+
+                        end
+
+                    end
+
+                end
+
+            end
+            setting.name = string.format("%s%s", update, (setting.tier) == 2 and " II" or "")
+
+        end
+        bp.popchat.pop(string.format('AUTO-HELIX (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-HELIX (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1546,7 +1589,7 @@ end
 switches['storms'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Sandstorm','Rainstorm','Windstorm','Firestorm','Hailstorm','Thunderstorm','Voidstorm','Aurorastorm'}
@@ -1563,11 +1606,11 @@ switches['storms'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-STORMS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-STORMS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-STORMS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-STORMS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 
@@ -1576,7 +1619,7 @@ end
 switches['full circle'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -1585,16 +1628,43 @@ switches['full circle'] = function(bp, setting, commands)
                 setting.distance = value
 
             else
-                bp.helpers.popchat.pop('DISTANCE MUST BE A NUMBER BETWEEN 10 & 30!')
+                bp.popchat.pop('DISTANCE MUST BE A NUMBER BETWEEN 10 & 30!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-FULL CIRCLE (\\cs(%s)%s\\cr): \\cs(%s)%05.2f\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.distance))
+        bp.popchat.pop(string.format('AUTO-FULL CIRCLE (\\cs(%s)%s\\cr): \\cs(%s)%05.2f\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.distance))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-FULL CIRCLE (\\cs(%s)%s\\cr): \\cs(%s)%05.2f\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.distance))
+        bp.popchat.pop(string.format('AUTO-FULL CIRCLE (\\cs(%s)%s\\cr): \\cs(%s)%05.2f\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.distance))
+
+    end
+
+end
+
+switches['radial'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+        
+        if commands[1] then
+            local value = tonumber(commands[1])
+                    
+            if value and value >= 1 and value <= 75 then
+                setting.mpp = value
+
+            else
+                bp.popchat.pop('AUTO-RADIAL ARCANA MP%% VALUE NEEDS TO BE A NUMBER BETWEEN 1 & 75!')
+
+            end
+
+        end
+        bp.popchat.pop(string.format('AUTO-RADIAL ARCANA (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-RADIAL ARCANA (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
 
     end
 
@@ -1603,7 +1673,7 @@ end
 switches['vivacious pulse'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
         
         if commands[1] then
             local value = tonumber(commands[1])
@@ -1612,7 +1682,7 @@ switches['vivacious pulse'] = function(bp, setting, commands)
                 setting.hpp = value
 
             else
-                bp.helpers.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('HP% MUST BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
@@ -1625,16 +1695,16 @@ switches['vivacious pulse'] = function(bp, setting, commands)
                 setting.mpp = value
 
             else
-                bp.helpers.popchat.pop('MP% MUST BE A NUMBER BETWEEN 1 & 75!')
+                bp.popchat.pop('MP% MUST BE A NUMBER BETWEEN 1 & 75!')
 
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-V. PULSE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-V. PULSE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.mpp))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-V. PULSE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.mpp))
+        bp.popchat.pop(string.format('AUTO-V. PULSE (\\cs(%s)%s\\cr): HP%% → \\cs(%s)%s\\cr, MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.hpp, bp.colors.setting, setting.mpp))
 
     end
 
@@ -1643,7 +1713,7 @@ end
 switches['embolden'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
-        bp.libs.__core.hardSet(setting, commands)
+        bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
             local options = S{'Protect','Crusade','Temper','Phalanx','Foil'}
@@ -1660,11 +1730,11 @@ switches['embolden'] = function(bp, setting, commands)
             end
 
         end
-        bp.helpers.popchat.pop(string.format('AUTO-EMBOLDEN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-EMBOLDEN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('AUTO-EMBOLDEN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+        bp.popchat.pop(string.format('AUTO-EMBOLDEN (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
 
     end
 

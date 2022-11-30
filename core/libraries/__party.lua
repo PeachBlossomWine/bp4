@@ -102,6 +102,27 @@ function library:new(bp)
 
     end
 
+    self.findMember = function(player, alliance)
+        
+        if bp and bp.party and player and type(player) == 'string' then
+
+            for index, member in pairs(bp.party) do
+
+                if index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.mob and member.name:lower():startswith(player:lower()) then
+                    return member
+
+                elseif alliance and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.mob and member.name:lower():startswith(player:lower()) then
+                    return member
+
+                end
+
+            end
+        
+        end
+        return false
+
+    end
+
     self.isInZone = function(target)
         local member = self.getMember(target)
 

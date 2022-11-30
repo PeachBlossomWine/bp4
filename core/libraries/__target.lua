@@ -140,12 +140,11 @@ function library:new(bp)
     end
 
     self.castable = function(target, spell)
-        local targets   = spell and spell.targets or false
-        local target    = self.get(target)
+        local target = self.get(target)
 
-        if bp and target and targets then
+        if bp and target and spell and spell.targets then
 
-            for i,v in pairs(targets) do
+            for i,v in pairs(spell.targets) do
 
                 if i == 'Self' and target.name == bp.player.name then
                     return v

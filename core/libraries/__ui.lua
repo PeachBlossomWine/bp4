@@ -7,7 +7,7 @@ function library:new(bp)
 
     -- Private Methods.
     local update = function()
-        self.visible = bp and (not bp.info.mog_house and not bp.info.menu_open and not bp.info.chat_open) and true or false
+        self.visible = bp and (not bp.info.mog_house and not bp.info.chat_open and (not bp.info.menu_open or (bp.info.menu_open and bp.player.status == 1))) and true or false
     end
 
     -- Public Methods.
@@ -25,7 +25,7 @@ function library:new(bp)
 
             end
 
-        elseif display and not self.visible and display:visible() and display:text() == "" then
+        elseif display and not self.visible and display:visible() then
             display:bg_visible(false)
             display:hide()
 

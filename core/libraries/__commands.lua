@@ -10,29 +10,29 @@ function library:new(bp)
     -- Private Methods.
     pm['toggle'] = function()
         bp.enabled = bp.enabled ~= true and true or false
-        bp.helpers.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
         if not bp.enabled then
-            bp.libs.__queue.clear()
+            bp.__queue.clear()
         end
 
     end
 
     pm['on'] = function()
         bp.enabled = true
-        bp.helpers.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
 
     pm['off'] = function()
         bp.enabled = false
-        bp.libs.__queue.clear()
-        bp.helpers.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.__queue.clear()
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
 
     pm['follow'] = function()
-        bp.libs.__orders.deliver('p*', ('bp follow %s'):format(bp.player.name))
+        bp.__orders.deliver('p*', ('bp follow %s'):format(bp.player.name))
     end
 
     pm['request_stop'] = function()
@@ -40,7 +40,7 @@ function library:new(bp)
     end
 
     pm['stop'] = function()
-        bp.libs.__actions.stop()
+        bp.__actions.stop()
     end
 
     pm['info'] = function()
@@ -63,8 +63,8 @@ function library:new(bp)
         local command   = commands[1] and table.remove(commands, 1):lower()
         
         if bp and command then
-            local popchat = bp.helpers.popchat
-            local orders = bp.libs.__orders
+            local popchat = bp.popchat
+            local orders = bp.__orders
 
             if pm[command] then
                 pm[command](commands)

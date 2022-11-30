@@ -1,4 +1,3 @@
-
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
@@ -9,10 +8,14 @@ local buildHelper = function(bp, hmt)
         local new = setmetatable({events={}}, hmt)
 
         -- Private Variables.
-        settings.layout     = settings.layout or layout
-        settings.speed      = settings.speed or 70
-        settings.zones      = settings.zones or {}
-        settings.display    = settings:getDisplay()
+
+        do -- Private Settings.
+            settings.layout     = settings.layout or layout
+            settings.speed      = settings.speed or 70
+            settings.zones      = settings.zones or {}
+            settings.display    = settings:getDisplay()
+
+        end
 
         -- Save after all settings have been initialized.
         settings:save()

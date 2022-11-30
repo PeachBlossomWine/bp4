@@ -1,24 +1,14 @@
-local buildManager = function(bp)
-    local manager, meta = {}, {}
-        
-    -- Private Variables.
-    local bp        = bp
-    local hmt       = dofile(string.format("%score/metas.lua", windower.addon_path))
-    local classes   = {}
+local manager = {}
+function manager:new(bp)
+    local bp = bp
+    local mt = {}
 
-    -- Public Variables.
-    manager.helpers = {}
+    -- Private Variables.
+    local classes = {}
 
     -- Private Methods.
-    local addClass = function(helper)
-        local helper = helper(bp, hmt)
-
-        if helper and helper.new then
-            return helper, helper.new()
-        end
-        
-    end
-
+    local getHelper = function(name) return classes and classes[name] and classes[name].helper or false end
+    local getClass = function(name) return classes and classes[name] and classes[name].class or false end
     local clearEvents = function(class)
         
         if class and class.events then
@@ -32,22 +22,28 @@ local buildManager = function(bp)
 
     end
 
-    -- Public Methods.    
-    function manager:add(helper, name)
+    -- Public Methods.
+    function self:add(helper, name)
         
         if bp and helper and name then
-            classes[name], self.helpers[name] = addClass(helper)
+            local class = helper(bp, bp.files.new('core/metas.lua'):exists() and dofile(string.format('%score/metas.lua', windower.addon_path)) or {})
+
+            if class then
+                classes[name] = {class=class, helper=class.new()}
+            end
+
         end
 
     end
 
-    function manager:reload(name)
+    function self:reload(name)
+        local class = getClass(name)
 
-        if bp and name and classes[name] then
-            clearEvents(classes[name])
+        if bp and class then
+            clearEvents(class)
 
             do -- Reload the class.
-                self.helpers[name] = classes[name].new()
+                class.helper = class.new()
 
             end
 
@@ -55,33 +51,16 @@ local buildManager = function(bp)
 
     end
 
-    -- Manager Metas.
-    meta.__index = function(t, index)
+    -- Metatables.
+    mt.__index = function(t, key)
 
-        if t.helpers and t.helpers[index] then
-            return t.helpers[index]
-
-        else
-            return false
-
+        if rawget(classes, key) and rawget(classes, key).helper then
+            return rawget(classes, key).helper
         end
 
     end
 
-    meta.__call = function(t, ...)
-        local options = T{...}
-
-        if #options > 0 then
-            -- Future needs.
-
-        else
-            return T(t.helpers):keyset()
-
-        end
-
-    end
-
-    return setmetatable(manager, meta)
+    return setmetatable(self, mt)
 
 end
-return buildManager
+return manager
