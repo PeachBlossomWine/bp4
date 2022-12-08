@@ -3,9 +3,9 @@ function library:new(bp)
     local bp = bp
 
     -- Private Variables.
-    local levels     = {270,271,272,273}
-    local relics     = {"Spharai","Mandau","Excalibur","Ragnarok","Guttler","Bravura","Apocalypse","Gungnir","Kikoku","Amanomurakumo","Mjollnir","Claustrum","Yoichinoyumi","Annihilator"}
-    local aftermaths = {
+    local __levels     = {270,271,272,273}
+    local __relics     = {"Spharai","Mandau","Excalibur","Ragnarok","Guttler","Bravura","Apocalypse","Gungnir","Kikoku","Amanomurakumo","Mjollnir","Claustrum","Yoichinoyumi","Annihilator"}
+    local __aftermaths = {
         
         ["Verethragna"]         = "Victory Smite",
         ["Glanzfaust"]          = "Ascetic's Fury",
@@ -76,16 +76,16 @@ function library:new(bp)
 
     -- Public Methods.
     self.weaponskill = function(weapon)
-        return weapon and aftermaths[weapon] or false            
+        return weapon and __aftermaths[weapon] or false            
     end
 
     self.id = function(level)
         
         if self.checkRelic() then
-            return levels[4]
+            return __levels[4]
         
-        elseif level and levels[level] then
-            return levels[level]
+        elseif level and __levels[level] then
+            return __levels[level]
 
         end
         return false
@@ -96,7 +96,7 @@ function library:new(bp)
         
         for id in T(bp.player.buffs):it() do
                     
-            if T(levels):contains(v) then
+            if T(__levels):contains(v) then
                 return true
             end
             

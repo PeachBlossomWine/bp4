@@ -2,7 +2,7 @@ local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
     local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=false}, text={size=15, font='Impact', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
-    local settings  = bp.libs.__settings.new('speed')
+    local settings  = bp.__settings.new('speed')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
@@ -23,7 +23,7 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         local render = function()
 
-            bp.libs.__ui.renderUI(settings.display, function()
+            bp.__ui.renderUI(settings.display, function()
 
                 if settings.speed then
                     settings.display:text(string.format("{  %d%%  }", settings.speed*2))
@@ -50,10 +50,7 @@ local buildHelper = function(bp, hmt)
                 if command then
     
                     if command == 'pos' and commands[1] then
-                        bp.libs.__displays.position(settings, commands[1], commands[2])
-
-                    elseif command == 'test' then
-                        print(settings.mode)
+                        bp.__displays.position(settings, commands[1], commands[2])
 
                     elseif tonumber(command) ~= nil then
                         new.set(tonumber(command))

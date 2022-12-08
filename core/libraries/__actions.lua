@@ -172,8 +172,17 @@ function library:new(bp)
 
     end
 
-    self.getFacing = function()
-        return bp and bp.me and bp.me.facing % math.tau
+    self.getFacing = function(target)
+        local target = bp.__target.get(target)
+
+        if bp and target then
+            return target.facing % math.tau
+
+        elseif bp and bp.me and not target then
+            return bp.me.facing % math.tau
+
+        end
+        
     end
 
     self.keyCombo = function(combo, delay, wait)
@@ -596,7 +605,14 @@ function library:new(bp)
         elseif id == 0x029 then
             local parsed = bp.packets.parse('incoming', original)
 
-            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{16,17,18}:contains(parsed['Message']) and not anchor.__midcast then
+            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{4,5,16,17,18,49,313,581}:contains(parsed['Message']) and not anchor.__midcast then
+                anchor.__set = false
+            end
+
+        elseif id == 0x053 then
+            local parsed = bp.packets.parse('incoming', original)
+
+            if parsed['Message ID'] == 298 and not anchor.__midcast then
                 anchor.__set = false
             end
 

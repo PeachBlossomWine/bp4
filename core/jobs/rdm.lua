@@ -7,14 +7,16 @@ function job:init(bp, settings)
     end
 
     -- Private Variables.
-    local __flags     = {}
-    local __timers    = {}
     local __events    = {}
-    local __sublogic  = bp.libs.__core.getSubjob(bp.player.sub_job)
     local __nukes     = T{}
+    local __sublogic  = bp.libs.__core.getSubjob(bp.player.sub_job)
 
-    -- Private Methods.
-    function self.unloadEvents()
+    -- Public Variables.
+    self.__flags     = {}
+    self.__timers    = {}
+
+    -- Public Methods.
+    self.unloadEvents = function()
 
         for _,id in pairs(__events) do
             windower.unregister_event(id)
@@ -40,7 +42,7 @@ function job:init(bp, settings)
 
     function self:castNukes(target)
 
-        if target then
+        if target and not settings.mb then
 
             for spell in __nukes:it() do
 
@@ -54,7 +56,6 @@ function job:init(bp, settings)
 
     end
 
-    -- Public Methods.
     function self:automate()
         local target = self.target()
 
@@ -105,7 +106,7 @@ function job:init(bp, settings)
                 if settings.buffs then
 
                     -- COMPOSURE.
-                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) and self.canAct() then
                         self.add("Composure", bp.player, self.priority("Composure"))
 
                     elseif (not settings.composure or self.buff(419)) and self.canCast() then
@@ -230,13 +231,13 @@ function job:init(bp, settings)
                 if settings.buffs then
 
                     -- COMPOSURE.
-                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) and self.canAct() then
                         self.add("Composure", bp.player, self.priority("Composure"))
 
                     elseif (not settings.composure or self.buff(419)) and self.canCast() then
                     
                         -- HASTE.
-                        if not self.buff(33) and self.mlevel >= 48 then
+                        if settings.haste and not self.buff(33) and self.mlevel >= 48 then
 
                             if self.mlevel >= 96 and self.isReady("Haste II") then
                                 self.add("Haste II", bp.player, self.priority("Haste II"))
@@ -254,11 +255,11 @@ function job:init(bp, settings)
                         end
                         
                         -- PHALANX.
-                        if not self.buff(116) and self.isReady("Phalanx") then
+                        if settings.phalanx and not self.buff(116) and self.isReady("Phalanx") then
                             self.add("Phalanx", bp.player, self.priority("Phalanx"))
                             
                         -- REFRESH.
-                        elseif not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
+                        elseif settings.refresh and not self.buff(43) and (not self.buff(187) or not self.buff(188)) then
 
                             if self.jp >= 1200 and self.isReady("Refresh III") then
                                 self.add("Refresh III", bp.player, self.priority("Refresh III"))
@@ -342,7 +343,7 @@ function job:init(bp, settings)
                 if settings.buffs then
 
                     -- COMPOSURE.
-                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) and self.canAct() then
                         self.add("Composure", bp.player, self.priority("Composure"))
 
                     elseif (not settings.composure or self.buff(419)) and self.canCast() then
@@ -467,7 +468,7 @@ function job:init(bp, settings)
                 if settings.buffs then
 
                     -- COMPOSURE.
-                    if settings.composure and self.isReady("Composure") and not self.buff(419) then
+                    if settings.composure and self.isReady("Composure") and not self.buff(419) and self.canAct() then
                         self.add("Composure", bp.player, self.priority("Composure"))
 
                     elseif (not settings.composure or self.buff(419)) and self.canCast() then
@@ -583,10 +584,6 @@ function job:init(bp, settings)
             end
 
         end
-
-    end)
-
-    __events.timechange = windower.register_event('time change', function()
 
     end)
     

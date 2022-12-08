@@ -9,30 +9,6 @@ function library:new(bp)
     local __ranges  = {false,03.40,04.47,05.76,06.89,07.80,08.40,10.40,12.40,14.50,16.40,20.40,23.40}
     local __bypass  = {}
     local __queue   = Q{}
-    local __tools   = {
-        
-        ["Monomi"]      = {cast={"Shikanofuda","Sanjaku-Tenugui"}, toolbags={"Toolbag (Shika)","Toolbag (Sanja)"}},
-        ["Aisha"]       = {cast={"Chonofuda","Soshi"}, toolbags={"Toolbag (Cho)","Toolbag (Soshi)"}},
-        ["Katon"]       = {cast={"Inoshishinofuda","Uchitake"}, toolbags={"Toolbag (Ino)","Toolbag (Uchi)"}},
-        ["Hyoton"]      = {cast={"Inoshishinofuda","Tsurara"}, toolbags={"Toolbag (Ino)","Toolbag (Tsura)"}},
-        ["Huton"]       = {cast={"Inoshishinofuda","Kawahori-Ogi"}, toolbags={"Toolbag (Ino)","Toolbag (Kawa)"}},
-        ["Doton"]       = {cast={"Inoshishinofuda","Makibishi"}, toolbags={"Toolbag (Ino)","Toolbag (Maki)"}},
-        ["Raiton"]      = {cast={"Inoshishinofuda","Hiraishin"}, toolbags={"Toolbag (Ino)","Toolbag (Hira)"}},
-        ["Suiton"]      = {cast={"Inoshishinofuda","Mizu-Deppo"}, toolbags={"Toolbag (Ino)","Toolbag (Mizu)"}},
-        ["Utsusemi"]    = {cast={"Shikanofuda","Shihei"}, toolbags={"Toolbag (Shika)","Toolbag (Shihe)"}},
-        ["Jubaku"]      = {cast={"Chonofuda","Jusatsu"}, toolbags={"Toolbag (Cho)","Toolbag (Jusa)"}},
-        ["Hojo"]        = {cast={"Chonofuda","Kaginawa"}, toolbags={"Toolbag (Cho)","Toolbag (Kagi)"}},
-        ["Kurayami"]    = {cast={"Chonofuda","Sairui-Ran"}, toolbags={"Toolbag (Cho)","Toolbag (Sai)"}},
-        ["Dokumori"]    = {cast={"Chonofuda","Kodoku"}, toolbags={"Toolbag (Cho)","Toolbag (Kodo)"}},
-        ["Tonko"]       = {cast={"Shikanofuda","Shinobi-Tabi"}, toolbags={"Toolbag (Shika)","Toolbag (Shino)"}},
-        ["Gekka"]       = {cast={"Shikanofuda","Ranka"}, toolbags={"Toolbag (Shika)","Toolbag (Ranka)"}},
-        ["Yain"]        = {cast={"Shikanofuda","Furusumi"}, toolbags={"Toolbag (Shika)","Toolbag (Furu)"}},
-        ["Myoshu"]      = {cast={"Shikanofuda","Kabenro"}, toolbags={"Toolbag (Shika)","Toolbag (Kaben)"}},
-        ["Yurin"]       = {cast={"Chonofuda","Jinko"}, toolbags={"Toolbag (Cho)","Toolbag (Jinko)"}},
-        ["Kakka"]       = {cast={"Shikanofuda","Ryuno"}, toolbags={"Toolbag (Shika)","Toolbag (Ryuno)"}},
-        ["Migawari"]    = {cast={"Shikanofuda","Mokujin"}, toolbags={"Toolbag (Shika)","Toolbag (Moku)"}},
-    
-    }
 
     -- Public Variables.
 
@@ -51,15 +27,14 @@ function library:new(bp)
     pm.push = function(action, target, priority)
 
         if action and target and priority then
-            __queue:push({action=action, target=target, priority=priority, attempts=1})
-            __queue:sort(function(a, b) return a.priority > b.priority end)
+            __queue:push({action=action, target=target, priority=priority, attempts=0})
+            __queue:sort(function(a, b) return a.priority > b.priority and a.attempts == 0 and b.attempts == 0 end)
 
         end
 
     end
 
     -- Public Methods.
-    self.getDelay       = function(action) return (os.clock() + (action and action.cast_time and action.cast_time >= 3 and action.cast_time or 3)) end
     self.updateReady    = function(action) __ready = self.getDelay(action) end
     self.getReady       = function() return __ready end
     self.getQueue       = function() return __queue end
@@ -82,6 +57,31 @@ function library:new(bp)
         end
         return 999
 
+    end
+
+    self.getDelay = function(action)
+        
+        if action and action.prefix then
+
+            if S{'/jobability','/pet'}:contains(action.prefix) then
+                return (os.clock() + 2.50)
+
+            elseif S{'/magic','/ninjutsu','/song'}:contains(action.prefix) then
+                return (os.clock() + 2.75)
+
+            elseif S{'/weaponskill'}:contains(action.prefix) then
+                return (os.clock() + 2.50)
+
+            elseif S{'/ra'}:contains(action.prefix) then
+
+            elseif action.flags and action.flags:contains('Usable') then
+                return (os.clock() + action.cast_delay)
+
+            end
+            
+        end
+        return 2
+    
     end
 
     self.add = function(action, target, priority, force)
@@ -191,11 +191,23 @@ function library:new(bp)
                 -- SPELLS.
                 elseif S{'/magic','/ninjutsu','/song'}:contains(action.prefix) then
 
-                    if action.prefix == '/magic' and (action.mp_cost and (action.mp_cost <= vitals.mp or bp.__buffs.active(47) or bp.__buffs.active(229))) and bp.__actions.canCast() then
+                    if action.prefix == '/magic' and (action.mp_cost and (action.mp_cost <= vitals.mp or bp.__buffs.active({47,229}))) and bp.__actions.canCast() then
 
                         if bp.__actions.isReady(action.en) and (distance - target.model_size) < range and not bp.__queue.inQueue(action, target) then
 
-                            if bp.__target.castable(target, action) then
+                            if action.en:startswith("Geo-") then
+                                
+                                if (not pet or bp.bubbles.geoRecast()) then
+                                    pm.push(action, target, priority)
+                                end
+
+                            elseif action.en:startswith("Indi-") then
+
+                                if (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                                    pm.push(action, target, priority)
+                                end
+
+                            elseif bp.__target.castable(target, action) then
                                 
                                 if action.status and not bp.__buffs.hasBuff(target.id, action.status) then
                                     pm.push(action, target, priority)
@@ -205,12 +217,6 @@ function library:new(bp)
 
                                 end
 
-                            else
-
-                                if action.en:startswith("Indi-") and not bp.__target.castable(target, action) and (bp.__buffs.active(584) or bp.__queue.inQueue("Entrust", bp.player)) then
-                                    pm.push(action, target, priority)
-                                end
-
                             end
 
                         end
@@ -218,25 +224,7 @@ function library:new(bp)
                     elseif action.prefix == '/ninjutsu' then
                         
                         if bp.__actions.isReady(action.en) and (distance - target.model_size) < range and not bp.__queue.inQueue(action, target) then
-                            local tools = __tools[action.en:sub(1, 4)]
-
-                            if tools then
-                                local index, count = bp.__inventory.findByName(tools.cast, 0)
-
-                                if count > 0 then
-                                    pm.push(action, target, priority)
-
-                                elseif count == 0 and bp.core.get('items') then
-                                    local index, count, id = bp.__inventory.findByName(tools.toolbags, 0)
-
-                                    if count > 0 and bp.res.items[id] and not bp.__queue.inQueue(bp.res.items[id].en, bp.player) then
-                                        pm.push(bp.res.items[id], bp.player, bp.priorities.get(bp.res.items[id].en))
-                                    end
-
-                                end
-
-                            end
-
+                            pm.push(action, bp.player, priority)
                         end
 
                     elseif action.prefix == '/song' then
@@ -281,7 +269,7 @@ function library:new(bp)
             local attempts  = __queue[1].attempts
             local vitals    = bp.player['vitals']
             
-            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish'}:contains(action.en)) then
+            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish','Full Circle'}:contains(action.en)) then
                 local range     = bp.__queue.getRange(action)
                 local distance  = bp.__distance.get(target)
 
@@ -294,13 +282,37 @@ function library:new(bp)
 
                         elseif action.en == 'Double-Up' then
 
+                        elseif S{'Full Circle','Ecliptic Attrition','Lasting Emanation','Radial Arcana','Mending Halation'}:contains(action.en) then
+                            
+                            if pet and not T{2,3}:contains(pet.status) then
+
+                                if action.en == 'Ecliptic Attrition' then
+                                    
+                                    if not bp.__buffs.active(513) then
+                                        pm.attempt(action.prefix, action, target)
+
+                                    else
+                                        __queue:remove(1)
+
+                                    end
+
+                                else
+                                    pm.attempt(action.prefix, action, target)
+
+                                end
+
+                            else
+                                __queue:remove(1)
+
+                            end
+
                         else
 
                             if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
                                 pm.attempt(action.prefix, action, target)
 
                             else
-                                self.remove(action)
+                                __queue:remove(1)
 
                             end
 
@@ -315,15 +327,60 @@ function library:new(bp)
 
                     if action.prefix == '/magic' then
 
-                        if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
-                            pm.attempt(action.prefix, action, target)
+                        if attempts < 15 and (distance - target.model_size) < range and (bp.__target.castable(target, action) or action.skill == 44) and bp.__actions.canCast() then
+
+                            if bp.status.isRemoval(action.id) then
+                                pm.attempt(action.prefix, action, target)
+
+                            elseif T{44,34,37,39}:contains(action.skill) and action.status then
+
+                                if action.en:startswith("Geo-") then
+
+                                    if (not pet or bp.bubbles.geoRecast()) then
+                                        pm.attempt(action.prefix, action, target)
+                                        
+                                    else
+                                        __queue:remove(1)
+
+                                    end
+
+                                elseif action.en:startswith("Indi-") then
+
+                                    if (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                                        pm.attempt(action.prefix, action, target)
+
+                                    else
+                                        __queue:remove(1)
+
+                                    end
+
+                                elseif bp.__buffs.hasBuff(target.id, action.status) then
+                                    pm.attempt(action.prefix, action, target)
+
+                                else
+                                    __queue:remove(1)
+
+                                end
+
+                            else
+                                pm.attempt(action.prefix, action, target)
+
+                            end
 
                         else
-                            self.remove(action)
+                            __queue:remove(1)
 
                         end
 
                     elseif action.prefix == '/ninjutsu' then
+
+                        if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) and bp.__actions.canCast() then
+                            pm.attempt(action.prefix, action, target)
+
+                        else
+                            __queue:remove(1)
+
+                        end
 
                     elseif action.prefix == '/song' then
 
@@ -335,7 +392,7 @@ function library:new(bp)
                         pm.attempt(action.prefix, action, target)
 
                     else
-                        self.remove(action)
+                        __queue:remove(1)
 
                     end
 
@@ -405,7 +462,7 @@ function library:new(bp)
     self.inQueue = function(action, target)
         local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
 
-        if action and type(action) == 'table' and __queue.data then
+        if action and type(action) == 'table' and __queue:length() > 0 then
 
             if action and target  then
 
@@ -437,7 +494,7 @@ function library:new(bp)
     self.typeInQueue = function(action)
         local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
 
-        if bp and action and __queue.data and action.type then
+        if bp and action and __queue:length() > 0 and action.type then
 
             for act in __queue.data:it() do
 
@@ -445,6 +502,37 @@ function library:new(bp)
                     return true
                 end
 
+            end
+
+        end
+        return false
+
+    end
+
+    self.searchInQueue = function(search)
+
+        if bp and __queue:length() > 0 then
+        
+            for act in __queue:it() do
+                        
+                if type(search) == 'string' then
+                    
+                    if act.action.en:lower():startswith(search:lower()) then
+                        return true
+                    end
+
+                elseif type(search) == 'table' then
+
+                    for check in T(search):it() do
+
+                        if act.action.en:lower():startswith(check:lower()) then
+                            return true
+                        end
+
+                    end
+
+                end
+                
             end
 
         end
@@ -553,10 +641,10 @@ function library:new(bp)
                 elseif category == 8 then
     
                     if param == 24931 and bp.res.spells[parsed['Target 1 Action 1 Param']] then
-                        __ready = self.getDelay(bp.res.spells[parsed['Target 1 Action 1 Param']])
+                        __ready = (os.clock() + bp.res.spells[parsed['Target 1 Action 1 Param']].cast_time)
 
                     else
-                        __ready = self.getDelay()
+                        __ready = (os.clock() + 1.50)
 
                     end
     
@@ -564,10 +652,10 @@ function library:new(bp)
                 elseif category == 9 then
     
                     if param == 24931 and bp.res.items[parsed['Target 1 Action 1 Param']] then
-                        __ready = self.getDelay(bp.res.items[parsed['Target 1 Action 1 Param']])
+                        __ready = (os.clock() + bp.res.items[parsed['Target 1 Action 1 Param']].cast_time)
 
                     else
-                        __ready = self.getDelay()
+                        __ready = (os.clock() + 1.50)
 
                     end
     

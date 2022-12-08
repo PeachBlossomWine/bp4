@@ -83,6 +83,14 @@ local buildHelper = function(bp, hmt)
 
                 ["Megalixir"]           = 250,
                 ["Vile Elixir +1"]      = 250,
+                ["Full Circle"]         = 102,
+                ["Radial Arcana"]       = 101,
+                ["Mending Halation"]    = 101,
+                ["Blaze of Glory"]      = 99,
+                ["Lasting Emanation"]   = 97,
+                ["Ecliptic Attrition"]  = 97,
+                ["Dematerialize"]       = 96,
+                ["Life Cycle"]          = 96,
                 ["Curaga V"]            = 50,
                 ["Curaga IV"]           = 50,
                 ["Curaga III"]          = 50,
@@ -92,6 +100,7 @@ local buildHelper = function(bp, hmt)
                 ["Cursna"]              = 48,
                 ["Stona"]               = 47,
                 ["Curaga"]              = 47,
+                ["Divine Waltz"]        = 47,
                 ["Echo Drops"]          = 46,
                 ["Silena"]              = 46,
                 ["Panacea"]             = 45,
@@ -187,6 +196,15 @@ local buildHelper = function(bp, hmt)
 
                 if (action.targets:contains('Self') or action.targets:contains('Player') or action.targets:contains('Party') or action.targets:contains('Ally')) and action.status and T{34,37,39}:contains(action.skill) then
                     pvt.set(action.en, 5)
+                end
+
+            end
+
+            -- GEOMANCY SPELLS.
+            for action in T(bp.res.spells):it() do
+
+                if action.en:startswith("Geo-") then
+                    pvt.set(action.en, 98)
                 end
 
             end

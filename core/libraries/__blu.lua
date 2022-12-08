@@ -1,6 +1,7 @@
 local library = {}
 function library:new(bp)
     local bp = bp
+    local pm = {}
 
     -- Public Methods.
     self.getSpellSet = function()

@@ -8,7 +8,7 @@ local buildHelper = function(bp, hmt)
         local pvt = {}
 
         -- Private Variables.
-        local __modes       = {'OFF','PARTY','ALLIANCE'}
+        local __modes       = {'PARTY','ALLIANCE'}
         local __jobs        = {3,4,5,7,10,15,19,20,21}
         local __spells      = {1,2,3,4,5,6,7,8,9,10,11}
         local __abilities   = {190,191,192,193,311,195,262}
@@ -58,8 +58,9 @@ local buildHelper = function(bp, hmt)
         }
 
         do -- Private Settings.
-            settings.mode   = settings.mode or 1
-            settings.power  = settings.power or 15
+            settings.enabled    = (settings.enabled ~= nil) and settings.enabled or false
+            settings.mode       = settings.mode or 1
+            settings.power      = settings.power or 15
 
         end
 
@@ -74,7 +75,7 @@ local buildHelper = function(bp, hmt)
         pvt.setMode = function(mode)
             local mode = tonumber(mode)
     
-            if mode and mode >= 0 and mode <= 3 then
+            if mode and mode >= 1 and mode <= 2 then
                 settings.mode = mode
             end
     
@@ -368,11 +369,11 @@ local buildHelper = function(bp, hmt)
                     if act.action and act.target and (act.action.type == 'WhiteMagic' or act.action.type == 'Waltz') then
                         
                         if act.target.id == target.id and act.action.en ~= action.en and act.action.en:startswith('Cur') and not bp.__queue.inQueue(action.en, target) then
-                            queue.data[i].action, queue.data[i].priority = bp.MA[action.en], bp.priorities.get(action.en)
+                            queue.data[index].action, queue.data[index].priority = bp.MA[action.en], bp.priorities.get(action.en)
                             update = true
     
                         elseif act.target.id == target.id and act.action.en ~= action.en and act.action.en:startswith('Waltz') and not bp.__queue.inQueue(action.en, target) then
-                            queue.data[i].action, queue.data[i].priority = bp.JA[action.en], bp.priorities.get(action.en)
+                            queue.data[index].action, queue.data[index].priority = bp.JA[action.en], bp.priorities.get(action.en)
                             update = true
     
                         end
@@ -396,11 +397,11 @@ local buildHelper = function(bp, hmt)
         -- Public Methods.
         new.handle = function()
 
-            if __party and __alliance and settings.mode > 1 then
+            if __party and __alliance and settings.enabled then
                 local curaga = new.getCuraga()
 
                 if not curaga then
-                    local party = settings.mode == 3 and pvt.sort(T(__party):extend(__alliance)) or __party
+                    local party = settings.mode == 2 and pvt.sort(T(__party):extend(__alliance)) or __party
 
                     if (bp.player.main_job == 'WHM' or bp.player.sub_job == 'WHM') then
                         new.doWHMCures(party)
@@ -423,7 +424,7 @@ local buildHelper = function(bp, hmt)
         new.setMode = function(mode)
             local mode = tonumber(mode)
 
-            if mode and mode >= 1 and mode <= 3 then
+            if mode and mode >= 1 and mode <= 2 then
                 settings.mode = mode
                 bp.popchat.pop(string.format("CURES MODE: \\cs(%s)%s\\cr.", bp.colors.setting, __modes[mode]))
 
@@ -521,10 +522,10 @@ local buildHelper = function(bp, hmt)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
             
-            if bp and command and command:lower() == 'cures' and #commands > 0 then
+            if bp and command and command:lower() == 'cures' then
                 local command = commands[1] and table.remove(commands, 1):lower() or false
 
-                if command:startswith('pr') and #commands > 0 then
+                if command and command:startswith('pri') and #commands > 0 then
                     local target    = tonumber(commands[#commands]) == nil and bp.__target.get(commands[#commands]) or windower.ffxi.get_mob_by_target('t')
                     local value     = tonumber(commands[1]) or false
 
@@ -532,8 +533,20 @@ local buildHelper = function(bp, hmt)
                         new.setPriority(target, value)
                     end
 
-                elseif tonumber(command) then
+                elseif command and tonumber(command) then
                     new.setMode(command)
+
+                else
+                    
+                    if command and settings.enabled ~= nil and L{'!','#'}:contains(command) then
+                        settings.enabled = (command == "!") and true or false
+                        bp.popchat.pop(string.format('AUTO-CURES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
+
+                    elseif settings.enabled ~= nil then
+                        settings.enabled = settings.enabled ~= true and true or false
+                        bp.popchat.pop(string.format('AUTO-CURES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
+
+                    end
 
                 end
                 settings:save()
@@ -544,7 +557,7 @@ local buildHelper = function(bp, hmt)
 
         helper('incoming chunk', function(id, original, modified, injected, blocked)
         
-            if bp and id == 0x028 then
+            if bp and id == 0x028 and settings.enabled then
                 local parsed    = bp.packets.parse('incoming', original)
                 local actor     = windower.ffxi.get_mob_by_id(parsed['Actor'])
                 local target    = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])
@@ -557,7 +570,7 @@ local buildHelper = function(bp, hmt)
                     if category == 4 and bp.res.spells[param].en:startswith('Cura') then
                         local queue = bp.__queue.getQueue()
     
-                        if queue and queue:length() then
+                        if queue and queue:length() > 0 then
                             local targets = T{}
                             
                             for i=0, count do

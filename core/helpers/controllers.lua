@@ -5,15 +5,16 @@ local buildHelper = function(bp, hmt)
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
+        local pvt = {}
 
         -- Private Variables.
-        settings.controllers = T(settings.controllers) or {}
+        settings.controllers = T(settings.controllers) or T{}
 
         -- Save after all settings have been initialized.
         settings:save()
 
         -- Private Methods.
-        local add = function(name)
+        pvt.add = function(name)
             local target = bp.libs.__target.get(name) or windower.ffxi.get_mob_by_target('t')
 
             if target and target.spawn_type == 1 and not target.is_npc and not settings.controllers:contains(target.name) then
@@ -24,7 +25,7 @@ local buildHelper = function(bp, hmt)
 
         end
         
-        local delete = function(name)
+        pvt.delete = function(name)
             local target = bp.libs.__target.get(name) or windower.ffxi.get_mob_by_target('t')
 
             if target and target.spawn_type == 1 and not target.is_npc and settings.controllers:contains(target.name) then
@@ -69,16 +70,6 @@ local buildHelper = function(bp, hmt)
         end)
 
         return new
-
-    end
-
-    function helper:reload()
-        bp.clearEvents(self.events)
-
-        do -- Create a new helper object.
-            return self.new()
-
-        end
 
     end
 

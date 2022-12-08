@@ -2,15 +2,15 @@ local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
     local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=15, font='Arial', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
-    local settings  = bp.libs.__settings.new('target')
+    local settings  = bp.__settings.new('target')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
         local pvt = {}
 
         -- Private Variables.
-        local modes = {'PLAYER ONLY','PARTY SHARE'}
-        local reset = 0
+        local __modes = {'PLAYER ONLY','PARTY SHARE'}
+        local __reset = 0
 
         do
             settings.mode       = settings.mode or 1
@@ -26,7 +26,7 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        pvt.reset = function() return (os.clock()-reset) < 0.5 end
+        pvt.__reset = function() return (os.clock()-__reset) < 0.5 end
         pvt.updateTargets = function()
 
             if bp and bp.player then
@@ -36,15 +36,15 @@ local buildHelper = function(bp, hmt)
                     new.targets.player = target                    
                 end
     
-                if new.targets.player and (not bp.libs.__target.valid(new.targets.player) or bp.libs.__distance.get(new.targets.player) > 45) then
+                if new.targets.player and (not bp.__target.valid(new.targets.player) or bp.__distance.get(new.targets.player) > 45) then
                     new.set(false)                    
                 end
     
-                if new.targets.entrust and (not bp.libs.__target.valid(new.targets.entrust) or bp.libs.__distance.get(new.targets.entrust) > 45) then
+                if new.targets.entrust and (not bp.__target.valid(new.targets.entrust) or bp.__distance.get(new.targets.entrust) > 45) then
                     new.setEntrust(false)
                 end
     
-                if new.targets.luopan and (not bp.libs.__target.valid(new.targets.luopan) or bp.libs.__distance.get(new.targets.luopan) > 45) then
+                if new.targets.luopan and (not bp.__target.valid(new.targets.luopan) or bp.__distance.get(new.targets.luopan) > 45) then
                     new.setLuopan(false)
                 end
     
@@ -55,11 +55,11 @@ local buildHelper = function(bp, hmt)
         pvt.updateDisplay = function()
 
             if new.targets.player and new.targets.player.name then
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, new.targets.player.name:sub(1, 10), #new.targets.player.name > 10 and '...' or '', new.targets.player.index))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, new.targets.player.name:sub(1, 10), #new.targets.player.name > 10 and '...' or '', new.targets.player.index))
                 settings.display:update()
 
             else
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.libs.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, '........', 0))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, '........', 0))
                 settings.display:update()
 
             end
@@ -69,7 +69,7 @@ local buildHelper = function(bp, hmt)
 
         pvt.render = function()
 
-            bp.libs.__ui.renderUI(settings.display, function()
+            bp.__ui.renderUI(settings.display, function()
 
                 if bp and bp.player and (T{2,3}:contains(bp.player.status) or bp.player['vitals'].hp <= 0) then
                     new.clear()
@@ -80,11 +80,23 @@ local buildHelper = function(bp, hmt)
         
         end
 
+        pvt.statusClear = function(n, o)
+
+            if n == 0 and o == 1 then
+                new.clear()
+            end
+
+        end
+
         -- Public Methods.
         new.setMode = function(value)
-            if tonumber(value) == nil then return end
-            settings.mode = value
-            return value
+            local value = tonumber(value)
+
+            if value and value >= 1 and value <= 2 then
+                settings.mode = value
+            end
+            bp.popchat.pop(string.format("TARGET MODE: \\cs(%s)%s\\cr.", bp.colors.setting, __modes[settings.mode]))
+            return settings.mode
 
         end
 
@@ -93,20 +105,20 @@ local buildHelper = function(bp, hmt)
         end
         
         new.get = function()
-            return bp.libs.__target.get(new.targets.player)
+            return bp.__target.get(new.targets.player)
         end
 
         new.set = function(target, share)
-            local target = bp.libs.__target.get(target) or windower.ffxi.get_mob_by_target('t')
+            local target = bp.__target.get(target) or windower.ffxi.get_mob_by_target('t')
 
             if target then
-                new.targets.player = bp.libs.__target.valid(target) and bp.libs.__target.canEngage(target) and target or false
+                new.targets.player = bp.__target.valid(target) and bp.__target.canEngage(target) and target or false
 
                 if share and new.targets.player and settings.mode == 2 then
-                    --windower.send_command(string.format('ord r* bp target share %s', new.targets.player.id))
+                    windower.send_command(string.format('ord r* bp target share %s', new.targets.player.id))
                 end
 
-                if pvt.reset() then
+                if pvt.__reset() then
 
                     if share then
                         windower.send_command('ord r bp target clear')
@@ -117,7 +129,7 @@ local buildHelper = function(bp, hmt)
                     end
 
                 end
-                reset = os.clock()
+                __reset = os.clock()
 
             end
 
@@ -125,7 +137,7 @@ local buildHelper = function(bp, hmt)
 
         -- Private Events.
         helper('prerender', pvt.render)
-        helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
+        helper('status change', pvt.statusClear)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
@@ -136,7 +148,7 @@ local buildHelper = function(bp, hmt)
                 if command then
     
                     if command == 'pos' and commands[1] then
-                        bp.libs.__displays.position(settings, commands[1], commands[2])
+                        bp.__displays.position(settings, commands[1], commands[2])
 
                     elseif command == 't' then
                         new.set(commands[1], true)
@@ -146,6 +158,9 @@ local buildHelper = function(bp, hmt)
 
                     elseif command == 'e' then
                         new.set(commands[1], true)
+
+                    elseif command == 'mode' and commands[1] then
+                        new.setMode(commands[1])
         
                     end                   
     
@@ -154,14 +169,6 @@ local buildHelper = function(bp, hmt)
     
             end        
     
-        end)
-
-        helper('status change', function(ns, os)
-
-            if ns == 0 and os == 1 then
-                new.clear()
-            end
-        
         end)
 
         return new

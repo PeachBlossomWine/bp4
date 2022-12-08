@@ -47,7 +47,7 @@ function library:new(bp)
         local target = windower.ffxi.get_mob_by_target('t') or false
 
         if target then
-            print(string.format('ID: %s | Index: %s | Claim ID: %s | POS(x=%s, y=%s, z=%s) | Zone: %s [ %s ]', target.id, target.index, target.claim_id, target.x, target.y, target.z, self.info.zone, self.res.zones[self.info.zone].en))
+            print(string.format('ID: %s | Index: %s | Claim ID: %s | POS(x=%s, y=%s, z=%s) | Zone: %s [ %s ]', target.id, target.index, target.claim_id, target.x, target.y, target.z, bp.info.zone, bp.res.zones[bp.info.zone].en))
             --table.vprint(target)
             --table.vprint(windower.ffxi.get_player())
             --table.vprint(self.me)
@@ -55,7 +55,18 @@ function library:new(bp)
 
     end
 
-    -- Public Methods.
+    pm['helper'] = function(commands)
+        local command = commands[1] and table.remove(commands, 1):lower()
+
+        if command and bp.helpers[command] then
+
+            if command == 'reload' and commands[1] and bp[commands[1]] then
+                bp.helpers:reload(commands[1])
+            end
+            
+        end
+        
+    end
 
     -- Private Events.
     windower.register_event('addon command', function(...)

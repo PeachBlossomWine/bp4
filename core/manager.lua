@@ -46,6 +46,7 @@ function manager:new(bp)
                 class.helper = class.new()
 
             end
+            bp.popchat.pop(string.format("RELOADING HELPER: \\cs(%s)%s\\cr", bp.colors.setting, name:upper()))
 
         end
 

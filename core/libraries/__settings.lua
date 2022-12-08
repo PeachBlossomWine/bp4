@@ -42,6 +42,9 @@ function library:new(bp)
             return not self.display and bp.libs.__displays.new(self.layout) or self.display
         end
 
+        -- Private Events.
+        windower.register_event('mouse', function(param, x, y) settings:saveDisplay(x, y, param) end)
+
         -- Metatable Functions.
         mt.__index = function(t, k)
             

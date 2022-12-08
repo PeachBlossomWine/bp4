@@ -41,19 +41,21 @@ local buildHelper = function(bp, hmt)
                             core.vitals         = bp.player['vitals']
                             core.jp             = bp.player.job_points[core.main:lower()].jp_spent
                             core.target         = bp.target.get
-                            core.priority       = bp.helpers.priorities.get
-                            core.available      = bp.__actions.isAvailable
+                            core.add            = bp.__queue.add
+                            core.getTarget      = bp.__target.get
                             core.distance       = bp.__distance.get
+                            core.buff           = bp.__buffs.active
+                            core.hasBuff        = bp.__buffs.hasBuff
                             core.inQueue        = bp.__queue.inQueue
                             core.range          = bp.__queue.inQueue
-                            core.isReady        = bp.__actions.isReady
-                            core.getTarget      = bp.__target.get
-                            core.buff           = bp.__buffs.active
-                            core.add            = bp.__queue.add
                             core.canAct         = bp.__actions.canAct
+                            core.isReady        = bp.__actions.isReady
                             core.canCast        = bp.__actions.canCast
                             core.canItem        = bp.__actions.canItem
                             core.canMove        = bp.__actions.canMove
+                            core.searchQueue    = bp.__queue.searchInQueue
+                            core.available      = bp.__actions.isAvailable
+                            core.priority       = bp.helpers.priorities.get
 
                         end
 
@@ -66,6 +68,8 @@ local buildHelper = function(bp, hmt)
         end
 
         -- Private Methods.
+        pvt.cures = function() bp.cures.handle() end
+        pvt.statuses = function() bp.status.fix() end
         pvt.weaponskill = function()
             local target = core.target()
 
@@ -220,10 +224,6 @@ local buildHelper = function(bp, hmt)
             end
 
         end
-
-        pvt.cures = function()
-            bp.cures.handle()
-        end
         
         -- Public Methods.
         new.automate = function()
@@ -233,15 +233,16 @@ local buildHelper = function(bp, hmt)
 
                 do
                     pvt.cures()
-                    pvt.weaponskill()
                     pvt.skillup()
+                    pvt.statuses()
+                    pvt.weaponskill()
 
                 end
                 core:automate()
                 bp.__queue.handle()
 
             end
-        
+
         end
         
         new.get = function(name) return settings[name] end

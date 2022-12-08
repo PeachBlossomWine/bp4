@@ -10,7 +10,7 @@ local buildHelper = function(bp, hmt)
         local pvt = {}
 
         -- Private Variables.
-        local __hover       = bp.libs.__displays.new(settings.hover or layout2)
+        local __hover       = bp.__displays.new(settings.hover or layout2)
         local __loop        = Q{}
         local __position    = 195
         local __recast      = 0
@@ -32,10 +32,14 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.render = function()
 
-            bp.libs.__ui.renderUI(settings.display, function()
+            bp.__ui.renderUI(settings.display, function()
 
-                if bp and bp.player and settings.display:text() == "" then
+                if bp and bp.player and settings.display:text() == "" and bp.player.main_job == 'BRD' then
                     settings.display:text("♫")
+
+                elseif settings.display:visible() and bp.player.main_job ~= 'BRD' then
+                    settings.display:hide()
+
                 end
             
             end)
@@ -258,7 +262,6 @@ local buildHelper = function(bp, hmt)
         
         -- Private Events.
         helper('prerender', pvt.render)
-        helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
         helper('time change', pvt.resetPosition)
         helper('addon command', function(...)
             local commands  = T{...}

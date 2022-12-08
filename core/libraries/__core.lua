@@ -92,6 +92,8 @@ function library:new(bp)
             ["blink"]               = false,
             ["aquaveil"]            = false,
             ["stoneskin"]           = false,
+            ["haste"]               = false,
+            ["phalanx"]             = false,
         },
 
         ["THF"] = {
@@ -124,6 +126,7 @@ function library:new(bp)
         },
 
         ["DRK"] = {
+            ["spikes"]              = {enabled=false, name="Blaze Spikes"},
             ["absorb"]              = {enabled=false, name="Absorb-ACC"},
             ["drain"]               = {enabled=false, hpp=55},
             ["aspir"]               = {enabled=false, mpp=55},
@@ -140,7 +143,6 @@ function library:new(bp)
             ["arcane crest"]        = false,
             ["scarlet delirium"]    = false,
             ["endark"]              = false,
-            ["spikes"]              = false,
         },
 
         ["BST"] = {
@@ -291,7 +293,8 @@ function library:new(bp)
             ["full circle"]         = {enabled=false, distance=22},
             ["drain"]               = {enabled=false, hpp=55},
             ["aspir"]               = {enabled=false, mpp=55},
-            ["radial"]              = {enabled=false, mpp=55},
+            ["radial arcana"]       = {enabled=false, mpp=55},
+            ["mending halation"]    = {enabled=false, hpp=55},
             ["moonlight"]           = {enabled=false, mpp=45},
             ["theurgic focus"]      = false,
             ["lasting emanation"]   = false,
@@ -299,6 +302,9 @@ function library:new(bp)
             ["life cycle"]          = false,
             ["blaze of glory"]      = false,
             ["dematerialize"]       = false,
+            ["indicolure"]          = false,
+            ["geocolure"]           = false,
+            ["entrust"]             = false,
         },
 
         ["RUN"] = {

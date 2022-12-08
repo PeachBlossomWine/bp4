@@ -1,12 +1,13 @@
 local library = {}
 function library:new(bp)
     local bp = bp
+    local pm = {}
 
     -- Public Variables.
     self.visible = true
 
     -- Private Methods.
-    local update = function()
+    pm.update = function()
         self.visible = bp and (not bp.info.mog_house and not bp.info.chat_open and (not bp.info.menu_open or (bp.info.menu_open and bp.player.status == 1))) and true or false
     end
 
@@ -34,7 +35,7 @@ function library:new(bp)
     end
 
     -- Private Events.
-    windower.register_event('prerender', update)
+    windower.register_event('prerender', pm.update)
 
     return self
 

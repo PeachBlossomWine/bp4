@@ -1,14 +1,14 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local settings  = bp.libs.__settings.new('blusets')
+    local settings  = bp.__settings.new('blusets')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
+        local pvt = {}
 
         -- Private Variables.
-        local allowed   = bp.res.spells:type('BlueMagic')
-        local flags     = {busy=false}
+        local __flags = {busy=false}
 
         do -- Private Settings.
             settings.sets = settings.sets or {}
@@ -19,25 +19,26 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        local save = function()
-            if (not bp or flags.busy or not name) then return end
+        pvt.save = function()
+            if (not bp or __flags.busy or not name) then return end
             local name = name:lower()
 
             if not settings.sets[name] then
                 settings.sets[name] = {}
-                --bp.helpers['popchat'].pop(string.format('NEW BLUE MAGE SPELL SET: %s!', name))
+                bp.popchat.pop(string.format('NEW BLUE MAGE SPELL SET: %s.', name))
+
             end
 
             if settings.sets[name] then
 
                 coroutine.schedule(function()
-                    flags.busy = true
+                    __flags.busy = true
 
-                    settings.sets[name] = bp.libs.__blu.getSpellSet()
+                    settings.sets[name] = bp.__blu.getSpellSet()
                     coroutine.schedule(function()
-                        --bp.helpers['popchat'].pop(string.format('SPELL SET, %s, SAVED!', name))
+                        bp.popchat.pop(string.format('SPELL SET "%s"; SAVED.', name))
                         settings:save()
-                        flags.busy = false
+                        __flags.busy = false
                     
                     end, 1)
 
@@ -47,31 +48,31 @@ local buildHelper = function(bp, hmt)
         
         end
         
-        local delete = function(name)
-            if not bp or flags.busy or not name then return end
+        pvt.delete = function(name)
+            if not bp or __flags.busy or not name then return end
             local name = name:lower()
 
             if settings.sets[name] then
-                flags.busy = true
+                __flags.busy = true
 
                 settings.sets[name] = nil
                 coroutine.schedule(function()
                     settings:save()
-                    flags.busy = false
+                    __flags.busy = false
 
                 end, 1)
-                --bp.helpers['popchat'].pop(string.format('DELETEING BLUE MAGE SPELL SET: %s!', name))
+                bp.popchat.pop(string.format('DELETEING BLUE MAGE SPELL SET: %s.', name))
 
             end
         
         end
         
-        local load = function(name)
-            if not bp or flags.busy or not name then return end
+        pvt.load = function(name)
+            if not bp or __flags.busy or not name then return end
             local name = name:lower()
 
             if settings.sets[name] then
-                flags.busy = true
+                __flags.busy = true
 
                 windower.ffxi.reset_blue_magic_spells()
                 coroutine.schedule(function()
@@ -81,10 +82,10 @@ local buildHelper = function(bp, hmt)
                         coroutine.sleep(0.25)
 
                     end
-                    flags.busy = false
+                    __flags.busy = false
 
                 end, 1)
-                --bp.helpers['popchat'].pop(string.format('LOADING BLUE MAGE SPELL SET: %s!', name))
+                bp.popchat.pop(string.format('LOADING BLUE MAGE SPELL SET: %s!', name))
 
             end
         
@@ -104,13 +105,13 @@ local buildHelper = function(bp, hmt)
                         windower.ffxi.reset_blue_magic_spells()
     
                     elseif command == 'load' and commands[1] then
-                        load(commands[1])
+                        pvt.load(commands[1])
     
                     elseif command == 'save' and commands[1] then
-                        save(commands[1])
+                        pvt.save(commands[1])
     
                     elseif command == 'delete' and commands[1] then
-                        delete(commands[1])
+                        pvt.delete(commands[1])
     
                     end
 
@@ -122,16 +123,6 @@ local buildHelper = function(bp, hmt)
         end)
 
         return new
-
-    end
-
-    function helper:reload()
-        bp.clearEvents(self.events)
-
-        do -- Create a new helper object.
-            return self.new()
-
-        end
 
     end
 

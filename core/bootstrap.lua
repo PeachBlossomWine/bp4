@@ -39,6 +39,7 @@ function bootstrap:new()
     self.info           = windower.ffxi.get_info()
     self.player         = windower.ffxi.get_player()
     self.party          = windower.ffxi.get_party()
+    self.pet            = windower.ffxi.get_mob_by_target('pet')
     self.me             = windower.ffxi.get_mob_by_target('me') or {}
     self.pinger         = (os.clock() + 3)
     self.delay          = 0.25
@@ -48,6 +49,7 @@ function bootstrap:new()
     -- Class Objects.
     --self.helpers        = buildManager(self)
     self.helpers        = manager:new(self)
+    self.common         = {}
     self.JA             = {}
     self.MA             = {}
     self.WS             = {}
@@ -58,6 +60,8 @@ function bootstrap:new()
 
         important   = string.format('%s,%s,%s', 025, 165, 200),
         setting     = string.format('%s,%s,%s', 200, 200, 200),
+        on          = string.format('%s,%s,%s', 020, 250, 020),
+        off         = string.format('%s,%s,%s', 255, 060, 070),
 
     }
 
@@ -101,6 +105,38 @@ function bootstrap:new()
 
     end
     buildResources()
+
+    do -- Update any packet fields that may be needed.
+        self.packets.raw_fields.incoming[0x0DD] = L{
+            {ctype='unsigned int',      label='ID',                 fn=id},             -- 04
+            {ctype='unsigned int',      label='HP'},                                    -- 08
+            {ctype='unsigned int',      label='MP'},                                    -- 0C
+            {ctype='unsigned int',      label='TP',                 fn=percent},        -- 10
+            {ctype='bit[2]',            label='Party Number'},                          -- 14:0
+            {ctype='bit[1]',            label='Party Leader',       fn=bool},           -- 14:2
+            {ctype='bit[1]',            label='Alliance Leader',    fn=bool},           -- 14:3
+            {ctype='bit[4]',            label='_unknown0',          fn=bool},           -- 14:4
+            {ctype='unsigned char',     label='_unknown1'},                             -- 15
+            {ctype='unsigned short',    label='_unknown2'},                             -- 16
+            {ctype='unsigned short',    label='Index',              fn=index},          -- 18
+            {ctype='unsigned char',     label='Party Index'},                           -- 1A
+            {ctype='unsigned char',     label='_unknown3'},                             -- 1B
+            {ctype='unsigned char',     label='_unknown4'},                             -- 1C
+            {ctype='unsigned char',     label='HP%',                fn=percent},        -- 1D
+            {ctype='unsigned char',     label='MP%',                fn=percent},        -- 1E
+            {ctype='unsigned char',     label='_unknown5'},                             -- 1F
+            {ctype='unsigned short',    label='Zone',               fn=zone},           -- 20
+            {ctype='unsigned char',     label='Main Job',           fn=job},            -- 22
+            {ctype='unsigned char',     label='Main Job Level'},                        -- 23
+            {ctype='unsigned char',     label='Sub Job',            fn=job},            -- 24
+            {ctype='unsigned char',     label='Sub Job Level'},                         -- 25
+            {ctype='unsigned char',     label='Master Level'},                          -- 26
+            {ctype='boolbit',           label='Master Breaker'},                        -- 27
+            {ctype='bit[7]',            label='_junk2'},                                -- 27
+            {ctype='char*',             label='Name'},                                  -- 28
+        }
+
+    end
 
     -- Setup all the libraries before building helpers.
     local loadLibraries = function()
@@ -156,12 +192,17 @@ function bootstrap:new()
     end
     loadHelpers()
 
+    -- Private Functions.
+    local zoneChange = function() self.pinger = (os.clock() + 15) end
+    
     -- Addon Events.
+    windower.register_event('zone change', zoneChange)
     windower.register_event('prerender', function()
         self.party  = windower.ffxi.get_party() or false
         self.player = windower.ffxi.get_player() or false
         self.info   = windower.ffxi.get_info() or false
         self.me     = windower.ffxi.get_mob_by_target('me') or false
+        self.pet    = windower.ffxi.get_mob_by_target('pet') or false
 
         if self.player and self.enabled and not self.__zones:isInJail() and (os.clock() - self.pinger) > self.delay and not self.__buffs.silent() then
 

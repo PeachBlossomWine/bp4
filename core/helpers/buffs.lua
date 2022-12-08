@@ -2,14 +2,13 @@ local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
     local layout    = {pos={x=1, y=1}, bg={alpha=75, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=8, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=10}
-    local settings  = bp.libs.__settings.new('buffs')
+    local settings  = bp.__settings.new('buffs')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
         local pvt = {}
 
         -- Private Variables.
-        local __allowed = require('resources').spells:skill(34)
         local __buffing = {}
 
         do -- Private Settings.
@@ -22,16 +21,16 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        pvt.render = function() bp.libs.__ui.renderUI(settings.display) end
+        pvt.render = function() bp.__ui.renderUI(settings.display) end
         pvt.update = function()
             
             if bp and #__buffing > 0 then
                 local update = {}
     
                 for index, data in ipairs(__buffing) do
-                    local player = bp.libs.__target.get(data.player.id)
+                    local player = bp.__target.get(data.player.id)
     
-                    if player and bp.libs.__distance.get(player) < 30 and (bp.libs.__distance.get(player) ~= 0 or bp.player.id == player.id) then
+                    if player and bp.__distance.get(player) < 30 and (bp.__distance.get(player) ~= 0 or bp.player.id == player.id) then
                         table.insert(update, string.format('%s%s → \\cs(%s)%s\\cr', player.name:sub(1,8), (' '):rpad(' ', (10-(player.name:sub(1,8):len()))), bp.colors.important, T(data.spells):keyset():map(function(id) return bp.res.spells[id] and bp.res.spells[id].en end):sort():tostring()))
                     end
                     T(update):sort()
@@ -48,17 +47,9 @@ local buildHelper = function(bp, hmt)
 
         pvt.getSpell = function(name)
             local name = windower.convert_auto_trans(table.concat(name, ' '))
-    
-            if bp and name and tostring(name) ~= nil then
-    
-                for spell in T(__allowed):it() do
 
-                    if spell.en:lower() == name:lower() and bp.libs.__actions.isAvailable(spell.en) then
-                        return spell
-                    end
-    
-                end
-    
+            if bp and name and bp.MA[name] and T{33,34,37,39}:contains(bp.MA[name].skill) and bp.__actions.isAvailable(bp.MA[name].en) then
+                return bp.MA[name]    
             end
             return false
     
@@ -82,13 +73,13 @@ local buildHelper = function(bp, hmt)
         new.add = function(target, spell)
             local spell = pvt.getSpell(spell)
 
-            if bp and spell and target then
+            if bp and spell and target and not bp.__target.isTrust(target) then
                 local index = pvt.getPlayerIndex(target.id)
     
-                if not index and bp.libs.__target.castable(target, spell) then
+                if not index and bp.__target.castable(target, spell) then
                     table.insert(__buffing, {player=target, spells={[spell.id] = {last=0, delay=3, status=spell.status}}})
     
-                elseif __buffing[index] and not __buffing[index].spells[spell.id] and bp.libs.__target.castable(target, spell) then
+                elseif __buffing[index] and not __buffing[index].spells[spell.id] and bp.__target.castable(target, spell) then
                     __buffing[index].spells[spell.id] = {last=0, delay=3, status=spell.status}
     
                 end
@@ -100,7 +91,7 @@ local buildHelper = function(bp, hmt)
 
         new.remove = function(target, spell)
 
-            if bp and spell and target then
+            if bp and spell and target and target.id then
                 local index = pvt.getPlayerIndex(target.id)
                 local spell = pvt.getSpell(spell)
                 
@@ -116,6 +107,12 @@ local buildHelper = function(bp, hmt)
     
             end
     
+        end
+
+        new.clear = function()
+            __buffing = {}
+            pvt.update()
+            
         end
 
         new.cast = function()
@@ -143,7 +140,6 @@ local buildHelper = function(bp, hmt)
         
         -- Private Events.
         helper('prerender', pvt.render)
-        helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
@@ -152,31 +148,16 @@ local buildHelper = function(bp, hmt)
                 local command = commands[1] and table.remove(commands, 1):lower() or false
 
                 if command then
-                    local target = bp.libs.__target.get(commands[#commands]:gsub("^%l", string.upper))
-                    
-                    if #commands > 0 and target then
-                        table.remove(commands, commands[#commands])
+                    local target = commands[#commands] and bp.__party.isMember(commands[#commands]) and bp.__party.isMember(table.remove(commands, #commands)) or windower.ffxi.get_mob_by_target('t') or false
 
-                    else
-                        target = windower.ffxi.get_mob_by_target('t') or false
+                    if command == '+' then
+                        new.add(target, commands)
 
-                    end
+                    elseif command == '-' then
+                        new.remove(target, commands)
 
-                    if target then
-
-                        if S{'a','add','+'}:contains(command) then
-                            new.add(target, commands)
-    
-                        elseif S{'r','remove','-'}:contains(command) then
-                            new.remove(target, commands)
-    
-                        end
-
-                    else
-
-                        if S{'c','clear'}:contains(command) then
-                            pvt.clear()
-                        end
+                    elseif command == 'clear' then
+                        new.clear()
 
                     end
 

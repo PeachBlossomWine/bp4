@@ -73,7 +73,7 @@ function library:new(bp)
         local target = self.get(target)
 
         if target and type(target) == 'table' and target.distance ~= nil then
-            local distance = bp.libs.__distance.get(target)
+            local distance = bp.__distance.get(target)
 
             if (distance == 0.089004568755627 or distance > 35) and distance ~= 0 then
                 return false
@@ -91,7 +91,7 @@ function library:new(bp)
                 return false
             end
 
-            if not self.isEnemy(target) and not bp.libs.__party.isMember(target, true) then
+            if not self.isEnemy(target) and not bp.__party.isMember(target, true) then
                 return false
             end
             return true
@@ -108,7 +108,7 @@ function library:new(bp)
 
             if target.spawn_type == 16 and not target.charmed and not self.isDead(target) and target.valid_target then
 
-                if (target.claim_id == 0 or bp.libs.__party.isMember(target.claim_id, true) or bp.libs.__buffs.active(603) or bp.libs.__buffs.active(511) or bp.libs.__buffs.active(257) or bp.libs.__buffs.active(267)) then
+                if (target.claim_id == 0 or bp.__party.isMember(target.claim_id, true) or bp.__buffs.active(603) or bp.__buffs.active(511) or bp.__buffs.active(257) or bp.__buffs.active(267)) then
                     return true
                 end
     
@@ -123,6 +123,16 @@ function library:new(bp)
         local target = self.get(target)
 
         if bp and target and target.spawn_type == 16 then
+            return true
+        end
+        return false
+
+    end
+
+    self.isTrust = function(target)
+        local target = self.get(target)
+
+        if target.entity_type == 8 and target.spawn_type == 14 and target.charmed == true then
             return true
         end
         return false
@@ -149,10 +159,10 @@ function library:new(bp)
                 if i == 'Self' and target.name == bp.player.name then
                     return v
 
-                elseif i == 'Party' and bp.libs.__party.isMember(target) then
+                elseif i == 'Party' and bp.__party.isMember(target) then
                     return v
 
-                elseif i == 'Ally' and bp.libs.__party.isMember(target, true) then
+                elseif i == 'Ally' and bp.__party.isMember(target, true) then
                     return v
 
                 elseif i == 'Player' and not target.is_npc then
@@ -161,7 +171,7 @@ function library:new(bp)
                 elseif i == 'NPC' and target.is_npc then
                     return v
 
-                elseif i == 'Enemy' and target.spawn_type == 16 and (target.claim_id == 0 or bp.libs.__party.isMember(target.claim_id, true)) then
+                elseif i == 'Enemy' and target.spawn_type == 16 and (target.claim_id == 0 or bp.__party.isMember(target.claim_id, true)) then
                     return v
 
                 end

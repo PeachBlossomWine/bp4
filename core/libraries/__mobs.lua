@@ -9,7 +9,7 @@ function library:new(bp)
 
     -- Private Methods.
     local updateMobs = function()
-        mobs = bp and bp.libs.__resources.get(string.format("mobs/%s/%s",  bp.info.zone, bp.info.zone))
+        mobs = bp and bp.__resources.get(string.format("mobs/%s/%s",  bp.info.zone, bp.info.zone))
     end
 
     -- Public Methods.
@@ -52,7 +52,7 @@ function library:new(bp)
     end
 
     self.find = function(value, valid)
-        local mob = bp.libs.__target.get(value)
+        local mob = bp.__target.get(value)
 
         for m in T(mobs):it() do    
                 
@@ -73,12 +73,12 @@ function library:new(bp)
         local found = {}
         
         for m in T(self.withName(value)):it() do
-            local mob = bp.libs.__target.get(m.index)
+            local mob = bp.__target.get(m.index)
 
             if mob and (valid and mob.valid_target or not valid) then
 
-                if bp.libs.__distance.get(mob) <= distance or 7 then
-                    table.insert(found, {name=mob.name, id=mob.id, index=mob.index, status=mob.status, x=mob.x, y=mob.y, z=mob.z, distance=bp.libs.__distance.get(mob)})
+                if bp.__distance.get(mob) <= distance or 7 then
+                    table.insert(found, {name=mob.name, id=mob.id, index=mob.index, status=mob.status, x=mob.x, y=mob.y, z=mob.z, distance=bp.__distance.get(mob)})
                 end
 
             end
@@ -94,7 +94,7 @@ function library:new(bp)
 
         for mob in T(windower.ffxi.get_mob_array()):it() do -- ADD HEIGHT CHECK!!!
 
-            if bp.libs.__distance.get(mob) <= distance or 150 and bp.libs.__target.canEngage(mob) and S(list):contains(mob.name) then
+            if bp.__distance.get(mob) <= distance or 150 and bp.__target.canEngage(mob) and S(list):contains(mob.name) then
                 m:insert(mob)
             end
 
@@ -103,7 +103,7 @@ function library:new(bp)
         -- Sort by distance.
         if #m > 0 then
             return table.sort(m, function(a, b)
-                return bp.libs.__distance.get(a) < bp.libs.__distance.get(b)
+                return bp.__distance.get(a) < bp.__distance.get(b)
 
             end)[1]
 

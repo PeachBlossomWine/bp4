@@ -1,8 +1,8 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=200, y=80}, bg={alpha=75, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=8, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=2}
-    local settings  = bp.libs.__settings.new('queue')
+    local layout    = {pos={x=200, y=80}, bg={alpha=175, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=8, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=2}
+    local settings  = bp.__settings.new('queue')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
@@ -24,9 +24,9 @@ local buildHelper = function(bp, hmt)
         pvt.render = function()
             local update = {}
 
-            bp.libs.__ui.renderUI(settings.display, function()
-                local __ready = bp.libs.__queue.getReady()-os.clock() > 0 and (bp.libs.__queue.getReady()-os.clock()) or 0
-                local __queue = bp.libs.__queue.getQueue()
+            bp.__ui.renderUI(settings.display, function()
+                local __ready = bp.__queue.getReady()-os.clock() > 0 and (bp.__queue.getReady()-os.clock()) or 0
+                local __queue = bp.__queue.getQueue()
 
                 if bp and bp.player and __queue:length() > 0 then
 
@@ -102,7 +102,6 @@ local buildHelper = function(bp, hmt)
 
         -- Private Events.
         helper('prerender', pvt.render)
-        helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
