@@ -19,7 +19,6 @@ local buildHelper = function(bp, hmt)
             settings.bubbles    = settings.bubbles or {"Indi-Fury","Geo-Frailty","Indi-Haste"}
             settings.visible    = settings.visible ~= nil and settings.visible or true
             settings.placement  = settings.placement ~= nil and settings.placement or true
-            settings.messages   = settings.messages ~= nil and settings.messages or true
             settings.position   = settings.position or 1
             settings.layout     = settings.layout or layout
             settings.display    = settings:getDisplay()
@@ -32,14 +31,14 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.render = function()
 
-            if settings.visible then
+            if settings.visible and bp.player.main_job == 'GEO' then
 
                 bp.__ui.renderUI(settings.display, function()
 
-                    if bp and bp.player and settings.visible and bp.player.main_job == 'GEO' then
+                    if bp and bp.player and settings.visible and settings.display:text() == "" then
                         pvt.updateDisplay()
 
-                    elseif settings.display:visible() and bp.player.main_job ~= 'GEO' then
+                    elseif settings.display:visible() then
                         settings.display:hide()
 
                     end
@@ -209,6 +208,7 @@ local buildHelper = function(bp, hmt)
 
                     elseif ("visible"):startswith(command) then
                         settings.visible = (settings.visible ~= true) and true or false
+                        bp.popchat.pop(string.format("BUBBLES DISPLAY: \\cs(%s)%s\\cr", bp.colors.setting, tostring(settings.visible)))
 
                     else
                         new.setBubbles(command, commands[1], commands[2])
