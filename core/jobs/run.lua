@@ -1,361 +1,433 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {hate=0}
-    local flags     = {}
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    self.getFlags = function()
-        return flags
+    function self:useItems()
+
+        if self and self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
+
+        elseif bp.core.canItem() then
+
+            if bp.player.status == 1 then
+
+            elseif bp.player.status == 0 then
+
+            end
+
+        end
+
+        return self
+
     end
 
-    self.automate = function()
-        local player     = bp.player
-        local helpers    = bp.helpers
-        local isReady    = helpers['actions'].isReady
-        local inQueue    = helpers['queue'].inQueue
-        local buff       = helpers['buffs'].buffActive
-        local addToFront = helpers['queue'].addToFront
-        local add        = helpers['queue'].add
-        local get        = bp.core.get
+    function self:automate()
+        local target = bp.core.target()
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-                if get('ja') and _act then
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+                -- FLASH.
+                if settings.flash and bp.core.isReady("Flash") and not bp.core.inQueue("Flash") and bp.core.canCast() then
+                    bp.core.add("Flash", target, bp.core.priority("Flash"))
+                    self.__timers.hate = os.clock()
+
+                end
+
+            end
+
+            -- JOB ABILITIES.
+            if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] and target then
+
+                    if bp.core.isReady("Elemental Sforzo") and not bp.core.buff(522) then
+                        bp.core.add("Elemental Sforzo", bp.player, bp.core.priority("Elemental Sforzo"))
+                    end
                     
-                    -- VIVACIOUS PULSE.
-                    if get('vivacious pulse').enabled and isReady('JA', "Vivacious Pulse") and _act then
-
-                        if private.hasTenebrae() and player['vitals'].mpp < get('vivacious pulse').mpp then
-                            add(bp.JA["Vivacious Pulse"], player)
-
-                        else
-
-                            if player['vitals'].hpp < get('vivacious pulse').hpp then
-                                add(bp.JA["Vivacious Pulse"], player)
-                            end
-
-                        end
-
+                    if bp.core.isReady("Odyllic Subterfuge") and not bp.core.buff(509) then
+                        bp.core.add("Odyllic Subterfuge", target, bp.core.priority("Odyllic Subterfuge"))
                     end
-    
+
                 end
-    
-                if get('hate').enabled then
-    
-                    -- FLASH.
-                    if isReady('MA', "Flash") and _cast then
-                        addToFront(bp.MA["Flash"], target)    
+
+                -- VIVACIOUS PULSE.
+                if settings["vivacious pulse"] and settings["vivacious pulse"].enabled and bp.core.isReady("Vivacious Pulse") and not bp.core.inQueue("Vivacious Pulse") then
+                    local mpp, hpp = settings["vivacious pulse"].mpp, settings["vivacious pulse"].hpp
+
+                    if bp.runes.get():contains("Tenebrae") then
+                                
+                        if (bp.core.vitals.hpp <= hpp and bp.core.vitals.mpp <= mpp) then
+                            bp.core.add("Vivacious Pulse", bp.player, bp.core.priority("Vivacious Pulse"))
+                        end
+
+                    else
+
+                        if bp.core.vitals.hpp <= hpp then
+                            bp.core.add("Vivacious Pulse", bp.player, bp.core.priority("Vivacious Pulse"))
+                        end
+
                     end
-    
+                    
                 end
-    
-                if get('buffs') then
-                    local active = helpers['runes'].getActive()
 
-                    -- RUNE ENCHANMENTS.
-                    if get('runes') then
-                        helpers['runes'].handleRunes()
-                    end
+                -- RAYKE.
+                if settings.rayke and bp.core.isReady("Rayke") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and target then
+                    bp.core.add("Rayke", target, bp.core.priority("Rayke"))
 
-                    if active == 3 and _act and (os.clock()-timers.hate) < get('hate').delay then
+                -- GAMBIT.
+                elseif settings.gambit and bp.core.isReady("Gambit") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and target then
+                    bp.core.add("Gambit", target, bp.core.priority("Gambit"))
 
-                        -- VALLATION.
-                        if get('vallation') and isReady('JA', "Vallation") and not buff(531) and not buff(535) then
-                            add(bp.JA["Vallation"], player)
-                            timers.hate = os.clock()
-                        
-                        -- VALIANCE.
-                        elseif get('valiance') and isReady('JA', "Valiance") and not buff(531) and not buff(535) then
-                            add(bp.JA["Valiance"], player)
-                            timers.hate = os.clock()
+                end
 
-                        -- PFLUG.
-                        elseif get('pflug') and isReady('JA', "Pflug") and not buff(533) and _act then
-                            add(bp.JA["Pflug"], player)
-                            timers.hate = os.clock()
+                -- SWIPE.
+                if settings.rayke and bp.core.isReady("Rayke") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() > 0 and not bp.core.buff({536,571}) and (not settings.mb or settings.mb and not settings.mb.enabled) and target then
+                    bp.core.add("Rayke", target, bp.core.priority("Rayke"))
 
-                        -- LIEMENT.
-                        elseif get('liement') and isReady('JA', "Liement") and not buff(537) and not buff(531) and not buff(535) then
-                            add(bp.JA["Liement"], player)
-                            timers.hate = os.clock()
+                -- LUNGE.
+                elseif settings.gambit and bp.core.isReady("Gambit") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and (not settings.mb or settings.mb and not settings.mb.enabled) and target then
+                    bp.core.add("Gambit", target, bp.core.priority("Gambit"))
 
-                        end
+                end
 
-                        -- BATTUTA.
-                        if get('battuta') and isReady('JA', "Battuta") and not buff(570) then
-                            add(bp.JA["Battuta"], player)
-                            timers.hate = os.clock()
-                            
+            end
+
+            if settings.buffs then
+
+                -- RUNES.
+                if settings.runes and bp.core.isReady("Ignis") and not bp.__queue.typeInQueue("Ignis") and bp.core.canAct() and bp.__runes.count() < bp.__runes.max() then
+                    local runes = bp.runes.inactive()
+
+                    if runes:length() > 0 then
+
+                        for i=1, runes:length() do
+                            bp.core.add(runes[i], bp.player, bp.core.priority(runes[i]))
+                            break
+
                         end
 
                     end
 
-                    -- SWORDPLAY.
-                    if get('swordplay') and isReady('JA', "Swordplay") and not buff(532) and _act then
-                        add(bp.JA["Swordplay"], player)
-    
-                    -- FOIL.
-                    elseif isReady('MA', "Foil") and not buff(568) and _cast then
+                end
 
-                        if get('embolden').enabled and get('embolden').name == 'Foil' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Foil"], player)
+                -- SWORDPLAY.
+                if settings.swordplay and bp.core.isReady("Swordplay") and not bp.core.inQueue("Swordplay") and not bp.core.buff(532) and bp.core.canAct() and target then
+                    bp.core.add("Swordplay", bp.player, bp.core.priority("Swordplay"))
+                end
 
-                        else
-                            add(bp.MA["Foil"], player)
+                -- BATTUTA.
+                if settings.battuta and bp.core.isReady("Battuta") and not bp.core.inQueue("Battuta") and not bp.core.buff(570) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Battuta", bp.player, bp.core.priority("Battuta"))
+                end
 
-                        end
+                -- VALIANCE.
+                if settings.valiance and bp.core.isReady("Valiance") and not bp.core.searchQueue({"Valiance","Liement"}) and not bp.core.buff({535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Valiance", bp.player, bp.core.priority("Valiance"))
+                end
 
-                    -- PHALANX.
-                    elseif isReady('MA', "Phalanx") and not buff(116) and _cast then
+                -- VALLATION.
+                if settings.vallation and bp.core.isReady("Vallation") and not bp.core.searchQueue({"Vallation","Liement"}) and not bp.core.buff({531,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Vallation", bp.player, bp.core.priority("Vallation"))
+                end
 
-                        if get('embolden').enabled and get('embolden').name == 'Phalanx' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Phalanx"], player)
+                -- LIEMENT.
+                if settings.liement and bp.core.isReady("Liement") and not bp.core.searchQueue({"Valiance","Vallation","Liement"}) and not bp.core.buff({531,535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Liement", bp.player, bp.core.priority("Liement"))
+                end
 
-                        else
-                            add(bp.MA["Phalanx"], player)
+                -- PFLUG.
+                if settings.pflug and bp.core.isReady("Pflug") and not bp.core.inQueue("Pflug") and not bp.core.buff(533) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Pflug", bp.player, bp.core.priority("Pflug"))
+                end
 
-                        end
+                -- EMBOLDEN.
+                if settings.embolden and settings.embolden.enabled and bp.core.isReady("Embolden") and not bp.core.inQueue("Embolden") and not bp.core.buff(534) and bp.core.canAct() and target then
+                    local spell = settings.embolden.name
+
+                    if spell and bp.core.isReady(spell) and bp.MA[spell] and not bp.core.buff(bp.MA[spell].status) and bp.core.canCast() then
+                        bp.core.add("Embolden", bp.player, bp.core.priority("Embolden"))
+                        bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                    end
+
+                end
+
+                if bp.core.canCast() then
 
                     -- CRUSADE.
-                    elseif isReady('MA', "Crusade") and not buff(289) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Crusade' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Crusade"], player)
-
-                        else
-                            add(bp.MA["Crusade"], player)
-
-                        end
+                    if bp.core.isReady("Crusade") and not bp.core.buff(289) and target then
+                        bp.core.add("Crusade", bp.player, bp.core.priority("Crusade"))
+                    end
 
                     -- TEMPER.
-                    elseif isReady('MA', "Temper") and not buff(432) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Temper' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Temper"], player)
-
-                        else
-                            add(bp.MA["Temper"], player)
-
-                        end
-    
-                    -- REFRESH.
-                    elseif isReady('MA', "Refresh") and not buff(43) and _cast then
-                        add(bp.MA["Refresh"], player)
-
-                    -- ONE FOR ALL.
-                    elseif get('one for all') and isReady('JA', "One For All") and not buff(538) and not buff(624) and not buff(154) and not buff(623) and _act then
-                        add(bp.MA["One For All"], player)
-        
-                    end
-                    helpers['buffs'].cast()
-
-                end
-
-                -- DEBUFFS.
-                if get('debuffs') then
-                    helpers['debuffs'].cast()
+                    if settings.temper and bp.core.isReady("Temper") and not bp.core.buff(432) and target then
+                        bp.core.add("Temper", bp.player, bp.core.priority("Temper"))
                     
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if get('ja') and _act then
-                    
-                    -- VIVACIOUS PULSE.
-                    if get('vivacious pulse').enabled and isReady('JA', "Vivacious Pulse") and _act then
-
-                        if private.hasTenebrae() and player['vitals'].mpp < get('vivacious pulse').mpp then
-                            add(bp.JA["Vivacious Pulse"], player)
-
-                        else
-
-                            if player['vitals'].hpp < get('vivacious pulse').hpp then
-                                add(bp.JA["Vivacious Pulse"], player)
-                            end
-
-                        end
-
-                    end
-    
-                end
-    
-                if get('hate').enabled and target then
-    
-                    -- FLASH.
-                    if isReady('MA', "Flash") and _cast then
-                        addToFront(bp.MA["Flash"], target)                    
-                    end
-    
-                end
-    
-                if get('buffs') then
-                    local active = helpers['runes'].getActive()
-
-                    -- RUNE ENCHANMENTS.
-                    if get('runes') then
-                        helpers['runes'].handleRunes()
-                    end
-
-                    if active == 3 and _act and (os.clock()-timers.hate) < get('hate').delay then
-
-                        -- VALLATION.
-                        if get('vallation') and isReady('JA', "Vallation") and not buff(531) and not buff(535) then
-                            add(bp.JA["Vallation"], player)
-                            timers.hate = os.clock()
-                        
-                        -- VALIANCE.
-                        elseif get('valiance') and isReady('JA', "Valiance") and not buff(531) and not buff(535) then
-                            add(bp.JA["Valiance"], player)
-                            timers.hate = os.clock()
-
-                        -- PFLUG.
-                        elseif get('pflug') and isReady('JA', "Pflug") and not buff(533) and _act then
-                            add(bp.JA["Pflug"], player)
-                            timers.hate = os.clock()
-
-                        -- LIEMENT.
-                        elseif get('liement') and isReady('JA', "Liement") and not buff(537) and not buff(531) and not buff(535) then
-                            add(bp.JA["Liement"], player)
-                            timers.hate = os.clock()
-
-                        end
-
-                        -- BATTUTA.
-                        if get('battuta') and isReady('JA', "Battuta") and not buff(570) then
-                            add(bp.JA["Battuta"], player)
-                            timers.hate = os.clock()
-                            
-                        end
-
-                    end
-
-                    -- SWORDPLAY.
-                    if target and get('swordplay') and isReady('JA', "Swordplay") and not buff(532) and _act then
-                        add(bp.JA["Swordplay"], player)
-    
-                    -- FOIL.
-                    elseif target and isReady('MA', "Foil") and not buff(568) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Foil' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Foil"], player)
-
-                        else
-                            add(bp.MA["Foil"], player)
-
-                        end
-
                     -- PHALANX.
-                    elseif isReady('MA', "Phalanx") and not buff(116) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Phalanx' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Phalanx"], player)
-
-                        else
-                            add(bp.MA["Phalanx"], player)
-
-                        end
-
-                    -- CRUSADE.
-                    elseif isReady('MA', "Crusade") and not buff(289) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Crusade' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Crusade"], player)
-
-                        else
-                            add(bp.MA["Crusade"], player)
-
-                        end
-
-                    -- TEMPER.
-                    elseif target and isReady('MA', "Temper") and not buff(432) and _cast then
-
-                        if get('embolden').enabled and get('embolden').name == 'Temper' then
-                            add(bp.JA["Embolden"], player)
-                            add(bp.MA["Temper"], player)
-
-                        else
-                            add(bp.MA["Temper"], player)
-
-                        end
-    
+                    elseif settings.phalanx and bp.core.isReady("Phalanx") and not bp.core.buff(116) then
+                        bp.core.add("Phalanx", bp.player, bp.core.priority("Phalanx"))
+                        
                     -- REFRESH.
-                    elseif isReady('MA', "Refresh") and not buff(43) and _cast then
-                        add(bp.MA["Refresh"], player)
+                    elseif settings.refresh and bp.core.isReady("Refresh") and not bp.core.buff({43,187,188}) then
+                        bp.core.add("Refresh", bp.player, bp.core.priority("Refresh"))
 
-                    -- ONE FOR ALL.
-                    elseif target and get('one for all') and isReady('JA', "One For All") and not buff(538) and not buff(624) and not buff(154) and not buff(623) and _act then
-                        add(bp.MA["One For All"], player)
+                    elseif settings.regen and not bp.core.buff(42) then
 
-                    -- STONESKIN.
-                    elseif target and get('stoneskin') and isReady('MA', "Stoneskin") and not buff(37) then
-                        add(bp.MA["Stoneskin"], player)
+                        if bp.core.mlevel >= 99 and bp.core.isReady("Regen IV") then
+                            bp.core.add("Regen IV", bp.player, bp.core.priority("Regen IV"))
+
+                        elseif bp.core.mlevel >= 70 and bp.core.mlevel < 99 and bp.core.isReady("Regen III") then
+                            bp.core.add("Regen III", bp.player, bp.core.priority("Regen III"))
+
+                        elseif bp.core.mlevel >= 48 and bp.core.mlevel < 70 and bp.core.isReady("Regen II") then
+                            bp.core.add("Regen II", bp.player, bp.core.priority("Regen II"))
+
+                        elseif bp.core.mlevel < 48 and bp.core.isReady("Regen") then
+                            bp.core.add("Regen", bp.player, bp.core.priority("Regen"))
+
+                        end
+
+                    -- SPIKES.
+                    elseif settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
+                        local spikes = settings.spikes.name
+
+                        if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
+                            bp.core.add(spikes, bp.player, bp.core.priority(spikes))
+                        end
+                        
+                    -- BLINK.
+                    elseif settings.blink and bp.core.isReady("Blink") and not bp.core.buff(36) and not bp.__buffs.hasShadows() and target then
+                        bp.core.add("Blink", bp.player, bp.core.priority("Blink"))
 
                     -- AQUAVEIL.
-                    elseif get('aquaveil') and isReady('MA', "Aquaveil") and not buff(39) then
-                        add(bp.MA["Aquaveil"], player)
+                    elseif settings.aquaveil and bp.core.isReady("Aquaveil") and not bp.core.buff(39) then
+                        bp.core.add("Aquaveil", bp.player, bp.core.priority("Aquaveil"))
 
-                    -- BLINK.
-                    elseif get('blink') and isReady('MA', "Blink") and not get('utsusemi') and not buff(36) and not bp.core.hasShadows() then
-                        add(bp.MA["Blink"], player)
+                    -- STONESKIN.
+                    elseif settings.stoneskin and bp.core.isReady("Stoneskin") and not bp.core.buff(37) then
+                        bp.core.add("Stoneskin", bp.player, bp.core.priority("Stoneskin"))
                         
-                    -- SPIKES.
-                    elseif get('spikes').name and isReady('MA', get('spikes').name) and not bp.core.hasSpikes() then
-                        add(bp.MA[get('spikes').name], player)
-        
                     end
-                    helpers['buffs'].cast()
 
                 end
 
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
+            end
+
+        elseif bp.player.status == 0 then
+            local target = bp.core.target()
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+                if settings.flash and bp.core.isReady("Flash") and not bp.core.inQueue("Flash") and bp.core.canCast() then
+                    bp.core.add("Flash", target, bp.core.priority("Flash"))
+                    __timers.hate = os.clock()
+
+                end
+
+            end
+
+            -- JOB ABILITIES.
+            if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] and target then
+
+                    if bp.core.isReady("Elemental Sforzo") and not bp.core.buff(522) then
+                        bp.core.add("Elemental Sforzo", bp.player, bp.core.priority("Elemental Sforzo"))
+                    end
                     
+                    if bp.core.isReady("Odyllic Subterfuge") and not bp.core.buff(509) then
+                        bp.core.add("Odyllic Subterfuge", target, bp.core.priority("Odyllic Subterfuge"))
+                    end
+
+                end
+
+                -- VIVACIOUS PULSE.
+                if settings["vivacious pulse"] and settings["vivacious pulse"].enabled and bp.core.isReady("Vivacious Pulse") and not bp.core.inQueue("Vivacious Pulse") then
+                    local mpp, hpp = settings["vivacious pulse"].mpp, settings["vivacious pulse"].hpp
+
+                    if bp.runes.get():contains("Tenebrae") then
+                                
+                        if (bp.core.vitals.hpp <= hpp and bp.core.vitals.mpp <= mpp) then
+                            bp.core.add("Vivacious Pulse", bp.player, bp.core.priority("Vivacious Pulse"))
+                        end
+
+                    else
+
+                        if bp.core.vitals.hpp <= hpp then
+                            bp.core.add("Vivacious Pulse", bp.player, bp.core.priority("Vivacious Pulse"))
+                        end
+
+                    end
+                    
+                end
+
+                -- RAYKE.
+                if settings.rayke and bp.core.isReady("Rayke") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and target then
+                    bp.core.add("Rayke", target, bp.core.priority("Rayke"))
+
+                -- GAMBIT.
+                elseif settings.gambit and bp.core.isReady("Gambit") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and target then
+                    bp.core.add("Gambit", target, bp.core.priority("Gambit"))
+
+                end
+
+                -- SWIPE.
+                if settings.rayke and bp.core.isReady("Rayke") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() > 0 and not bp.core.buff({536,571}) and (not settings.mb or settings.mb and not settings.mb.enabled) and target then
+                    bp.core.add("Rayke", target, bp.core.priority("Rayke"))
+
+                -- LUNGE.
+                elseif settings.gambit and bp.core.isReady("Gambit") and not bp.core.searchQueue("Gambit","Rayke") and bp.__runes.count() == 3 and not bp.core.buff({536,571}) and (not settings.mb or settings.mb and not settings.mb.enabled) and target then
+                    bp.core.add("Gambit", target, bp.core.priority("Gambit"))
+
+                end
+
+            end
+
+            if settings.buffs then
+
+                -- RUNES.
+                if settings.runes and bp.core.isReady("Ignis") and not bp.__queue.typeInQueue("Ignis") and bp.core.canAct() and bp.__runes.count() < bp.__runes.max() then
+                    local runes = bp.runes.inactive()
+
+                    if runes:length() > 0 then
+
+                        for i=1, runes:length() do
+                            bp.core.add(runes[i], bp.player, bp.core.priority(runes[i]))
+                            break
+
+                        end
+
+                    end
+
+                end
+
+                -- SWORDPLAY.
+                if settings.swordplay and bp.core.isReady("Swordplay") and not bp.core.inQueue("Swordplay") and not bp.core.buff(532) and bp.core.canAct() and target then
+                    bp.core.add("Swordplay", bp.player, bp.core.priority("Swordplay"))
+                end
+
+                -- BATTUTA.
+                if settings.battuta and bp.core.isReady("Battuta") and not bp.core.inQueue("Battuta") and not bp.core.buff(570) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Battuta", bp.player, bp.core.priority("Battuta"))
+                end
+
+                -- VALIANCE.
+                if settings.valiance and bp.core.isReady("Valiance") and not bp.core.searchQueue({"Valiance","Liement"}) and not bp.core.buff({535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Valiance", bp.player, bp.core.priority("Valiance"))
+                end
+
+                -- VALLATION.
+                if settings.vallation and bp.core.isReady("Vallation") and not bp.core.searchQueue({"Vallation","Liement"}) and not bp.core.buff({531,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Vallation", bp.player, bp.core.priority("Vallation"))
+                end
+
+                -- LIEMENT.
+                if settings.liement and bp.core.isReady("Liement") and not bp.core.searchQueue({"Valiance","Vallation","Liement"}) and not bp.core.buff({531,535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Liement", bp.player, bp.core.priority("Liement"))
+                end
+
+                -- PFLUG.
+                if settings.pflug and bp.core.isReady("Pflug") and not bp.core.inQueue("Pflug") and not bp.core.buff(533) and bp.__runes.count() == 3 and bp.core.canAct() and target then
+                    bp.core.add("Pflug", bp.player, bp.core.priority("Pflug"))
+                end
+
+                -- EMBOLDEN.
+                if settings.embolden and settings.embolden.enabled and bp.core.isReady("Embolden") and not bp.core.inQueue("Embolden") and not bp.core.buff(534) and bp.core.canAct() and target then
+                    local spell = settings.embolden.name
+
+                    if spell and bp.core.isReady(spell) and bp.MA[spell] and not bp.core.buff(bp.MA[spell].status) and bp.core.canCast() then
+                        bp.core.add("Embolden", bp.player, bp.core.priority("Embolden"))
+                        bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                    end
+
+                end
+
+                if bp.core.canCast() then
+
+                    -- CRUSADE.
+                    if bp.core.isReady("Crusade") and not bp.core.buff(289) and target then
+                        bp.core.add("Crusade", bp.player, bp.core.priority("Crusade"))
+                    end
+
+                    -- TEMPER.
+                    if settings.temper and bp.core.isReady("Temper") and not bp.core.buff(432) and target then
+                        bp.core.add("Temper", bp.player, bp.core.priority("Temper"))
+                    
+                    -- PHALANX.
+                    elseif settings.phalanx and bp.core.isReady("Phalanx") and not bp.core.buff(116) then
+                        bp.core.add("Phalanx", bp.player, bp.core.priority("Phalanx"))
+                        
+                    -- REFRESH.
+                    elseif settings.refresh and bp.core.isReady("Refresh") and not bp.core.buff({43,187,188}) then
+                        bp.core.add("Refresh", bp.player, bp.core.priority("Refresh"))
+
+                    elseif settings.regen and not bp.core.buff(42) then
+
+                        if bp.core.mlevel >= 99 and bp.core.isReady("Regen IV") then
+                            bp.core.add("Regen IV", bp.player, bp.core.priority("Regen IV"))
+
+                        elseif bp.core.mlevel >= 70 and bp.core.mlevel < 99 and bp.core.isReady("Regen III") then
+                            bp.core.add("Regen III", bp.player, bp.core.priority("Regen III"))
+
+                        elseif bp.core.mlevel >= 48 and bp.core.mlevel < 70 and bp.core.isReady("Regen II") then
+                            bp.core.add("Regen II", bp.player, bp.core.priority("Regen II"))
+
+                        elseif bp.core.mlevel < 48 and bp.core.isReady("Regen") then
+                            bp.core.add("Regen", bp.player, bp.core.priority("Regen"))
+
+                        end
+
+                    -- SPIKES.
+                    elseif settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
+                        local spikes = settings.spikes.name
+
+                        if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
+                            bp.core.add(spikes, bp.player, bp.core.priority(spikes))
+                        end
+                        
+                    -- BLINK.
+                    elseif settings.blink and bp.core.isReady("Blink") and not bp.core.buff(36) and not bp.__buffs.hasShadows() and target then
+                        bp.core.add("Blink", bp.player, bp.core.priority("Blink"))
+
+                    -- AQUAVEIL.
+                    elseif settings.aquaveil and bp.core.isReady("Aquaveil") and not bp.core.buff(39) then
+                        bp.core.add("Aquaveil", bp.player, bp.core.priority("Aquaveil"))
+
+                    -- STONESKIN.
+                    elseif settings.stoneskin and bp.core.isReady("Stoneskin") and not bp.core.buff(37) then
+                        bp.core.add("Stoneskin", bp.player, bp.core.priority("Stoneskin"))
+                        
+                    end
+
                 end
 
             end
 
         end
-        
-    end
 
-    private.items = function()
+        return self
 
     end
-
-    private.hasTenebrae = function()
-
-        if bp and bp.player and T(bp.player.buffs):contains(530) then
-            return true
-        end
-        return false
-
-    end
-
+    
     return self
 
 end
