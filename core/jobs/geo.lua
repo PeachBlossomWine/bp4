@@ -1,34 +1,23 @@
 local job = {}
-function job:init(bp, settings)
+function job:init(bp, settings, __getsub)
 
     if not bp or not settings then
         print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local __events    = {}
-    local __nukes     = T{}
-    local __sublogic  = bp.libs.__core.getSubjob(bp.player.sub_job)
-
     -- Public Variables.
-    self.__flags     = {}
-    self.__timers    = {}
-
-    -- Public Methods.
-    self.unloadEvents = function()
-
-        for _,id in pairs(__events) do
-            windower.unregister_event(id)
-        end
-
-    end
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
     function self:useItems()
 
-        if settings.food and settings.skillup and not settings.skillup.enabled and self.canItem() then
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
 
-        elseif self.canItem() then
+        elseif bp.core.canItem() then
 
             if bp.player.status == 1 then
 
@@ -38,52 +27,52 @@ function job:init(bp, settings)
 
         end
 
+        return self
+
     end
 
     function self:castNukes(target)
 
         if target and not settings.mb then
 
-            for spell in __nukes:it() do
+            for spell in self.__nukes:it() do
 
-                if self.canCast() and self.isReady(spell) and not self.inQueue(spell) then
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
 
-                    if settings['theurgic focus'] and self.isReady("Theurgic Focus") and not self.inQueue("Theurgic Focus") then
-                        self.add("Theurgic Focus", bp.player, self.priority("Theurgic Focus"))
+                    if settings['theurgic focus'] and bp.core.isReady("Theurgic Focus") and not bp.core.inQueue("Theurgic Focus") then
+                        bp.core.add("Theurgic Focus", bp.player, bp.core.priority("Theurgic Focus"))
 
                     end
-                    self.add(spell, target, self.priority(spell))
+                    bp.core.add(spell, target, bp.core.priority(spell))
 
                 end
 
             end
 
         end
+
+        return self
 
     end
 
     function self:automate()
-        local target = self.target()
+        local target = bp.core.target()
 
         self:useItems()
-        if self and bp.player.status == 1 then
-            local target = self.target() or windower.ffxi.get_mob_by_target('t') or false
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
             -- NOT IN NUKE MODE.
             if not settings.nuke then
                 local pet = bp.pet
 
-                if target and settings.hate then
-                    __sublogic.hate(bp, settings, self)
-                end
-
-                if settings.ja and self.canAct() then
+                if settings.ja and bp.core.canAct() then
 
                     -- ONE-HOURS.
                     if settings['1hr'] then
                         
-                        if self.isReady("Bolster") and settings.geocolure then
-                            self.add("Bolster", bp.player, self.priority("Bolster"))
+                        if bp.core.isReady("Bolster") and settings.geocolure then
+                            bp.core.add("Bolster", bp.player, bp.core.priority("Bolster"))
                         end
 
                     end
@@ -91,40 +80,39 @@ function job:init(bp, settings)
                     if pet and not T{2,3}:contains(pet.status) then
                         
                         -- FULL CIRCLE.
-                        if settings['full circle'] and settings['full circle'].enabled and self.isReady("Full Circle") and not self.inQueue("Full Circle") and self.distance(pet) > settings['full circle'].distance then
-                            self.add("Full Circle", bp.player, self.priority("Full Circle"))
+                        if settings['full circle'] and settings['full circle'].enabled and bp.core.isReady("Full Circle") and not bp.core.inQueue("Full Circle") and bp.core.distance(pet) > settings['full circle'].distance then
+                            bp.core.add("Full Circle", bp.player, bp.core.priority("Full Circle"))
                         end
 
                         -- ECLIPTIC / LASTING.
-                        if settings['ecliptic attrition'] and self.isReady("Ecliptic Attrition") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not self.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) then
-                            self.add("Ecliptic Attrition", bp.player, self.priority("Ecliptic Attrition"))
+                        if settings['ecliptic attrition'] and bp.core.isReady("Ecliptic Attrition") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not bp.core.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) then
+                            bp.core.add("Ecliptic Attrition", bp.player, bp.core.priority("Ecliptic Attrition"))
 
-                        elseif settings['lasting emanation'] and self.isReady("Lasting Emanation") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not self.buff({513,515,516}) then
-                            self.add("Lasting Emanation", bp.player, self.priority("Lasting Emanation"))
+                        elseif settings['lasting emanation'] and bp.core.isReady("Lasting Emanation") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not bp.core.buff({513,515,516}) then
+                            bp.core.add("Lasting Emanation", bp.player, bp.core.priority("Lasting Emanation"))
 
                         end
 
                         -- RADIAL / MENDING.
-                        if settings['radial arcana'] and settings['radial arcana'].enabled and self.isReady("Radial Arcana") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.mpp < settings['radial arcana'].mpp and not self.buff({513,515,516,569}) then
-                            self.add("Radial Arcana", bp.player, self.priority("Radial Arcana"))
+                        if settings['radial arcana'] and settings['radial arcana'].enabled and bp.core.isReady("Radial Arcana") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.mpp < settings['radial arcana'].mpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Radial Arcana", bp.player, bp.core.priority("Radial Arcana"))
 
-                        elseif settings['mending halation'] and settings['mending halation'].enabled and self.isReady("Mending Halation") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.hpp < settings['mending halation'].hpp and not self.buff({513,515,516,569}) then
-                            self.add("Mending Halation", bp.player, self.priority("Mending Halation"))
+                        elseif settings['mending halation'] and settings['mending halation'].enabled and bp.core.isReady("Mending Halation") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.hpp < settings['mending halation'].hpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Mending Halation", bp.player, bp.core.priority("Mending Halation"))
 
                         end
 
                         -- LIFE CYCLE.
-                        if settings['life cycle'] and self.isReady("Life Cycle") and not self.inQueue("Life Cycle") and pet.hpp < 55 and self.vitals.hpp > 50 and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Life Cycle", bp.player, self.priority("Life Cycle"))
+                        if settings['life cycle'] and bp.core.isReady("Life Cycle") and not bp.core.inQueue("Life Cycle") and pet.hpp < 55 and bp.core.vitals.hpp > 50 and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Life Cycle", bp.player, bp.core.priority("Life Cycle"))
                         end
 
                         -- DEMATERIALIZE.
-                        if settings.dematerialize and self.isReady("Dematerialize") and not self.inQueue("Dematerialize") and pet.hpp > 85 and self.buff({513,569}) and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Dematerialize", bp.player, self.priority("Dematerialize"))
+                        if settings.dematerialize and bp.core.isReady("Dematerialize") and not bp.core.inQueue("Dematerialize") and pet.hpp > 85 and bp.core.buff({513,569}) and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Dematerialize", bp.player, bp.core.priority("Dematerialize"))
                         end
 
                     end
-                    __sublogic.ja(bp, settings, self)
 
                 end
 
@@ -133,14 +121,14 @@ function job:init(bp, settings)
                     local geocolure = bp.bubbles.getGeocolure()
                     local entrust = bp.bubbles.getEntrust()
 
-                    if self.canCast() then
+                    if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and self.isReady(indicolure) and not self.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
-                            self.add(indicolure, bp.player, self.priority(indicolure))
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                            bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and self.isReady(geocolure) and not self.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -148,83 +136,76 @@ function job:init(bp, settings)
 
                                 if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Self') then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.player, self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
 
                                 end
 
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and self.isReady("Entrust") and self.isReady(entrust) and not self.inQueue("Entrust") and not self.inQueue(entrust) and self.canAct() and target then
+                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
                             local member = bp.__party.isMember(bp.bubbles.entrustTarget())
 
-                            if spell and member and not self.hasBuff(612, member.id) then
-                                self.add("Entrust", bp.player, self.priority("Entrust"))
-                                self.add(entrust, member, self.priority(entrust))
+                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                                bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+                                bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
 
                         end
 
                     end
-                    __sublogic.buffs(bp, settings, self)
-                    bp.buffs.cast()
 
                 end
 
-                if settings.debuffs and self.canCast() then
-                    __sublogic.debuffs(bp, settings, self)
+                if target and bp.core.canCast() then
 
-                end
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
 
-                if target and self.canCast() then
+                        if bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
 
-                    if settings.drain and settings.drain.enabled and self.vitals.hpp < settings.drain.hpp then
-
-                        if self.isReady("Drain II") and not self.inQueue("Drain II") then
-                            self.add("Drain II", target, self.priority("Drain II"))
-
-                        elseif self.isReady("Drain") and not self.inQueue("Drain") then
-                            self.add("Drain", target, self.priority("Drain"))
+                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                            bp.core.add("Drain", target, bp.core.priority("Drain"))
 
                         end
 
                     end
 
-                    if settings.aspir and settings.aspir.enabled and self.vitals.mpp < settings.aspir.mpp then
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
 
-                        if self.isReady("Aspir III") and not self.inQueue("Aspir III") then
-                            self.add("Aspir III", target, self.priority("Aspir III"))
+                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
 
-                        elseif self.isReady("Aspir II") and not self.inQueue("Aspir II") then
-                            self.add("Aspir II", target, self.priority("Aspir II"))
+                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
 
-                        elseif self.isReady("Aspir") and not self.inQueue("Aspir") then
-                            self.add("Aspir", target, self.priority("Aspir"))
+                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
 
                         end
 
@@ -236,17 +217,13 @@ function job:init(bp, settings)
             elseif settings.nuke then
                 local pet = bp.pet
 
-                if target and settings.hate then
-                    __sublogic.hate(bp, settings, self)
-                end
-
-                if settings.ja and self.canAct() then
+                if settings.ja and bp.core.canAct() then
 
                     -- ONE-HOURS.
                     if settings['1hr'] then
                         
-                        if self.isReady("Bolster") and settings.geocolure then
-                            self.add("Bolster", bp.player, self.priority("Bolster"))
+                        if bp.core.isReady("Bolster") and settings.geocolure then
+                            bp.core.add("Bolster", bp.player, bp.core.priority("Bolster"))
                         end
 
                     end
@@ -254,40 +231,39 @@ function job:init(bp, settings)
                     if pet and not T{2,3}:contains(pet.status) then
                         
                         -- FULL CIRCLE.
-                        if settings['full circle'] and settings['full circle'].enabled and self.isReady("Full Circle") and not self.inQueue("Full Circle") and self.distance(pet) > settings['full circle'].distance then
-                            self.add("Full Circle", bp.player, self.priority("Full Circle"))
+                        if settings['full circle'] and settings['full circle'].enabled and bp.core.isReady("Full Circle") and not bp.core.inQueue("Full Circle") and bp.core.distance(pet) > settings['full circle'].distance then
+                            bp.core.add("Full Circle", bp.player, bp.core.priority("Full Circle"))
                         end
 
                         -- ECLIPTIC / LASTING.
-                        if settings['ecliptic attrition'] and self.isReady("Ecliptic Attrition") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not self.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) then
-                            self.add("Ecliptic Attrition", bp.player, self.priority("Ecliptic Attrition"))
+                        if settings['ecliptic attrition'] and bp.core.isReady("Ecliptic Attrition") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not bp.core.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) then
+                            bp.core.add("Ecliptic Attrition", bp.player, bp.core.priority("Ecliptic Attrition"))
 
-                        elseif settings['lasting emanation'] and self.isReady("Lasting Emanation") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not self.buff({513,515,516}) then
-                            self.add("Lasting Emanation", bp.player, self.priority("Lasting Emanation"))
+                        elseif settings['lasting emanation'] and bp.core.isReady("Lasting Emanation") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not bp.core.buff({513,515,516}) then
+                            bp.core.add("Lasting Emanation", bp.player, bp.core.priority("Lasting Emanation"))
 
                         end
 
                         -- RADIAL / MENDING.
-                        if settings['radial arcana'] and settings['radial arcana'].enabled and self.isReady("Radial Arcana") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.mpp < settings['radial arcana'].mpp and not self.buff({513,515,516,569}) then
-                            self.add("Radial Arcana", bp.player, self.priority("Radial Arcana"))
+                        if settings['radial arcana'] and settings['radial arcana'].enabled and bp.core.isReady("Radial Arcana") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.mpp < settings['radial arcana'].mpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Radial Arcana", bp.player, bp.core.priority("Radial Arcana"))
 
-                        elseif settings['mending halation'] and settings['mending halation'].enabled and self.isReady("Mending Halation") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.hpp < settings['mending halation'].hpp and not self.buff({513,515,516,569}) then
-                            self.add("Mending Halation", bp.player, self.priority("Mending Halation"))
+                        elseif settings['mending halation'] and settings['mending halation'].enabled and bp.core.isReady("Mending Halation") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.hpp < settings['mending halation'].hpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Mending Halation", bp.player, bp.core.priority("Mending Halation"))
 
                         end
 
                         -- LIFE CYCLE.
-                        if settings['life cycle'] and self.isReady("Life Cycle") and not self.inQueue("Life Cycle") and pet.hpp < 55 and self.vitals.hpp > 50 and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Life Cycle", bp.player, self.priority("Life Cycle"))
+                        if settings['life cycle'] and bp.core.isReady("Life Cycle") and not bp.core.inQueue("Life Cycle") and pet.hpp < 55 and bp.core.vitals.hpp > 50 and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Life Cycle", bp.player, bp.core.priority("Life Cycle"))
                         end
 
                         -- DEMATERIALIZE.
-                        if settings.dematerialize and self.isReady("Dematerialize") and not self.inQueue("Dematerialize") and pet.hpp > 85 and self.buff({513,569}) and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Dematerialize", bp.player, self.priority("Dematerialize"))
+                        if settings.dematerialize and bp.core.isReady("Dematerialize") and not bp.core.inQueue("Dematerialize") and pet.hpp > 85 and bp.core.buff({513,569}) and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Dematerialize", bp.player, bp.core.priority("Dematerialize"))
                         end
 
                     end
-                    __sublogic.ja(bp, settings, self)
 
                 end
 
@@ -296,14 +272,14 @@ function job:init(bp, settings)
                     local geocolure = bp.bubbles.getGeocolure()
                     local entrust = bp.bubbles.getEntrust()
 
-                    if self.canCast() then
+                    if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and self.isReady(indicolure) and not self.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
-                            self.add(indicolure, bp.player, self.priority(indicolure))
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                            bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and self.isReady(geocolure) and not self.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -311,83 +287,76 @@ function job:init(bp, settings)
 
                                 if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Self') then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.player, self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
 
                                 end
 
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and self.isReady("Entrust") and self.isReady(entrust) and not self.inQueue("Entrust") and not self.inQueue(entrust) and self.canAct() and target then
+                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
                             local member = bp.__party.isMember(bp.bubbles.entrustTarget())
 
-                            if spell and member and not self.hasBuff(612, member.id) then
-                                self.add("Entrust", bp.player, self.priority("Entrust"))
-                                self.add(entrust, member, self.priority(entrust))
+                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                                bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+                                bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
 
                         end
 
                     end
-                    __sublogic.buffs(bp, settings, self)
-                    bp.buffs.cast()
 
                 end
 
-                if settings.debuffs and self.canCast() then
-                    __sublogic.debuffs(bp, settings, self)
-                    
-                end
+                if target and bp.core.canCast() then
 
-                if target and self.canCast() then
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
 
-                    if settings.drain and settings.drain.enabled and self.vitals.hpp < settings.drain.hpp then
+                        if bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
 
-                        if self.isReady("Drain II") and not self.inQueue("Drain II") then
-                            self.add("Drain II", target, self.priority("Drain II"))
-
-                        elseif self.isReady("Drain") and not self.inQueue("Drain") then
-                            self.add("Drain", target, self.priority("Drain"))
+                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                            bp.core.add("Drain", target, bp.core.priority("Drain"))
 
                         end
 
                     end
 
-                    if settings.aspir and settings.aspir.enabled and self.vitals.mpp < settings.aspir.mpp then
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
 
-                        if self.isReady("Aspir III") and not self.inQueue("Aspir III") then
-                            self.add("Aspir III", target, self.priority("Aspir III"))
+                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
 
-                        elseif self.isReady("Aspir II") and not self.inQueue("Aspir II") then
-                            self.add("Aspir II", target, self.priority("Aspir II"))
+                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
 
-                        elseif self.isReady("Aspir") and not self.inQueue("Aspir") then
-                            self.add("Aspir", target, self.priority("Aspir"))
+                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
 
                         end
 
@@ -398,24 +367,20 @@ function job:init(bp, settings)
 
             end
 
-        elseif self and bp.player.status == 0 then
-            local target = self.target()
+        elseif bp.player.status == 0 then
+            local target = bp.core.target()
 
             -- NOT IN NUKE MODE.
             if not settings.nuke then
                 local pet = bp.pet
 
-                if target and settings.hate then
-                    __sublogic.hate(bp, settings, self)
-                end
-
-                if settings.ja and self.canAct() then
+                if settings.ja and bp.core.canAct() then
 
                     -- ONE-HOURS.
                     if settings['1hr'] then
                         
-                        if self.isReady("Bolster") and settings.geocolure then
-                            self.add("Bolster", bp.player, self.priority("Bolster"))
+                        if bp.core.isReady("Bolster") and settings.geocolure then
+                            bp.core.add("Bolster", bp.player, bp.core.priority("Bolster"))
                         end
 
                     end
@@ -423,40 +388,39 @@ function job:init(bp, settings)
                     if pet and not T{2,3}:contains(pet.status) then
                         
                         -- FULL CIRCLE.
-                        if settings['full circle'] and settings['full circle'].enabled and self.isReady("Full Circle") and not self.inQueue("Full Circle") and self.distance(pet) > settings['full circle'].distance then
-                            self.add("Full Circle", bp.player, self.priority("Full Circle"))
+                        if settings['full circle'] and settings['full circle'].enabled and bp.core.isReady("Full Circle") and not bp.core.inQueue("Full Circle") and bp.core.distance(pet) > settings['full circle'].distance then
+                            bp.core.add("Full Circle", bp.player, bp.core.priority("Full Circle"))
                         end
 
                         -- ECLIPTIC / LASTING.
-                        if settings['ecliptic attrition'] and self.isReady("Ecliptic Attrition") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not self.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) then
-                            self.add("Ecliptic Attrition", bp.player, self.priority("Ecliptic Attrition"))
+                        if settings['ecliptic attrition'] and bp.core.isReady("Ecliptic Attrition") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not bp.core.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) then
+                            bp.core.add("Ecliptic Attrition", bp.player, bp.core.priority("Ecliptic Attrition"))
 
-                        elseif settings['lasting emanation'] and self.isReady("Lasting Emanation") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not self.buff({513,515,516}) then
-                            self.add("Lasting Emanation", bp.player, self.priority("Lasting Emanation"))
+                        elseif settings['lasting emanation'] and bp.core.isReady("Lasting Emanation") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not bp.core.buff({513,515,516}) then
+                            bp.core.add("Lasting Emanation", bp.player, bp.core.priority("Lasting Emanation"))
 
                         end
 
                         -- RADIAL / MENDING.
-                        if settings['radial arcana'] and settings['radial arcana'].enabled and self.isReady("Radial Arcana") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.mpp < settings['radial arcana'].mpp and not self.buff({513,515,516,569}) then
-                            self.add("Radial Arcana", bp.player, self.priority("Radial Arcana"))
+                        if settings['radial arcana'] and settings['radial arcana'].enabled and bp.core.isReady("Radial Arcana") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.mpp < settings['radial arcana'].mpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Radial Arcana", bp.player, bp.core.priority("Radial Arcana"))
 
-                        elseif settings['mending halation'] and settings['mending halation'].enabled and self.isReady("Mending Halation") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.hpp < settings['mending halation'].hpp and not self.buff({513,515,516,569}) then
-                            self.add("Mending Halation", bp.player, self.priority("Mending Halation"))
+                        elseif settings['mending halation'] and settings['mending halation'].enabled and bp.core.isReady("Mending Halation") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.hpp < settings['mending halation'].hpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Mending Halation", bp.player, bp.core.priority("Mending Halation"))
 
                         end
 
                         -- LIFE CYCLE.
-                        if settings['life cycle'] and self.isReady("Life Cycle") and not self.inQueue("Life Cycle") and pet.hpp < 55 and self.vitals.hpp > 50 and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Life Cycle", bp.player, self.priority("Life Cycle"))
+                        if settings['life cycle'] and bp.core.isReady("Life Cycle") and not bp.core.inQueue("Life Cycle") and pet.hpp < 55 and bp.core.vitals.hpp > 50 and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Life Cycle", bp.player, bp.core.priority("Life Cycle"))
                         end
 
                         -- DEMATERIALIZE.
-                        if settings.dematerialize and self.isReady("Dematerialize") and not self.inQueue("Dematerialize") and pet.hpp > 85 and self.buff({513,569}) and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Dematerialize", bp.player, self.priority("Dematerialize"))
+                        if settings.dematerialize and bp.core.isReady("Dematerialize") and not bp.core.inQueue("Dematerialize") and pet.hpp > 85 and bp.core.buff({513,569}) and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Dematerialize", bp.player, bp.core.priority("Dematerialize"))
                         end
 
                     end
-                    __sublogic.ja(bp, settings, self)
 
                 end
 
@@ -465,14 +429,14 @@ function job:init(bp, settings)
                     local geocolure = bp.bubbles.getGeocolure()
                     local entrust = bp.bubbles.getEntrust()
 
-                    if self.canCast() then
+                    if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and self.isReady(indicolure) and not self.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
-                            self.add(indicolure, bp.player, self.priority(indicolure))
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                            bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and self.isReady(geocolure) and not self.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -480,83 +444,76 @@ function job:init(bp, settings)
 
                                 if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Self') then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.player, self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
 
                                 end
 
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and self.isReady("Entrust") and self.isReady(entrust) and not self.inQueue("Entrust") and not self.inQueue(entrust) and self.canAct() and target then
+                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
                             local member = bp.__party.isMember(bp.bubbles.entrustTarget())
 
-                            if spell and member and not self.hasBuff(612, member.id) then
-                                self.add("Entrust", bp.player, self.priority("Entrust"))
-                                self.add(entrust, member, self.priority(entrust))
+                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                                bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+                                bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
 
                         end
 
                     end
-                    __sublogic.buffs(bp, settings, self)
-                    bp.buffs.cast()
 
                 end
 
-                if settings.debuffs and self.canCast() then
-                    __sublogic.debuffs(bp, settings, self)
+                if target and bp.core.canCast() then
 
-                end
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
 
-                if target and self.canCast() then
+                        if bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
 
-                    if settings.drain and settings.drain.enabled and self.vitals.hpp < settings.drain.hpp then
-
-                        if self.isReady("Drain II") and not self.inQueue("Drain II") then
-                            self.add("Drain II", target, self.priority("Drain II"))
-
-                        elseif self.isReady("Drain") and not self.inQueue("Drain") then
-                            self.add("Drain", target, self.priority("Drain"))
+                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                            bp.core.add("Drain", target, bp.core.priority("Drain"))
 
                         end
 
                     end
 
-                    if settings.aspir and settings.aspir.enabled and self.vitals.mpp < settings.aspir.mpp then
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
 
-                        if self.isReady("Aspir III") and not self.inQueue("Aspir III") then
-                            self.add("Aspir III", target, self.priority("Aspir III"))
+                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
 
-                        elseif self.isReady("Aspir II") and not self.inQueue("Aspir II") then
-                            self.add("Aspir II", target, self.priority("Aspir II"))
+                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
 
-                        elseif self.isReady("Aspir") and not self.inQueue("Aspir") then
-                            self.add("Aspir", target, self.priority("Aspir"))
+                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
 
                         end
 
@@ -568,17 +525,13 @@ function job:init(bp, settings)
             elseif settings.nuke then
                 local pet = bp.pet
 
-                if target and settings.hate then
-                    __sublogic.hate(bp, settings, self)
-                end
-
-                if settings.ja and self.canAct() then
+                if settings.ja and bp.core.canAct() then
 
                     -- ONE-HOURS.
                     if settings['1hr'] then
                         
-                        if self.isReady("Bolster") and settings.geocolure then
-                            self.add("Bolster", bp.player, self.priority("Bolster"))
+                        if bp.core.isReady("Bolster") and settings.geocolure then
+                            bp.core.add("Bolster", bp.player, bp.core.priority("Bolster"))
                         end
 
                     end
@@ -586,40 +539,39 @@ function job:init(bp, settings)
                     if pet and not T{2,3}:contains(pet.status) then
                         
                         -- FULL CIRCLE.
-                        if settings['full circle'] and settings['full circle'].enabled and self.isReady("Full Circle") and not self.inQueue("Full Circle") and self.distance(pet) > settings['full circle'].distance then
-                            self.add("Full Circle", bp.player, self.priority("Full Circle"))
+                        if settings['full circle'] and settings['full circle'].enabled and bp.core.isReady("Full Circle") and not bp.core.inQueue("Full Circle") and bp.core.distance(pet) > settings['full circle'].distance then
+                            bp.core.add("Full Circle", bp.player, bp.core.priority("Full Circle"))
                         end
 
                         -- ECLIPTIC / LASTING.
-                        if settings['ecliptic attrition'] and self.isReady("Ecliptic Attrition") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not self.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) then
-                            self.add("Ecliptic Attrition", bp.player, self.priority("Ecliptic Attrition"))
+                        if settings['ecliptic attrition'] and bp.core.isReady("Ecliptic Attrition") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp > 85 and not bp.core.buff({513,515,516}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) then
+                            bp.core.add("Ecliptic Attrition", bp.player, bp.core.priority("Ecliptic Attrition"))
 
-                        elseif settings['lasting emanation'] and self.isReady("Lasting Emanation") and not self.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not self.buff({513,515,516}) then
-                            self.add("Lasting Emanation", bp.player, self.priority("Lasting Emanation"))
+                        elseif settings['lasting emanation'] and bp.core.isReady("Lasting Emanation") and not bp.core.searchQueue({"Ecliptic Attrition","Lasting Emanation"}) and pet.hpp < 85 and not bp.core.buff({513,515,516}) then
+                            bp.core.add("Lasting Emanation", bp.player, bp.core.priority("Lasting Emanation"))
 
                         end
 
                         -- RADIAL / MENDING.
-                        if settings['radial arcana'] and settings['radial arcana'].enabled and self.isReady("Radial Arcana") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.mpp < settings['radial arcana'].mpp and not self.buff({513,515,516,569}) then
-                            self.add("Radial Arcana", bp.player, self.priority("Radial Arcana"))
+                        if settings['radial arcana'] and settings['radial arcana'].enabled and bp.core.isReady("Radial Arcana") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.mpp < settings['radial arcana'].mpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Radial Arcana", bp.player, bp.core.priority("Radial Arcana"))
 
-                        elseif settings['mending halation'] and settings['mending halation'].enabled and self.isReady("Mending Halation") and not self.searchQueue({"Radial Arcana","Mending Halation"}) and self.vitals.hpp < settings['mending halation'].hpp and not self.buff({513,515,516,569}) then
-                            self.add("Mending Halation", bp.player, self.priority("Mending Halation"))
+                        elseif settings['mending halation'] and settings['mending halation'].enabled and bp.core.isReady("Mending Halation") and not bp.core.searchQueue({"Radial Arcana","Mending Halation"}) and bp.core.vitals.hpp < settings['mending halation'].hpp and not bp.core.buff({513,515,516,569}) then
+                            bp.core.add("Mending Halation", bp.player, bp.core.priority("Mending Halation"))
 
                         end
 
                         -- LIFE CYCLE.
-                        if settings['life cycle'] and self.isReady("Life Cycle") and not self.inQueue("Life Cycle") and pet.hpp < 55 and self.vitals.hpp > 50 and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Life Cycle", bp.player, self.priority("Life Cycle"))
+                        if settings['life cycle'] and bp.core.isReady("Life Cycle") and not bp.core.inQueue("Life Cycle") and pet.hpp < 55 and bp.core.vitals.hpp > 50 and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Life Cycle", bp.player, bp.core.priority("Life Cycle"))
                         end
 
                         -- DEMATERIALIZE.
-                        if settings.dematerialize and self.isReady("Dematerialize") and not self.inQueue("Dematerialize") and pet.hpp > 85 and self.buff({513,569}) and (self.inQueue("Bolster","Ecliptic Attrition") or self.buff({513,515,516,569})) then
-                            self.add("Dematerialize", bp.player, self.priority("Dematerialize"))
+                        if settings.dematerialize and bp.core.isReady("Dematerialize") and not bp.core.inQueue("Dematerialize") and pet.hpp > 85 and bp.core.buff({513,569}) and (bp.core.inQueue("Bolster","Ecliptic Attrition") or bp.core.buff({513,515,516,569})) then
+                            bp.core.add("Dematerialize", bp.player, bp.core.priority("Dematerialize"))
                         end
 
                     end
-                    __sublogic.ja(bp, settings, self)
 
                 end
 
@@ -628,14 +580,14 @@ function job:init(bp, settings)
                     local geocolure = bp.bubbles.getGeocolure()
                     local entrust = bp.bubbles.getEntrust()
 
-                    if self.canCast() then
+                    if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and self.isReady(indicolure) and not self.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
-                            self.add(indicolure, bp.player, self.priority(indicolure))
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                            bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and self.isReady(geocolure) and not self.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -643,83 +595,76 @@ function job:init(bp, settings)
 
                                 if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, target, self.priority(geocolure))
+                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
 
                                 elseif targets:contains('Self') then
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and self.isReady("Blaze of Glory") and not self.searchQueue({"Bolster","Blaze of Glory"}) and not self.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not self.isReady("Bolster")) and self.canAct() then
-                                        self.add("Blaze of Glory", bp.player, self.priority("Blaze of Glory"))
+                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
                                     end
-                                    self.add(geocolure, bp.player, self.priority(geocolure))
+                                    bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
 
                                 end
 
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and self.isReady("Entrust") and self.isReady(entrust) and not self.inQueue("Entrust") and not self.inQueue(entrust) and self.canAct() and target then
+                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
                             local member = bp.__party.isMember(bp.bubbles.entrustTarget())
 
-                            if spell and member and not self.hasBuff(612, member.id) then
-                                self.add("Entrust", bp.player, self.priority("Entrust"))
-                                self.add(entrust, member, self.priority(entrust))
+                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                                bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+                                bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
 
                         end
 
                     end
-                    __sublogic.buffs(bp, settings, self)
-                    bp.buffs.cast()
 
                 end
 
-                if settings.debuffs and self.canCast() then
-                    __sublogic.debuffs(bp, settings, self)
-                    
-                end
+                if target and bp.core.canCast() then
 
-                if target and self.canCast() then
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
 
-                    if settings.drain and settings.drain.enabled and self.vitals.hpp < settings.drain.hpp then
+                        if bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
 
-                        if self.isReady("Drain II") and not self.inQueue("Drain II") then
-                            self.add("Drain II", target, self.priority("Drain II"))
-
-                        elseif self.isReady("Drain") and not self.inQueue("Drain") then
-                            self.add("Drain", target, self.priority("Drain"))
+                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                            bp.core.add("Drain", target, bp.core.priority("Drain"))
 
                         end
 
                     end
 
-                    if settings.aspir and settings.aspir.enabled and self.vitals.mpp < settings.aspir.mpp then
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
 
-                        if self.isReady("Aspir III") and not self.inQueue("Aspir III") then
-                            self.add("Aspir III", target, self.priority("Aspir III"))
+                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
 
-                        elseif self.isReady("Aspir II") and not self.inQueue("Aspir II") then
-                            self.add("Aspir II", target, self.priority("Aspir II"))
+                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
 
-                        elseif self.isReady("Aspir") and not self.inQueue("Aspir") then
-                            self.add("Aspir", target, self.priority("Aspir"))
+                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
 
                         end
 
@@ -731,37 +676,10 @@ function job:init(bp, settings)
             end
 
         end
+
+        return self
 
     end
-
-    -- Private Events.
-    __events.jobchange = windower.register_event('job change', self.unloadEvents)
-    __events.commands = windower.register_event('addon command', function(...)
-        local commands  = T{...}
-        local command   = table.remove(commands, 1)
-        
-        if bp and command and command:lower() == 'core' and #commands > 0 then
-            local command = commands[1] and table.remove(commands, 1):lower() or false
-
-            if ("nukes"):startswith(command) then
-                local option = commands[1] and table.remove(commands, 1):lower() or false
-
-                if option == '+' and #commands > 0 then
-                    bp.core.addNuke(__nukes, commands)
-
-                elseif option == '-' and #commands > 0 then
-                    bp.core.deleteNuke(__nukes, commands)
-
-                elseif option == 'clear' then
-                    bp.core.clearNukes(__nukes)
-
-                end
-
-            end
-
-        end
-
-    end)
     
     return self
 
