@@ -718,8 +718,6 @@ switches['convert'] = function(bp, setting, commands)
             local mpp = commands[1] and tonumber(commands[1])
             local hpp = commands[2] and tonumber(commands[2])
 
-            print(mpp, hpp)
-
             if mpp and mpp >= 25 and mpp <= 75 then
                 setting.mpp = mpp
             end
