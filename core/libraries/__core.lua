@@ -4,7 +4,6 @@ function library:new(bp)
     local pm = {}
 
     -- Private Variables.
-    local subjobs   = bp.files.new('core/jobs/resources/subjobs.lua'):exists() and dofile(string.format('%score/jobs/resources/subjobs.lua', windower.addon_path)) or {}
     local switches  = bp.files.new('core/jobs/resources/switches.lua'):exists() and dofile(string.format('%score/jobs/resources/switches.lua', windower.addon_path)) or {}
     local timers    = {}
     local base      = {
@@ -94,6 +93,7 @@ function library:new(bp)
             ["stoneskin"]           = false,
             ["haste"]               = false,
             ["phalanx"]             = false,
+            ["temper"]              = false,
         },
 
         ["THF"] = {
@@ -143,6 +143,7 @@ function library:new(bp)
             ["arcane crest"]        = false,
             ["scarlet delirium"]    = false,
             ["endark"]              = false,
+            ["stun"]                = false,
         },
 
         ["BST"] = {
@@ -310,7 +311,7 @@ function library:new(bp)
         ["RUN"] = {
             ["spikes"]              = {enabled=false, name="Blaze Spikes"},
             ["vivacious pulse"]     = {enabled=false, hpp=55, mpp=55},
-            ["embolden"]            = {enabled=false, name=""},
+            ["embolden"]            = {enabled=false, name="Temper"},
             ["sanguine blade"]      = {enabled=false, hpp=55},
             ["runes"]               = false,
             ["vallation"]           = false,
@@ -327,18 +328,33 @@ function library:new(bp)
             ["aquaveil"]            = false,
             ["blink"]               = false,
             ["stoneskin"]           = false,
+            ["temper"]              = false,
+            ["flash"]               = false,
+            ["refresh"]             = false,
+            ["phalanx"]             = false,
+            ["regen"]               = false,
         },
 
     }
 
     -- Public Methods.
-    self.getSubjob = function(job) return subjobs[job] and setmetatable(subjobs[job], subjobs.mt) end
     self.getJob = function(job)
         if not job then return end
         local file = bp.files.new(string.format('core/jobs/%s.lua', job:lower()))
 
         if file:exists() then
-            return dofile(string.format('%score/jobs/%s.lua', windower.addon_path, job:lower()))
+            return setmetatable(dofile(string.format('%score/jobs/%s.lua', windower.addon_path, job:lower())), {__index = function(t, key)
+                
+                if rawget(t, key) ~= nil then
+                    return rawget(t, key)            
+                
+                else
+                    return (function() return end)
+            
+                end
+            
+            end})
+
         end
         return false
     
