@@ -192,11 +192,7 @@ function bootstrap:new()
     end
     loadHelpers()
 
-    -- Private Functions.
-    local zoneChange = function() self.pinger = (os.clock() + 15) end
-    
     -- Addon Events.
-    windower.register_event('zone change', zoneChange)
     windower.register_event('prerender', function()
         self.party  = windower.ffxi.get_party() or false
         self.player = windower.ffxi.get_player() or false
