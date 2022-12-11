@@ -31,7 +31,7 @@ local buildHelper = function(bp, hmt)
                     new.buff           = bp.__buffs.active
                     new.hasBuff        = bp.__buffs.hasBuff
                     new.inQueue        = bp.__queue.inQueue
-                    new.range          = bp.__queue.inQueue
+                    new.range          = bp.__queue.getRange
                     new.canAct         = bp.__actions.canAct
                     new.isReady        = bp.__actions.isReady
                     new.canCast        = bp.__actions.canCast
@@ -52,10 +52,10 @@ local buildHelper = function(bp, hmt)
         pvt.statuses = function() bp.status.fix() end
         pvt.buffs = function() bp.buffs.cast() end
         pvt.weaponskill = function()
-            local target = core.target()
+            local target = bp.core.target()
 
             if bp.player.status == 1 or (bp.player.status == 0 and target) then
-                local target = core.target() or windower.ffxi.get_mob_by_target('t') or false
+                local target = (bp.player.status == 1) and windower.ffxi.get_mob_by_target('t') or target or false
 
                 -- Handle HP% Limiting weapon skills.
                 if settings.limit and settings.limit.enabled then
@@ -71,36 +71,36 @@ local buildHelper = function(bp, hmt)
                 end
 
                 -- Handle melee distance weapon skills.
-                if target and core.canAct() and settings.ws and settings.ws.enabled and bp.__distance.canMelee(target) then
-                    local range     = core.range(settings.ws.name)
-                    local distance  = core.distance(target)
+                if target and bp.core.canAct() and settings.ws and settings.ws.enabled and bp.__distance.canMelee(target) then
+                    local range     = bp.core.range(settings.ws.name)
+                    local distance  = bp.core.distance(target)
 
-                    if settings['sanguine blade'] and settings['sanguine blade'].enabled and core.vitals.hpp <= settings['sanguine blade'].hpp and (distance - target.model_size) <= core.range("Sanguine Blade") then
-                        core.add("Sanguine Blade", target, core.priority("Sanguine Blade"))
+                    if settings['sanguine blade'] and settings['sanguine blade'].enabled and bp.core.vitals.hpp <= settings['sanguine blade'].hpp and (distance - target.model_size) <= bp.core.range("Sanguine Blade") then
+                        bp.core.add("Sanguine Blade", target, bp.core.priority("Sanguine Blade"))
 
-                    elseif settings['myrkr'] and settings['myrkr'].enabled and core.vitals.mpp <= settings['myrkr'].mpp and (distance - target.model_size) <= core.range("Myrkr") then
-                        core.add("Myrkr", target, core.priority("Myrkr"))
+                    elseif settings['myrkr'] and settings['myrkr'].enabled and bp.core.vitals.mpp <= settings['myrkr'].mpp and (distance - target.model_size) <= bp.core.range("Myrkr") then
+                        bp.core.add("Myrkr", target, bp.core.priority("Myrkr"))
 
-                    elseif settings['moonlight'] and settings['moonlight'].enabled and core.vitals.mpp <= settings['moonlight'].mpp and (distance - target.model_size) <= core.range("Moonlight") and bp.player.skills.club >= 100 then
+                    elseif settings['moonlight'] and settings['moonlight'].enabled and bp.core.vitals.mpp <= settings['moonlight'].mpp and (distance - target.model_size) <= bp.core.range("Moonlight") and bp.player.skills.club >= 100 then
 
                         if bp.player.skills.club >= 125 then
-                            core.add("Moonlight", bp.player, core.priority("Moonlight"))
+                            bp.core.add("Moonlight", bp.player, bp.core.priority("Moonlight"))
 
                         else
-                            core.add("Starlight", bp.player, core.priority("Starlight"))
+                            bp.core.add("Starlight", bp.player, bp.core.priority("Starlight"))
 
                         end
 
                     else
                         local weapon = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
-
-                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
-                            core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
+                        
+                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
+                            bp.core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
 
                         elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
 
-                            if core.vitals.tp >= settings.ws.tp then
-                                core.add(settings.ws.name, target, core.priority(settings.ws.name))
+                            if bp.core.vitals.tp >= settings.ws.tp then
+                                bp.core.add(settings.ws.name, target, bp.core.priority(settings.ws.name))
                             end
 
                         end
@@ -109,32 +109,32 @@ local buildHelper = function(bp, hmt)
 
                 -- Handle ranged distance weapon skills.
                 elseif target and core.canAct() and settings.rws and settings.rws.enabled and not bp.__distance.canMelee(target) then
-                    local range     = core.range(settings.rws.name)
-                    local distance  = core.distance(target)
+                    local range     = bp.core.range(settings.rws.name)
+                    local distance  = bp.core.distance(target)
 
-                    if settings['myrkr'] and settings['myrkr'].enabled and core.vitals.mpp <= settings['myrkr'].mpp and (distance - target.model_size) <= core.range("Myrkr") then
-                        core.add("Myrkr", target, core.priority("Myrkr"))
+                    if settings['myrkr'] and settings['myrkr'].enabled and bp.core.vitals.mpp <= settings['myrkr'].mpp and (distance - target.model_size) <= bp.core.range("Myrkr") then
+                        bp.core.add("Myrkr", target, bp.core.priority("Myrkr"))
 
-                    elseif settings['moonlight'] and settings['moonlight'].enabled and core.vitals.mpp <= settings['moonlight'].mpp and (distance - target.model_size) <= core.range("Moonlight") and bp.player.skills.club >= 100 then
+                    elseif settings['moonlight'] and settings['moonlight'].enabled and bp.core.vitals.mpp <= settings['moonlight'].mpp and (distance - target.model_size) <= bp.core.range("Moonlight") and bp.player.skills.club >= 100 then
 
                         if bp.player.skills.club >= 125 then
-                            core.add("Moonlight", bp.player, core.priority("Moonlight"))
+                            bp.core.add("Moonlight", bp.player, bp.core.priority("Moonlight"))
 
                         else
-                            core.add("Starlight", bp.player, core.priority("Starlight"))
+                            bp.core.add("Starlight", bp.player, bp.core.priority("Starlight"))
 
                         end
 
                     else
                         local weapon = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
 
-                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
-                            core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
+                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
+                            bp.core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
 
                         elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
 
-                            if core.vitals.tp >= settings.rws.tp then
-                                core.add(settings.rws.name, target, core.priority(settings.rws.name))
+                            if bp.core.vitals.tp >= settings.rws.tp then
+                                bp.core.add(settings.rws.name, target, bp.core.priority(settings.rws.name))
                             end
 
                         end
@@ -152,46 +152,46 @@ local buildHelper = function(bp, hmt)
             if settings.skillup and settings.skillup.enabled then
                 local __useFood = settings.food and settings.food.enabled and true or false
 
-                if __useFood and not core.buff(251) and not core.inQueue("B.E.W. Pitaru") then
+                if __useFood and not bp.core.buff(251) and not bp.core.inQueue("B.E.W. Pitaru") then
                     local index, count = bp.__inventory.findByName("B.E.W. Pitaru")
 
                     if index and count > 0 then
-                        core.add("B.E.W. Pitaru", bp.player, core.priority("B.E.W. Pitaru"))
+                        bp.core.add("B.E.W. Pitaru", bp.player, bp.core.priority("B.E.W. Pitaru"))
                     end
 
-                elseif (__useFood and core.buff(251)) or not __useFood then
+                elseif (__useFood and bp.core.buff(251)) or not __useFood then
 
-                    if core.main == 'SMN' and settings.skillup.skill == "Summoning" and windower.ffxi.get_mob_by_target('pet') then
-                        core.add("Release", bp.player, core.priority("Release"))
+                    if bp.core.main == 'SMN' and settings.skillup.skill == "Summoning" and windower.ffxi.get_mob_by_target('pet') then
+                        bp.core.add("Release", bp.player, bp.core.priority("Release"))
 
                     elseif bp.__skillup.get(settings.skillup.skill) then
                         local selected = bp.__skillup.get(settings.skillup.skill)
 
                         if selected and type(selected) == 'table' and selected.spells and selected.target then
 
-                            if (S{'RDM','RUN'}:contains(core.main) or S{'RDM','RUN'}:contains(core.sub)) and not core.buff(43) then
+                            if (S{'RDM','RUN'}:contains(bp.core.main) or S{'RDM','RUN'}:contains(bp.core.sub)) and not core.buff(43) then
 
-                                if core.main == 'RDM' and core.jp >= 1200 and core.available("Refresh III") then
+                                if bp.core.main == 'RDM' and bp.core.jp >= 1200 and bp.core.available("Refresh III") then
 
-                                    if core.isReady("Refersh III") then
-                                        core.add("Refresh III", bp.player, core.priority("Refresh III"))
+                                    if bp.core.isReady("Refersh III") then
+                                        bp.core.add("Refresh III", bp.player, bp.core.priority("Refresh III"))
                                     end
                                 
-                                elseif core.main == 'RDM' and core.jp < 1200 and core.available("Refresh II") then
+                                elseif bp.core.main == 'RDM' and bp.core.jp < 1200 and bp.core.available("Refresh II") then
 
-                                    if core.isReady("Refresh II") then
-                                        core.add("Refresh II", bp.player, core.priority("Refresh II"))
+                                    if bp.core.isReady("Refresh II") then
+                                        bp.core.add("Refresh II", bp.player, bp.core.priority("Refresh II"))
                                     end
 
-                                elseif core.available("Refresh") then
-                                    core.add("Refresh", bp.player, core.priority("Refresh"))
+                                elseif bp.core.available("Refresh") then
+                                    bp.core.add("Refresh", bp.player, bp.core.priority("Refresh"))
 
                                 end
 
                             else
 
                                 for spell in T(selected.spells):it() do
-                                    core.add(spell, core.target() or core.getTarget(selected.target), core.priority(spell))
+                                    bp.core.add(spell, bp.core.target() or bp.core.getTarget(selected.target), bp.core.priority(spell))
                                 end
 
                             end
