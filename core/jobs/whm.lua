@@ -1,284 +1,427 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {}
-    local flags     = {}
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    self.getFlags = function()
-        return flags
+    function self:useItems()
+
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
+
+        elseif bp.core.canItem() then
+
+            if bp.player.status == 1 then
+
+            elseif bp.player.status == 0 then
+
+            end
+
+        end
+
+        return self
+
     end
 
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
+    function self:castNukes(target)
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        if target and settings.nuke then
 
-                -- RERAISE.
-                if not buff(113) and _cast then
+            for spell in self.__nukes:it() do
 
-                    if player.job_points['whm'].jp_spent >= 100 and isReady('MA', "Reraise IV") then
-                        add(bp.MA["Reraise IV"], player)
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
+                end
 
-                    elseif player.job_points['whm'].jp_spent < 100 then
+            end
 
-                        if isReady('MA', "Reraise III") then
-                            add(bp.MA["Reraise III"], player)
+        end
 
-                        elseif isReady('MA', "Reraise II") then
-                            add(bp.MA["Reraise II"], player)
+        return self
 
-                        elseif isReady('MA', "Reraise") then
-                            add(bp.MA["Reraise"], player)
+    end
 
-                        end
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+                -- FLASH.
+                if settings.flash and bp.core.isReady("Flash") and not bp.core.inQueue("Flash") and bp.core.canCast() then
+                    bp.core.add("Flash", target, bp.core.priority("Flash"))
+                    self.__timers.hate = os.clock()
+
+                end
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+                -- MARTYR.
+                if settings.martyr and settings.martyr.enabled and bp.core.isReady("Martyr") and not bp.core.inQueue("Martyr") then
+                    local target, hpp = bp.core.getTarget(settings.martyr.target), settings.martyr.hpp
+
+                    if target and bp.core.vitals.hpp >= 50 and target.hpp <= hpp and bp.__party.isMember(target) then
+                        bp.core.add("Martyr", target, bp.core.priority("Martyr"))
+                    end
+
+                end
+
+                -- DEVOTION.
+                if settings.devotion and saettings.devotion.enabled and bp.core.isReady("Devotion") and not bp.core.inQueue("Devotion") then
+                    local target, mpp = bp.core.getTarget(settings.devotion.enabled), settings.devotion.mpp
+
+                    if target and bp.core.vitals.hpp >= 50 and target.mpp <= mpp and bp.__party.isMember(target) then
+                        bp.core.add("Devotion", target, bp.core.priority("Devotion"))
+                    end
+
+                end
+
+            end
+
+            if settings.buffs then
+
+                if bp.core.canAct() then
+
+                    -- AFFLATUS SOLACE.
+                    if settings.solace and bp.core.isReady("Afflatus Solace") and not bp.core.inQueue("Afflatus Solace") and not bp.core.buff(417) then
+                        bp.core.add("Afflatus Solace", bp.player, bp.core.priority("Afflatus Solace"))
+
+                    -- AFFLATUS MISEERY.
+                    elseif settings.misery and bp.core.isReady("Afflatus Misery") and not bp.core.inQueue("Afflatus Misery") and not bp.core.buff({417,418}) then
+                        bp.core.add("Afflatus Misery", bp.player, bp.core.priority("Afflatus Misery"))
+
+                    -- SACROSANCTITY.
+                    elseif settings.sacrosanctity and bp.core.isReady("Sacrosanctity") and not bp.core.inQueue("Sacrosanctity") and not bp.core.buff(477) then
+                        bp.core.add("Sacrosanctity", bp.player, bp.core.priority("Sacrosanctity"))
 
                     end
 
                 end
 
-                if get('ja') and _act then
+                if bp.core.canCast() then
 
-                    -- MARTYR.
-                    if get('martyr').enabled and get('martyr').target ~= "" and isReady('JA', "Martyr") then
-                        local target = windower.ffxi.get_mob_by_name(get('martyr').target)
+                    -- PROTECT.
+                    if settings.protect and (not bp.core.buff(40) or not bp.__buffs.isProtected()) then
 
-                        if target and helpers['party'].isInParty(target) and target.hpp <= get('martyr').hpp and player['vitals'].hpp > 30 then
-                            add(bp.JA["Martyr"], target)
-                        end
-
-                    end
-
-                    -- DEVOTION.
-                    if get('devotion').enabled and get('devotion').target ~= "" and isReady('JA', "Devotion") then
-                        local target = windower.ffxi.get_mob_by_name(get('devotion').target)
-
-                        if target and helpers['party'].isInParty(target) and target.mpp <= get('devotion').mpp and player['vitals'].hpp > 30 then
-                            add(bp.JA["Devotion"], target)
-                        end
-
-                    end
-
-                end
-
-                if get('buffs') then
-
-                    if not buff(417) and not buff(418) and _act then
-
-                        -- AFFLATUS.
-                        if not get('misery') and isReady('JA', "Afflatus Solace") then
-                            add(bp.JA["Afflatus Solace"], player)
-
-                        elseif get('misery') and isReady('JA', "Afflatus Misery") then
-                            add(bp.JA["Afflatus Misery"], player)
-
-                        end
-
-                    else
-
-                        if _cast then
-
-                            -- BOOSTS.
-                            if get('boost').enabled and not bp.core.hasBoost() and isReady('MA', get('boost').name) then
-                                add(bp.MA[get('boost').name], player)
-
-                            -- STONESKIN.
-                            elseif get('stoneskin') and not helpers['buffs'].buffActive(37) and isReady('MA', "Stoneskin") then
-                                add(bp.MA["Stoneskin"], player)
-            
-                            -- BLNK.
-                            elseif get('blink') and not get('utsusemi') and not helpers['buffs'].buffActive(36) and isReady('MA', "Blink") then
-                                add(bp.MA["Blink"], player)
-            
-                            -- AQUAVEIL.
-                            elseif get('aquaveil') and isReady('MA', "Aquaveil") and not buff(39) then
-                                add(bp.MA["Aquaveil"], player)
-            
-                            end
-                            helpers['buffs'].cast()
-
-                        end
-
-                        if _act then
-
-                            -- SACROSANCTITY.
-                            if get('sacrosanctity') and isReady('JA', "Sacrosanctity") and not buff(477) then
-                                add(bp.JA["Sacrosanctity"], player)
-                            end
-
-                        end
-
-                    end
-    
-                end
-
-                -- DEBUFFS.
-                if get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                -- RERAISE.
-                if not buff(113) and _cast then
-
-                    if player.job_points['whm'].jp_spent >= 100 and isReady('MA', "Reraise IV") then
-                        add(bp.MA["Reraise IV"], player)
-
-                    elseif player.job_points['whm'].jp_spent < 100 then
-
-                        if isReady('MA', "Reraise III") then
-                            add(bp.MA["Reraise III"], player)
-
-                        elseif isReady('MA', "Reraise II") then
-                            add(bp.MA["Reraise II"], player)
-
-                        elseif isReady('MA', "Reraise") then
-                            add(bp.MA["Reraise"], player)
-
-                        end
-
-                    end
-
-                end
-
-                if get('ja') and _act then
-
-                    -- MARTYR.
-                    if get('martyr').enabled and get('martyr').target ~= "" and isReady('JA', "Martyr") then
-                        local target = windower.ffxi.get_mob_by_name(get('martyr').target) or false
-
-                        if target and helpers['party'].isInParty(target) then
-                            local member = helpers['party'].getMember(target) or false
-
-                            if member and member.mpp and member.mpp <= get('martyr').hpp and player['vitals'].hpp > 30 then
-                                add(bp.JA["Martyr"], target)
-                            end
+                        if (bp.core.main == 'WHM' and bp.core.mlevel >= 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 75) then
                             
+                            if bp.core.isReady("Protectra V") and not bp.core.inQueue("Protectra V") then
+                                bp.core.add("Protectra V", bp.player, bp.core.priority("Protectra V"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 63 and bp.core.mlevel < 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 63 and bp.core.slevel < 75) then
+
+                            if bp.core.isReady("Protectra IV") and not bp.core.inQueue("Protectra IV") then
+                                bp.core.add("Protectra IV", bp.player, bp.core.priority("Protectra IV"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 47 and bp.core.mlevel < 63) or (bp.core.sub == 'WHM' and bp.core.slevel >= 47 and bp.core.slevel < 63) then
+
+                            if bp.core.isReady("Protectra III") and not bp.core.inQueue("Protectra III") then
+                                bp.core.add("Protectra III", bp.player, bp.core.priority("Protectra III"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 27 and bp.core.mlevel < 47) or (bp.core.sub == 'WHM' and bp.core.slevel >= 27 and bp.core.slevel < 47) then
+
+                            if bp.core.isReady("Protectra II") and not bp.core.inQueue("Protectra II") then
+                                bp.core.add("Protectra II", bp.player, bp.core.priority("Protectra II"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 07 and bp.core.mlevel < 27) or (bp.core.sub == 'WHM' and bp.core.slevel >= 07 and bp.core.slevel < 27) then
+
+                            if bp.core.isReady("Protectra") and not bp.core.inQueue("Protectra") then
+                                bp.core.add("Protectra", bp.player, bp.core.priority("Protectra"))
+                            end
+
+                        end
+
+                    -- SHELL.
+                    elseif settings.shell and (not bp.core.buff(41) or not bp.__buffs.isShelled()) then
+
+                        if (bp.core.main == 'WHM' and bp.core.mlevel >= 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 75) then
+                            
+                            if bp.core.isReady("Shellra V") and not bp.core.inQueue("Shellra V") then
+                                bp.core.add("Shellra V", bp.player, bp.core.priority("Shellra V"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 68 and bp.core.mlevel < 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 68 and bp.core.slevel < 75) then
+
+                            if bp.core.isReady("Shellra IV") and not bp.core.inQueue("Shellra IV") then
+                                bp.core.add("Shellra IV", bp.player, bp.core.priority("Shellra IV"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 57 and bp.core.mlevel < 68) or (bp.core.sub == 'WHM' and bp.core.slevel >= 57 and bp.core.slevel < 68) then
+
+                            if bp.core.isReady("Shellra III") and not bp.core.inQueue("Shellra III") then
+                                bp.core.add("Shellra III", bp.player, bp.core.priority("Shellra III"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 37 and bp.core.mlevel < 57) or (bp.core.sub == 'WHM' and bp.core.slevel >= 37 and bp.core.slevel < 57) then
+
+                            if bp.core.isReady("Shellra II") and not bp.core.inQueue("Shellra II") then
+                                bp.core.add("Shellra II", bp.player, bp.core.priority("Shellra II"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 17 and bp.core.mlevel < 37) or (bp.core.sub == 'WHM' and bp.core.slevel >= 17 and bp.core.slevel < 37) then
+
+                            if bp.core.isReady("Shellra") and not bp.core.inQueue("Shellra") then
+                                bp.core.add("Shellra", bp.player, bp.core.priority("Shellra"))
+                            end
+
                         end
 
                     end
 
-                    -- DEVOTION.
-                    if get('devotion').enabled and get('devotion').target ~= "" and isReady('JA', "Devotion") then
-                        local target = windower.ffxi.get_mob_by_name(get('devotion').target) or false
+                    -- HASTE.
+                    if settings.haste and bp.core.isReady("Haste") and not bp.core.inQueue("Haste") and not bp.core.buff(33) then
+                        bp.core.add("Haste", bp.player, bp.core.priority("Haste"))                    
+                    end
+
+                    -- BOOST.
+                    if settings.boost and settings.boost.enabled and bp.core.isReady(settings.boost.name) and not bp.__buffs.hasWHMBoost() then
+                        bp.core.add(settings.boost.name, bp.player, bp.core.priority(settings.boost.name))
+
+                    -- AUSPICE.
+                    elseif settings.auspice and bp.core.isReady("Auspice") and not bp.core.inQueue("Auspice") and not bp.core.buff(275) then
+                        bp.core.add("Auspice", bp.player, bp.core.priority("Auspice"))
                         
-                        if target and helpers['party'].isInParty(target) then
-                            local member = helpers['party'].getMember(target) or false
+                    -- BLINK.
+                    elseif settings.blink and bp.core.isReady("Blink") and not bp.core.inQueue("Blink") and not bp.core.buff(36) and not bp.__buffs.hasShadows() then
+                        bp.core.add("Blink", bp.player, bp.core.priority("Blink"))
 
-                            if member and member.mpp and member.mpp <= get('devotion').mpp and player['vitals'].hpp > 30 then
-                                add(bp.JA["Devotion"], target)
-                            end
+                    -- AQUAVEIL.
+                    elseif settings.aquaveil and bp.core.isReady("Aquaveil") and not bp.core.inQueue("Aquaveil") and not bp.core.buff(39) then
+                        bp.core.add("Aquaveil", bp.player, bp.core.priority("Aquaveil"))
+
+                    -- STONESKIN.
+                    elseif settings.stoneskin and bp.core.isReady("Stoneskin") and not bp.core.inQueue("Stoneskin") and not bp.core.buff(37) then
+                        bp.core.add("Stoneskin", bp.player, bp.core.priority("Stoneskin"))
+
+                    -- REGEN.
+                    elseif settings.regen and not bp.core.buff(42) then
+
+                        if bp.core.mlevel >= 86 and bp.core.isReady("Regen IV") then
+                            bp.core.add("Regen IV", bp.player, bp.core.priority("Regen IV"))
+
+                        elseif bp.core.mlevel >= 66 and bp.core.mlevel < 86 and bp.core.isReady("Regen III") then
+                            bp.core.add("Regen III", bp.player, bp.core.priority("Regen III"))
+
+                        elseif bp.core.mlevel >= 44 and bp.core.mlevel < 66 and bp.core.isReady("Regen II") then
+                            bp.core.add("Regen II", bp.player, bp.core.priority("Regen II"))
+
+                        elseif bp.core.mlevel >= 21 and bp.core.mlevel < 44 and bp.core.isReady("Regen") then
+                            bp.core.add("Regen", bp.player, bp.core.priority("Regen"))
 
                         end
+                        
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
+        elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+                -- FLASH.
+                if settings.flash and bp.core.isReady("Flash") and not bp.core.inQueue("Flash") and bp.core.canCast() then
+                    bp.core.add("Flash", target, bp.core.priority("Flash"))
+                    self.__timers.hate = os.clock()
+
+                end
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+                -- MARTYR.
+                if settings.martyr and settings.martyr.enabled and bp.core.isReady("Martyr") and not bp.core.inQueue("Martyr") then
+                    local target, hpp = bp.core.getTarget(settings.martyr.target), settings.martyr.hpp
+
+                    if target and bp.core.vitals.hpp >= 50 and target.hpp <= hpp and bp.__party.isMember(target) then
+                        bp.core.add("Martyr", target, bp.core.priority("Martyr"))
+                    end
+
+                end
+
+                -- DEVOTION.
+                if settings.devotion and saettings.devotion.enabled and bp.core.isReady("Devotion") and not bp.core.inQueue("Devotion") then
+                    local target, mpp = bp.core.getTarget(settings.devotion.enabled), settings.devotion.mpp
+
+                    if target and bp.core.vitals.hpp >= 50 and target.mpp <= mpp and bp.__party.isMember(target) then
+                        bp.core.add("Devotion", target, bp.core.priority("Devotion"))
+                    end
+
+                end
+
+            end
+
+            if settings.buffs then
+
+                if bp.core.canAct() then
+
+                    -- AFFLATUS SOLACE.
+                    if settings.solace and bp.core.isReady("Afflatus Solace") and not bp.core.inQueue("Afflatus Solace") and not bp.core.buff(417) then
+                        bp.core.add("Afflatus Solace", bp.player, bp.core.priority("Afflatus Solace"))
+
+                    -- AFFLATUS MISEERY.
+                    elseif settings.misery and bp.core.isReady("Afflatus Misery") and not bp.core.inQueue("Afflatus Misery") and not bp.core.buff({417,418}) then
+                        bp.core.add("Afflatus Misery", bp.player, bp.core.priority("Afflatus Misery"))
+
+                    -- SACROSANCTITY.
+                    elseif settings.sacrosanctity and bp.core.isReady("Sacrosanctity") and not bp.core.inQueue("Sacrosanctity") and not bp.core.buff(477) then
+                        bp.core.add("Sacrosanctity", bp.player, bp.core.priority("Sacrosanctity"))
 
                     end
 
                 end
 
-                if get('buffs') then
+                if bp.core.canCast() then
 
-                    if not buff(417) and not buff(418) and _act then
+                    -- PROTECT.
+                    if settings.protect and (not bp.core.buff(40) or not bp.__buffs.isProtected()) then
 
-                        -- AFFLATUS.
-                        if not get('misery') and isReady('JA', "Afflatus Solace") then
-                            add(bp.JA["Afflatus Solace"], player)
-
-                        elseif get('misery') and isReady('JA', "Afflatus Misery") then
-                            add(bp.JA["Afflatus Misery"], player)
-
-                        end
-
-                    else
-
-                        if _cast then
-
-                            -- BOOSTS.
-                            if get('boost').enabled and not bp.core.hasBoost() and isReady('MA', get('boost').name) then
-                                add(bp.MA[get('boost').name], player)
-
-                            -- STONESKIN.
-                            elseif get('stoneskin') and not helpers['buffs'].buffActive(37) and isReady('MA', "Stoneskin") then
-                                add(bp.MA["Stoneskin"], player)
-            
-                            -- BLNK.
-                            elseif get('blink') and not get('utsusemi') and not helpers['buffs'].buffActive(36) and isReady('MA', "Blink") then
-                                add(bp.MA["Blink"], player)
-            
-                            -- AQUAVEIL.
-                            elseif get('aquaveil') and isReady('MA', "Aquaveil") and not buff(39) then
-                                add(bp.MA["Aquaveil"], player)
-            
+                        if (bp.core.main == 'WHM' and bp.core.mlevel >= 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 75) then
+                            
+                            if bp.core.isReady("Protectra V") and not bp.core.inQueue("Protectra V") then
+                                bp.core.add("Protectra V", bp.player, bp.core.priority("Protectra V"))
                             end
-                            helpers['buffs'].cast()
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 63 and bp.core.mlevel < 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 63 and bp.core.slevel < 75) then
+
+                            if bp.core.isReady("Protectra IV") and not bp.core.inQueue("Protectra IV") then
+                                bp.core.add("Protectra IV", bp.player, bp.core.priority("Protectra IV"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 47 and bp.core.mlevel < 63) or (bp.core.sub == 'WHM' and bp.core.slevel >= 47 and bp.core.slevel < 63) then
+
+                            if bp.core.isReady("Protectra III") and not bp.core.inQueue("Protectra III") then
+                                bp.core.add("Protectra III", bp.player, bp.core.priority("Protectra III"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 27 and bp.core.mlevel < 47) or (bp.core.sub == 'WHM' and bp.core.slevel >= 27 and bp.core.slevel < 47) then
+
+                            if bp.core.isReady("Protectra II") and not bp.core.inQueue("Protectra II") then
+                                bp.core.add("Protectra II", bp.player, bp.core.priority("Protectra II"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 07 and bp.core.mlevel < 27) or (bp.core.sub == 'WHM' and bp.core.slevel >= 07 and bp.core.slevel < 27) then
+
+                            if bp.core.isReady("Protectra") and not bp.core.inQueue("Protectra") then
+                                bp.core.add("Protectra", bp.player, bp.core.priority("Protectra"))
+                            end
 
                         end
 
-                        if _act then
+                    -- SHELL.
+                    elseif settings.shell and (not bp.core.buff(41) or not bp.__buffs.isShelled()) then
 
-                            -- SACROSANCTITY.
-                            if get('sacrosanctity') and isReady('JA', "Sacrosanctity") and not buff(477) then
-                                add(bp.JA["Sacrosanctity"], player)
+                        if (bp.core.main == 'WHM' and bp.core.mlevel >= 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 75) then
+                            
+                            if bp.core.isReady("Shellra V") and not bp.core.inQueue("Shellra V") then
+                                bp.core.add("Shellra V", bp.player, bp.core.priority("Shellra V"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 68 and bp.core.mlevel < 75) or (bp.core.sub == 'WHM' and bp.core.slevel >= 68 and bp.core.slevel < 75) then
+
+                            if bp.core.isReady("Shellra IV") and not bp.core.inQueue("Shellra IV") then
+                                bp.core.add("Shellra IV", bp.player, bp.core.priority("Shellra IV"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 57 and bp.core.mlevel < 68) or (bp.core.sub == 'WHM' and bp.core.slevel >= 57 and bp.core.slevel < 68) then
+
+                            if bp.core.isReady("Shellra III") and not bp.core.inQueue("Shellra III") then
+                                bp.core.add("Shellra III", bp.player, bp.core.priority("Shellra III"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 37 and bp.core.mlevel < 57) or (bp.core.sub == 'WHM' and bp.core.slevel >= 37 and bp.core.slevel < 57) then
+
+                            if bp.core.isReady("Shellra II") and not bp.core.inQueue("Shellra II") then
+                                bp.core.add("Shellra II", bp.player, bp.core.priority("Shellra II"))
+                            end
+
+                        elseif (bp.core.main == 'WHM' and bp.core.mlevel >= 17 and bp.core.mlevel < 37) or (bp.core.sub == 'WHM' and bp.core.slevel >= 17 and bp.core.slevel < 37) then
+
+                            if bp.core.isReady("Shellra") and not bp.core.inQueue("Shellra") then
+                                bp.core.add("Shellra", bp.player, bp.core.priority("Shellra"))
                             end
 
                         end
 
                     end
+
+                    -- HASTE.
+                    if settings.haste and bp.core.isReady("Haste") and not bp.core.inQueue("Haste") and not bp.core.buff(33) then
+                        bp.core.add("Haste", bp.player, bp.core.priority("Haste"))                    
+                    end
+
+                    -- BOOST.
+                    if settings.boost and settings.boost.enabled and bp.core.isReady(settings.boost.name) and not bp.__buffs.hasWHMBoost() then
+                        bp.core.add(settings.boost.name, bp.player, bp.core.priority(settings.boost.name))
+
+                    -- AUSPICE.
+                    elseif settings.auspice and bp.core.isReady("Auspice") and not bp.core.inQueue("Auspice") and not bp.core.buff(275) then
+                        bp.core.add("Auspice", bp.player, bp.core.priority("Auspice"))
+                        
+                    -- BLINK.
+                    elseif settings.blink and bp.core.isReady("Blink") and not bp.core.inQueue("Blink") and not bp.core.buff(36) and not bp.__buffs.hasShadows() then
+                        bp.core.add("Blink", bp.player, bp.core.priority("Blink"))
+
+                    -- AQUAVEIL.
+                    elseif settings.aquaveil and bp.core.isReady("Aquaveil") and not bp.core.inQueue("Aquaveil") and not bp.core.buff(39) then
+                        bp.core.add("Aquaveil", bp.player, bp.core.priority("Aquaveil"))
+
+                    -- STONESKIN.
+                    elseif settings.stoneskin and bp.core.isReady("Stoneskin") and not bp.core.inQueue("Stoneskin") and not bp.core.buff(37) then
+                        bp.core.add("Stoneskin", bp.player, bp.core.priority("Stoneskin"))
+
+                    -- REGEN.
+                    elseif settings.regen and not bp.core.buff(42) then
+
+                        if bp.core.mlevel >= 86 and bp.core.isReady("Regen IV") then
+                            bp.core.add("Regen IV", bp.player, bp.core.priority("Regen IV"))
+
+                        elseif bp.core.mlevel >= 66 and bp.core.mlevel < 86 and bp.core.isReady("Regen III") then
+                            bp.core.add("Regen III", bp.player, bp.core.priority("Regen III"))
+
+                        elseif bp.core.mlevel >= 44 and bp.core.mlevel < 66 and bp.core.isReady("Regen II") then
+                            bp.core.add("Regen II", bp.player, bp.core.priority("Regen II"))
+
+                        elseif bp.core.mlevel >= 21 and bp.core.mlevel < 44 and bp.core.isReady("Regen") then
+                            bp.core.add("Regen", bp.player, bp.core.priority("Regen"))
+
+                        end
+                        
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
+        end
+
+        return self
+
+    end
     
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-
-            end
-
-        end
-        
-    end
-
-    private.items = function()
-        local _act    = bp.helpers['actions'].canAct()
-        local _cast   = bp.helpers['actions'].canCast()
-        local _item   = bp.helpers['actions'].canItem()
-        local add     = bp.helpers['queue'].addToFront
-        local buffs   = T(bp.player.buffs)
-
-        if _item then
-
-            if buffs:contains(6) then
-                add(bp.IT["Echo Drops"], bp.player)
-            end
-
-        end
-
-    end
-
     return self
 
 end
