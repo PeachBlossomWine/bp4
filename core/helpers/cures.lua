@@ -292,7 +292,7 @@ local buildHelper = function(bp, hmt)
                     
                     if mlevel >= 87 then
                     
-                        for cure in T(__allowed['Waltz']) do
+                        for cure in T(__allowed['Waltz']):it() do
                             local spell = bp.res.job_abilities[cure.id]
                                         
                             if spell and bp.__actions.isReady(spell.en) and cure.id > 191 and vitals.tp >= spell.tp_cost then
@@ -311,7 +311,7 @@ local buildHelper = function(bp, hmt)
     
                     else
     
-                        for cure in T(__allowed['Waltz']) do
+                        for cure in T(__allowed['Waltz']):it() do
                             local spell = bp.res.job_abilities[cure.id]
     
                             if spell and bp.__actions.isReady(spell.en) and vitals.tp >= spell.tp_cost then
@@ -332,7 +332,7 @@ local buildHelper = function(bp, hmt)
     
                 elseif bp.player.sub_job == 'DNC' then
     
-                    for cure in T(__allowed['Waltz']) do
+                    for cure in T(__allowed['Waltz']):it() do
                         local spell = bp.res.job_abilities[cure.id]
                                     
                         if spell and bp.__actions.isReady(spell.en) and cure.id > 190 and vitals.tp >= spell.tp_cost then
@@ -497,17 +497,16 @@ local buildHelper = function(bp, hmt)
 
         end
 
-        new.doDNCCures = function()
+        new.doDNCCures = function(party)
 
-            for _,v in ipairs(parties) do
-                local cure = private.estimateWaltz(v.missing, v.hpp) or false
-                local target = windower.ffxi.get_mob_by_id(v.id) or false
-                local dead = T{2,3}
+            for member in T(party):it() do
+                local cure = pvt.estimateWaltz(member.missing, member.hpp)
+                local target = bp.__target.get(member.id)
 
-                if cure and target and not bp.helpers['queue'].inQueue(bp.JA[cure.en], target) then
+                if cure and target and not bp.__queue.inQueue(cure.en, target) then
                     
-                    if bp.helpers['distance'].getDistance(target) <= 20 and not dead:contains(target.status) and (bp.player.id ~= target.id or (bp.player.id == target.id)) then
-                        private.updateCure(cure, target)
+                    if (bp.__distance.get(target) - target.model_size) <= bp.__queue.getRange(cure.en) and not T{2,3}:contains(target.status) then
+                        pvt.updateCure(cure, target)
                     end
                 
                 end
