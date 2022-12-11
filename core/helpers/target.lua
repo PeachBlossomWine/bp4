@@ -55,11 +55,11 @@ local buildHelper = function(bp, hmt)
         pvt.updateDisplay = function()
 
             if new.targets.player and new.targets.player.name then
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, new.targets.player.name:sub(1, 10), #new.targets.player.name > 10 and '...' or '', new.targets.player.index))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s%s ( %s )\\cr ]', bp.colors.setting, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.setting, new.targets.player.name:sub(1, 10), #new.targets.player.name > 10 and '...' or '', new.targets.player.index))
                 settings.display:update()
 
             else
-                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s ( %s )\\cr ]', bp.colors.important, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.important, '........', 0))
+                settings.display:text(string.format('{  \\cs(%s)%s\\cr  } Target → [ \\cs(%s)%s ( %s )\\cr ]', bp.colors.setting, string.format('%05.2f', bp.__distance.get(windower.ffxi.get_mob_by_target('t'))), bp.colors.setting, '........', 0))
                 settings.display:update()
 
             end
