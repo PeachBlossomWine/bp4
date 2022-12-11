@@ -203,6 +203,7 @@ function library:new(bp)
     self.hasSpikes = function() return self.active({34,35,38,173}) end
     self.hasShadows = function() return self.active({444,445,446}) end
     self.hasWHMBoost = function() return self.active({119,120,121,122,123,124,125}) end
+    self.hasGainEffect = function() return self.hasWHMBoost() end
     self.hasAbsorb = function() return self.active({90,119,120,121,122,123,124,125}) end
     self.hasStorm = function() return self.active({178,179,180,181,182,183,184,185}) end
     self.hasEnspell = function() return self.active({94,95,96,97,98,99,277,278,279,280,281,282}) end
@@ -264,6 +265,40 @@ function library:new(bp)
 
     end
 
+    self.isProtected = function()
+
+        for player in self.current:it() do
+
+            if player.id and player.list and #player.list > 0 and bp.__party.isMember(player.id) then
+                
+                if not T(player.list):contains(40) then
+                    return false
+                end
+            
+            end
+
+        end
+        return true
+
+    end
+
+    self.isShelled = function()
+
+        for player in self.current:it() do
+
+            if player.id and player.list and #player.list > 0 and bp.__party.isMember(player.id) then
+
+                if not T(player.list):contains(41) then
+                    return false
+                end
+            
+            end
+
+        end
+        return true
+
+    end
+
     self.getFinishingMoves = function()
 
         if bp and bp.player then
@@ -292,7 +327,7 @@ function library:new(bp)
     end
 
     -- Private Events.
-    --windower.register_event('time change', function() print(T(bp.player.buffs)) end)
+    --windower.register_event('time change', function() print(T(self.current)) end)
     windower.register_event('incoming chunk', pm.parsePlayer)
     windower.register_event('incoming chunk', pm.parseParty)
     windower.register_event('lose buff', pm.removeAura)
