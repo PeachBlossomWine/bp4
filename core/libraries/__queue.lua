@@ -15,12 +15,12 @@ function library:new(bp)
     -- Private Methods.
     pm.attempt = function(prefix, action, target)
         
-        if bp and bp.player and __queue and action and target and __queue[1] and __queue[1].attempts then
+        if bp and bp.player and __queue and action and target and __queue[1] and __queue[1].attempts and (os.clock()-__protect) > 0.50 then
             windower.send_command(string.format("input %s '%s' %s", prefix, action.en, target.id))
             __queue[1].attempts = (__queue[1].attempts + 1)
+            __protect = os.clock()
 
         end
-        __protect = os.clock()
 
     end
 
@@ -41,7 +41,7 @@ function library:new(bp)
     self.clear          = function() __queue = Q{} end
 
     self.isReady = function()
-
+        
         if bp and bp.player and (os.clock()-__ready) > 0 and {[0]=0,[1]=1}[bp.player.status] then
             return true
         end
@@ -64,13 +64,13 @@ function library:new(bp)
         if action and action.prefix then
 
             if S{'/jobability','/pet'}:contains(action.prefix) then
-                return (os.clock() + 2.50)
+                return (os.clock() + 1.50)
 
             elseif S{'/magic','/ninjutsu','/song'}:contains(action.prefix) then
                 return (os.clock() + 2.75)
 
             elseif S{'/weaponskill'}:contains(action.prefix) then
-                return (os.clock() + 2.50)
+                return (os.clock() + 1.50)
 
             elseif S{'/ra'}:contains(action.prefix) then
 
@@ -262,7 +262,7 @@ function library:new(bp)
 
     self.handle = function()
         
-        if bp and bp.player and __queue and __queue[1] and __queue[1].action and __queue[1].target and __queue[1].priority and __queue[1].attempts and self.isReady() and (os.clock()-__protect) > 0.75 then
+        if bp and bp.player and __queue and __queue[1] and __queue[1].action and __queue[1].target and __queue[1].priority and __queue[1].attempts and self.isReady() then
             local target    = bp.__target.get(__queue[1].target)
             local action    = __queue[1].action
             local priority  = __queue[1].priority
@@ -333,7 +333,7 @@ function library:new(bp)
                                 pm.attempt(action.prefix, action, target)
 
                             elseif T{44,34,37,39}:contains(action.skill) and action.status then
-
+                                
                                 if action.en:startswith("Geo-") then
 
                                     if (not pet or bp.bubbles.geoRecast()) then
@@ -354,7 +354,7 @@ function library:new(bp)
 
                                     end
 
-                                elseif bp.__buffs.hasBuff(target.id, action.status) then
+                                elseif not bp.__buffs.hasBuff(target.id, action.status) then
                                     pm.attempt(action.prefix, action, target)
 
                                 else
@@ -496,7 +496,7 @@ function library:new(bp)
 
         if bp and action and __queue:length() > 0 and action.type then
 
-            for act in __queue.data:it() do
+            for act in __queue:it() do
 
                 if act.action.type == action.type then
                     return true
@@ -603,6 +603,7 @@ function library:new(bp)
     end
 
     -- Private Events.
+    windower.register_event('zone change', function() __ready = (os.clock() + 12) end)
     windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
     
         if bp and id == 0x028 then
