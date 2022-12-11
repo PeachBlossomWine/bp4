@@ -26,7 +26,7 @@ local buildHelper = function(bp, hmt)
             bp.__ui.renderUI(settings.display, function()
 
                 if settings.speed then
-                    settings.display:text(string.format("{  %d%%  }", settings.speed*2))
+                    settings.display:text(string.format("{  \\cs(%s)%d%%\\cr  }", bp.colors.setting, settings.speed*2))
                 end
             
             end)
