@@ -10,6 +10,7 @@ function library:new(bp)
     -- Private Methods.
     pm['toggle'] = function()
         bp.enabled = bp.enabled ~= true and true or false
+        bp.core.resetIdle()
         bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
         if not bp.enabled then
@@ -20,6 +21,7 @@ function library:new(bp)
 
     pm['on'] = function()
         bp.enabled = true
+        bp.core.resetIdle()
         bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
@@ -27,6 +29,7 @@ function library:new(bp)
     pm['off'] = function()
         bp.enabled = false
         bp.__queue.clear()
+        bp.core.resetIdle()
         bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
