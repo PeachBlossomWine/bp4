@@ -32,7 +32,6 @@ function job:init(bp, settings, __getsub)
     end
 
     function self:automate()
-        local target = bp.core.target()
 
         self:useItems()
         if bp.player.status == 1 then
@@ -54,13 +53,13 @@ function job:init(bp, settings, __getsub)
             if settings.ja and bp.core.canAct() then
 
                 -- ONE-HOURS.
-                if settings['1hr'] and target then
+                if settings['1hr'] then
 
-                    if bp.core.isReady("Elemental Sforzo") and not bp.core.buff(522) then
+                    if settings["elemental sforzo"] and bp.core.isReady("Elemental Sforzo") and not bp.core.inQueue("Elemental Sforzo") and not bp.core.buff(522) and target then
                         bp.core.add("Elemental Sforzo", bp.player, bp.core.priority("Elemental Sforzo"))
                     end
                     
-                    if bp.core.isReady("Odyllic Subterfuge") and not bp.core.buff(509) then
+                    if settings["odyllic subterfuge"] and bp.core.isReady("Odyllic Subterfuge") and bp.core.inQueue("Odyllic Subterfuge") and not bp.core.buff(509) and target then
                         bp.core.add("Odyllic Subterfuge", target, bp.core.priority("Odyllic Subterfuge"))
                     end
 
@@ -187,6 +186,7 @@ function job:init(bp, settings, __getsub)
                     elseif settings.refresh and bp.core.isReady("Refresh") and not bp.core.buff({43,187,188}) then
                         bp.core.add("Refresh", bp.player, bp.core.priority("Refresh"))
 
+                    -- REGEN.
                     elseif settings.regen and not bp.core.buff(42) then
 
                         if bp.core.mlevel >= 99 and bp.core.isReady("Regen IV") then
@@ -247,13 +247,13 @@ function job:init(bp, settings, __getsub)
             if settings.ja and bp.core.canAct() then
 
                 -- ONE-HOURS.
-                if settings['1hr'] and target then
+                if settings['1hr'] then
 
-                    if bp.core.isReady("Elemental Sforzo") and not bp.core.buff(522) then
+                    if settings["elemental sforzo"] and bp.core.isReady("Elemental Sforzo") and not bp.core.inQueue("Elemental Sforzo") and not bp.core.buff(522) and target then
                         bp.core.add("Elemental Sforzo", bp.player, bp.core.priority("Elemental Sforzo"))
                     end
                     
-                    if bp.core.isReady("Odyllic Subterfuge") and not bp.core.buff(509) then
+                    if settings["odyllic subterfuge"] and bp.core.isReady("Odyllic Subterfuge") and bp.core.inQueue("Odyllic Subterfuge") and not bp.core.buff(509) and target then
                         bp.core.add("Odyllic Subterfuge", target, bp.core.priority("Odyllic Subterfuge"))
                     end
 
@@ -303,59 +303,63 @@ function job:init(bp, settings, __getsub)
 
             if settings.buffs then
 
-                -- RUNES.
-                if settings.runes and bp.core.isReady("Ignis") and not bp.__queue.typeInQueue("Ignis") and bp.core.canAct() and bp.__runes.count() < bp.__runes.max() then
-                    local runes = bp.runes.inactive()
+                if bp.core.canAct() then
 
-                    if runes:length() > 0 then
+                    -- RUNES.
+                    if settings.runes and bp.core.isReady("Ignis") and not bp.__queue.typeInQueue("Ignis") and bp.__runes.count() < bp.__runes.max() then
+                        local runes = bp.runes.inactive()
 
-                        for i=1, runes:length() do
-                            bp.core.add(runes[i], bp.player, bp.core.priority(runes[i]))
-                            break
+                        if runes:length() > 0 then
+
+                            for i=1, runes:length() do
+                                bp.core.add(runes[i], bp.player, bp.core.priority(runes[i]))
+                                break
+
+                            end
 
                         end
 
                     end
 
-                end
+                    -- SWORDPLAY.
+                    if settings.swordplay and bp.core.isReady("Swordplay") and not bp.core.inQueue("Swordplay") and not bp.core.buff(532) and target then
+                        bp.core.add("Swordplay", bp.player, bp.core.priority("Swordplay"))
+                    end
 
-                -- SWORDPLAY.
-                if settings.swordplay and bp.core.isReady("Swordplay") and not bp.core.inQueue("Swordplay") and not bp.core.buff(532) and bp.core.canAct() and target then
-                    bp.core.add("Swordplay", bp.player, bp.core.priority("Swordplay"))
-                end
+                    -- BATTUTA.
+                    if settings.battuta and bp.core.isReady("Battuta") and not bp.core.inQueue("Battuta") and not bp.core.buff(570) and bp.__runes.count() == 3 and target then
+                        bp.core.add("Battuta", bp.player, bp.core.priority("Battuta"))
+                    end
 
-                -- BATTUTA.
-                if settings.battuta and bp.core.isReady("Battuta") and not bp.core.inQueue("Battuta") and not bp.core.buff(570) and bp.__runes.count() == 3 and bp.core.canAct() and target then
-                    bp.core.add("Battuta", bp.player, bp.core.priority("Battuta"))
-                end
+                    -- VALIANCE.
+                    if settings.valiance and bp.core.isReady("Valiance") and not bp.core.searchQueue({"Valiance","Liement"}) and not bp.core.buff({535,537}) and bp.__runes.count() == 3 and target then
+                        bp.core.add("Valiance", bp.player, bp.core.priority("Valiance"))
+                    end
 
-                -- VALIANCE.
-                if settings.valiance and bp.core.isReady("Valiance") and not bp.core.searchQueue({"Valiance","Liement"}) and not bp.core.buff({535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
-                    bp.core.add("Valiance", bp.player, bp.core.priority("Valiance"))
-                end
+                    -- VALLATION.
+                    if settings.vallation and bp.core.isReady("Vallation") and not bp.core.searchQueue({"Vallation","Liement"}) and not bp.core.buff({531,537}) and bp.__runes.count() == 3 and target then
+                        bp.core.add("Vallation", bp.player, bp.core.priority("Vallation"))
+                    end
 
-                -- VALLATION.
-                if settings.vallation and bp.core.isReady("Vallation") and not bp.core.searchQueue({"Vallation","Liement"}) and not bp.core.buff({531,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
-                    bp.core.add("Vallation", bp.player, bp.core.priority("Vallation"))
-                end
+                    -- LIEMENT.
+                    if settings.liement and bp.core.isReady("Liement") and not bp.core.searchQueue({"Valiance","Vallation","Liement"}) and not bp.core.buff({531,535,537}) and bp.__runes.count() == 3 and target then
+                        bp.core.add("Liement", bp.player, bp.core.priority("Liement"))
+                    end
 
-                -- LIEMENT.
-                if settings.liement and bp.core.isReady("Liement") and not bp.core.searchQueue({"Valiance","Vallation","Liement"}) and not bp.core.buff({531,535,537}) and bp.__runes.count() == 3 and bp.core.canAct() and target then
-                    bp.core.add("Liement", bp.player, bp.core.priority("Liement"))
-                end
+                    -- PFLUG.
+                    if settings.pflug and bp.core.isReady("Pflug") and not bp.core.inQueue("Pflug") and not bp.core.buff(533) and bp.__runes.count() == 3 and target then
+                        bp.core.add("Pflug", bp.player, bp.core.priority("Pflug"))
+                    end
 
-                -- PFLUG.
-                if settings.pflug and bp.core.isReady("Pflug") and not bp.core.inQueue("Pflug") and not bp.core.buff(533) and bp.__runes.count() == 3 and bp.core.canAct() and target then
-                    bp.core.add("Pflug", bp.player, bp.core.priority("Pflug"))
-                end
+                    -- EMBOLDEN.
+                    if settings.embolden and settings.embolden.enabled and bp.core.isReady("Embolden") and not bp.core.inQueue("Embolden") and not bp.core.buff(534) and target then
+                        local spell = settings.embolden.name
 
-                -- EMBOLDEN.
-                if settings.embolden and settings.embolden.enabled and bp.core.isReady("Embolden") and not bp.core.inQueue("Embolden") and not bp.core.buff(534) and bp.core.canAct() and target then
-                    local spell = settings.embolden.name
+                        if spell and bp.core.isReady(spell) and bp.MA[spell] and not bp.core.buff(bp.MA[spell].status) and bp.core.canCast() then
+                            bp.core.add("Embolden", bp.player, bp.core.priority("Embolden"))
+                            bp.core.add(spell, bp.player, bp.core.priority(spell))
 
-                    if spell and bp.core.isReady(spell) and bp.MA[spell] and not bp.core.buff(bp.MA[spell].status) and bp.core.canCast() then
-                        bp.core.add("Embolden", bp.player, bp.core.priority("Embolden"))
-                        bp.core.add(spell, bp.player, bp.core.priority(spell))
+                        end
 
                     end
 

@@ -1,139 +1,137 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}, config={}}
-    local timers    = {warcry=0}
-    local flags     = {}
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    self.getFlags = function()
-        return flags
-    end
+    function self:useItems()
 
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
-        local pet       = windower.ffxi.get_mob_by_target('pet') or false
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        elseif bp.core.canItem() then
 
-                if not pet and get('call wyvern') and isReady('JA', "Call Wyvern") then
-                    add(bp.JA["Call Wyvern"], player)
-                
-                elseif (pet or not get('call wyvern') or not _act) then
+            if bp.player.status == 1 then
 
-                    if get('ja') and _act and target then
+            elseif bp.player.status == 0 then
 
-                        -- ANGON.
-                        if get('angon') and isReady('JA', "Angon") then
-                            add(bp.JA["Angon"], target)
-
-                        -- JUMP.
-                        elseif get('jump') and isReady('JA', "Jump") then
-                            add(bp.JA["Jump"], target)
-
-                        -- HIGH JUMP.
-                        elseif get('high jump') and isReady('JA', "High Jump") then
-                            add(bp.JA["High Jump"], target)
-
-                        -- SUPER JUMP.
-                        elseif get('super jump') and isReady('JA', "Super Jump") and helpers['enmity'].hasEnmity(player) then
-                            add(bp.JA["Super Jump"], target)
-
-                        -- SPIRIT JUMP.
-                        elseif get('spirit jump') and isReady('JA', "Spirit Jump") then
-                            add(bp.JA["Spirit Jump"], target)
-
-                        -- SOUL JUMP.
-                        elseif get('soul jump') and isReady('JA', "Soul Jump") then
-                            add(bp.JA["Soul Jump"], target)
-
-                        end
-
-                        -- BREATHS
-                        if pet then
-
-                            if get('steady wing') and isReady('JA', "Steady Wing") then
-                                add(bp.JA["Steady Wing"], player)
-
-                            elseif get('smiting breath') and isReady('JA', "Smiting Breath") then
-                                add(bp.JA["Smiting Breath"], target)
-
-                            elseif get('restoring breath') and isReady('JA', "Restoring Breath") then
-
-                                if get('deep breathing') and isReady('JA', "Deep breathing") then
-                                    add(bp.JA["Deep Breathing"], player)
-                                end
-                                add(bp.JA["Restoring Breath"], player)
-
-                            end
-
-                        end
-
-                    end
-        
-                    if get('buffs') and _act then
-
-                        -- 1 HOURS.
-                        if get('1hr') and not buff(126) and not buff(503) and isReady('JA', "Spirit Surge") and isReady('JA', "Fly High") and pet then
-                            add(bp.JA["Spirit Surge"], player)
-                            add(bp.JA["Fly High"], player)
-
-                        end
-                        helpers['buffs'].cast()
-        
-                    end
-
-                    -- DEBUFFS.
-                    if self.get('debuffs') then
-                        helpers['debuffs'].cast()
-                        
-                    end
-
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if not pet and get('call wyvern') and isReady('JA', "Call Wyvern") then
-                    add(bp.JA["Call Wyvern"], player)
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-                
             end
 
         end
-        
-    end
 
-    private.items = function()
+        return self
 
     end
 
+    function self:castNukes(target)
+
+        if target and settings.nuke then
+
+            for spell in self.__nukes:it() do
+
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
+                end
+
+            end
+
+        end
+
+        return self
+
+    end
+
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+            end
+            self:castNukes(target)
+
+        elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+                -- DRAINS.
+                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+
+                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
+                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+
+                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+
+                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+
+                    end
+
+                end
+
+                -- ASPIRS.
+                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+
+                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+
+                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
+
+                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
+        end
+
+        return self
+
+    end
+    
     return self
 
 end

@@ -1,187 +1,137 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {meditate=0}
-    local flags     = {}
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    self.getFlags = function()
-        return flags
+    function self:useItems()
+
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
+
+        elseif bp.core.canItem() then
+
+            if bp.player.status == 1 then
+
+            elseif bp.player.status == 0 then
+
+            end
+
+        end
+
+        return self
+
     end
 
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
+    function self:castNukes(target)
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        if target and settings.nuke then
 
-                if get('ja') and _act then
-                    local shiki = get('shikikoyo').target ~= "" and windower.ffxi.get_mob_by_name(get('shikikoyo').target) or false
-    
-                    -- MEDITATE
-                    if get('meditate') and isReady('JA', "Meditate") and (os.clock()-timers.meditate) > 30 then
-                        add(bp.JA["Meditate"], player)
-                        timers.meditate = os.clock()
+            for spell in self.__nukes:it() do
 
-                    -- BLADE BASH.
-                    elseif get('blade bash') and isReady('JA', "Blade Bash") then
-                        add(bp.JA["Blade Bash"], target)
-                        
-                    end
-    
-                    -- SHIKIKOYO.
-                    if get('shikikoyo').enabled and shiki and isReady('JA', "Shikikoyo") and helpers['party'].isInParty(shiki) and player['vitals'].tp >= get('shikikoyo').tp and shiki.tp < get('shikikoyo').tp and helpers['target'].inRange(shiki, 10.9) then
-                        add(bp.JA["Shikikoyo"], shiki)
-                    end
-    
-                end
-    
-                if get('buffs') and _act then
-                    local weapon = bp.helpers['equipment'].main
-                                
-                    -- HASSO & SEIGAN.
-                    if (get('hasso') or get('seigan')) and weapon then
-    
-                        if get('hasso') and isReady('JA', "Hasso") and not buff(353) and not get('tank') and T{4,6,7,8,10,12}:contains(weapon.skill) then
-                            add(bp.JA["Hasso"], player)
-    
-                        elseif get('seigan') and isReady('JA', "Seigan") and not buff(354) and get('tank') and T{4,6,7,8,10,12}:contains(weapon.skill) then
-                            add(bp.JA["Seigan"], player)
-    
-                        end
-    
-                    end
-    
-                    if (not get('hasso') and not get('seigan')) or (buff(353) or buff(354)) then
-
-                        -- 1 HOURS.
-                        if target and get('1hr') and not buff(54) and not buff(501) and isReady('JA', "Meikyo Shisui") and isReady('JA', "Yaegasumi") and player['vitals'].tp <= 750 then
-                            add(bp.JA["Meikyo Shisui"], player)
-                            add(bp.JA["Yaegasumi"], player)
-
-                        end
-    
-                        -- THIRD EYE.
-                        if get('third eye') and isReady('JA', "Third Eye") and not buff(67) and not buff(36) and not bp.core.hasShadows() then
-                            add(bp.JA["Third Eye"], player)
-                        end
-    
-                        -- SEKKANOKI.
-                        if get('sekkanoki') and isReady('JA', "Sekkanoki") and not buff(408) and player['vitals'].tp >= 2000 then
-                            add(bp.JA["Sekkanoki"], player)
-                        end
-
-                        -- HAGAKURE.
-                        if get('hagakure') and isReady('JA', "Hagakure") and not buff(483) and player['vitals'].tp < 2000 and player['vitals'].tp >= get('ws').tp then
-                            add(bp.JA["Sekkanoki"], player)
-                        end
-    
-                        -- KONZEN-ITTAI.
-                        if get('konzen-ittai') and isReady('JA', "Konzen-Ittai") and player['vitals'].tp >= math.floor((get('ws').tp/3)*2) and (os.clock()-timers.konzen) > 60 then
-                            add(bp.JA["Konzen-Ittai"])
-                            timers.konzen = os.clock()
-    
-                        end
-    
-                    end
-                    helpers['buffs'].cast()
-    
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if get('ja') and _act then
-                    local shiki = get('shikikoyo').target ~= "" and windower.ffxi.get_mob_by_name(get('shikikoyo').target) or false
-    
-                    -- MEDITATE
-                    if get('meditate') and isReady('JA', "Meditate") and (os.clock()-timers.meditate) > 30 then
-                        add(bp.JA["Meditate"], player)
-                        timers.meditate = os.clock()
-
-                    -- BLADE BASH.
-                    elseif target and get('blade bash') and isReady('JA', "Blade Bash") then
-                        add(bp.JA["Blade Bash"], target)
-                        
-                    end
-    
-                    -- SHIKIKOYO.
-                    if get('shikikoyo').enabled and shiki and isReady('JA', "Shikikoyo") and helpers['party'].isInParty(shiki) and player['vitals'].tp >= get('shikikoyo').tp and shiki.tp < get('shikikoyo').tp and helpers['target'].inRange(shiki, 10.9) then
-                        add(bp.JA["Shikikoyo"], shiki)
-                    end
-    
-                end
-    
-                if get('buffs') and _act then
-                    local weapon = bp.helpers['equipment'].main
-
-                    -- HASSO & SEIGAN.
-                    if (get('hasso') or get('seigan')) and weapon then
-    
-                        if get('hasso') and isReady('JA', "Hasso") and not buff(353) and not get('tank') and T{4,6,7,8,10,12}:contains(weapon.skill) then
-                            add(bp.JA["Hasso"], player)
-    
-                        elseif get('seigan') and isReady('JA', "Seigan") and not buff(354) and get('tank') and T{4,6,7,8,10,12}:contains(weapon.skill) then
-                            add(bp.JA["Seigan"], player)
-    
-                        end
-    
-                    end
-    
-                    if (not get('hasso') and not get('seigan')) or (buff(353) or buff(354)) and target then
-    
-                        -- THIRD EYE.
-                        if get('third eye') and isReady('JA', "Third Eye") and not buff(67) and not buff(36) and target and not bp.core.hasShadows() then
-                            add(bp.JA["Third Eye"], player)
-                        end
-    
-                    end
-                    helpers['buffs'].cast()
-    
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
             end
 
         end
-        
-    end
 
-    private.items = function()
+        return self
 
     end
 
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+            end
+            self:castNukes(target)
+
+        elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+                -- DRAINS.
+                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+
+                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
+                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+
+                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+
+                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+
+                    end
+
+                end
+
+                -- ASPIRS.
+                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+
+                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+
+                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
+
+                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
+        end
+
+        return self
+
+    end
+    
     return self
 
 end

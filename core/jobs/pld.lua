@@ -1,307 +1,137 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {}
-    local flags     = {}
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    do
-        private.__alwaysbuff = false
+    function self:useItems()
 
-    end
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
 
-    self.getFlags = function()
-        return flags
-    end
+        elseif bp.core.canItem() then
 
-    self.automate = function()
-        local player     = bp.player
-        local helpers    = bp.helpers
-        local isReady    = helpers['actions'].isReady
-        local inQueue    = helpers['queue'].inQueue
-        local buff       = helpers['buffs'].buffActive
-        local addToFront = helpers['queue'].addToFront
-        local add        = helpers['queue'].add
-        local get        = bp.core.get
+            if bp.player.status == 1 then
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if get('ja') and _act then
-                    local cover  = get('cover').target ~= "" and windower.ffxi.get_mob_by_name(get('cover').target) or false
-                    local behind = helpers['actions'].isBehind(cover)
-
-                    -- [[ NEED TO ADD SEPULCHER AND HOLY CIRCLY ]]**
-
-                    -- COVER.
-                    if get('cover').enabled and isReady('JA', "Cover") and cover and behind and helpers['party'].isInParty(cover) and helpers['enmity'].hasEnmity(cover) then
-                        add(bp.JA["Cover"], cover)
-    
-                    -- SHIELD BASH.
-                    elseif get('shield bash') and isReady('JA', "Shield Bash") then
-                        add(bp.JA["Shield Bash"], target)
-    
-                    end
-
-                    -- CHIVALRY.
-                    if get('chivalry').enabled and isReady('JA', "Chivalry") and player['vitals'].mpp < get('chivalry').mpp and player['vitals'].tp >= get('chivalry').tp then
-                        add(bp.JA["Chivalry"], player)
-                    end
-    
-                end
-    
-                if get('hate').enabled then
-    
-                    -- FLASH.
-                    if isReady('MA', "Flash") and _cast then
-
-                        if get('divine emblem') and isReady('JA', "Divine Emblem") then
-                            addToFront(bp.MA["Flash"], target)
-                            addToFront(bp.JA["Divine Emblem"], me)
-
-                        else
-                            addToFront(bp.MA["Flash"], target)
-
-                        end
-    
-                    -- SHIELD BASH.
-                    elseif get('shield bash') and isReady('JA', "Shield Bash") and _act then
-                        add(bp.JA["Shield Bash"], target)
-    
-                    end
-    
-                end
-    
-                if get('buffs') then
-
-                    -- MAJESTY.
-                    if get('majesty') and isReady('JA', "Majesty") and not buff(621) and _act then
-                        add(bp.JA["Majesty"], player)
-    
-                    -- REPRISAL.
-                    elseif isReady('MA', "Reprisal") and not buff(403) and _cast then
-                        add(bp.MA["Reprisal"], player)
-
-                    -- PHALANX.
-                    elseif isReady('MA', "Phalanx") and not buff(116) and _cast then
-                        add(bp.MA["Phalanx"], player)
-
-                    -- CRUSADE.
-                    elseif isReady('MA', "Crusade") and not buff(289) and _cast then
-                        add(bp.MA["Crusade"], player)
-    
-                    -- SENTINEL.
-                    elseif get('sentinel') and isReady('JA', "Sentinel") and not buff(62) and (get('hate') or helpers['enmity'].hasEnmity(player)) and _act then
-                        add(bp.JA["Sentinel"], player)
-
-                    -- PALISADE.
-                    elseif get('palisade') and isReady('JA', "Palisade") and not buff(478) and (get('hate') or helpers['enmity'].hasEnmity(player)) and _act then
-                        add(bp.JA["Palisade"], player)
-    
-                    -- RAMPART.
-                    elseif get('rampart') and isReady('JA', "Rampart") and not buff(623) and _act then
-                        add(bp.MA["Rampart"], player)
-
-                    -- FEALTY.
-                    elseif get('fealty') and isReady('JA', "Fealty") and not buff(344) and _act then
-                        add(bp.MA["Fealty"], player)
-
-                    -- ENLIGHT.
-                    elseif _cast then
-
-                        if bp.player.job_points['pld'].jp_spent >= 100 then
-
-                            if isReady('MA', "Enlight II") and not buff(274) then
-                                add(bp.MA["Enlight II"], player)
-                            end
-
-                        else
-
-                            if isReady('MA', "Enlight") and not buff(274) then
-                                add(bp.MA["Enlight"], player)
-                            end
-
-                        end
-    
-                    end
-                    helpers['buffs'].cast()
-    
-                end
-
-                -- DEBUFFS.
-                if get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if get('ja') and _act then
-                    local cover  = get('cover').target ~= "" and windower.ffxi.get_mob_by_name(get('cover').target) or false
-                    local behind = helpers['actions'].isBehind(cover)
-                    -- [[ NEED TO ADD SEPULCHER AND HOLY CIRCLY ]]**
-
-                    -- COVER.
-                    if target and get('cover').enabled and isReady('JA', "Cover") and cover and behind and helpers['party'].isInParty(cover) and helpers['enmity'].hasEnmity(cover) then
-                        add(bp.JA["Cover"], cover)
-    
-                    -- SHIELD BASH.
-                    elseif target and get('shield bash') and isReady('JA', "Shield Bash") then
-                        add(bp.JA["Shield Bash"], target)
-    
-                    end
-
-                    -- CHIVALRY.
-                    if get('chivalry').enabled and isReady('JA', "Chivalry") and player['vitals'].mpp < get('chivalry').mpp and player['vitals'].tp >= get('chivalry').tp then
-                        add(bp.JA["Chivalry"], player)
-                    end
-    
-                end
-    
-                if get('hate').enabled and target then
-    
-                    -- FLASH.
-                    if isReady('MA', "Flash") and _cast then
-
-                        if get('divine emblem') and isReady('JA', "Divine Emblem") then
-                            addToFront(bp.MA["Flash"], target)
-                            addToFront(bp.JA["Divine Emblem"], me)
-
-                        else
-                            addToFront(bp.MA["Flash"], target)
-
-                        end
-    
-                    -- SHIELD BASH.
-                    elseif get('shield bash') and isReady('JA', "Shield Bash") and _act then
-                        add(bp.JA["Shield Bash"], target)
-    
-                    end
-    
-                end
-    
-                if get('buffs') then
-
-                    -- MAJESTY.
-                    if get('majesty') and isReady('JA', "Majesty") and not buff(621) and _act and (target or private.__alwaysbuff) then
-                        add(bp.JA["Majesty"], player)
-    
-                    -- REPRISAL.
-                    elseif isReady('MA', "Reprisal") and not buff(403) and _cast and (target or private.__alwaysbuff) then
-                        add(bp.MA["Reprisal"], player)
-
-                    -- PHALANX.
-                    elseif isReady('MA', "Phalanx") and not buff(116) and _cast and (target or private.__alwaysbuff) then
-                        add(bp.MA["Phalanx"], player)
-
-                    -- CRUSADE.
-                    elseif isReady('MA', "Crusade") and not buff(289) and _cast and (target or private.__alwaysbuff) then
-                        add(bp.MA["Crusade"], player)
-    
-                    -- SENTINEL.
-                    elseif get('sentinel') and isReady('JA', "Sentinel") and not buff(62) and (get('hate') or helpers['enmity'].hasEnmity(player)) and _act and target then
-                        add(bp.JA["Sentinel"], player)
-
-                    -- PALISADE.
-                    elseif get('palisade') and isReady('JA', "Palisade") and not buff(478) and (get('hate') or helpers['enmity'].hasEnmity(player)) and _act and target then
-                        add(bp.JA["Palisade"], player)
-    
-                    -- RAMPART.
-                    elseif get('rampart') and isReady('JA', "Rampart") and not buff(623) and _act and target then
-                        add(bp.MA["Rampart"], player)
-
-                    -- FEALTY.
-                    elseif get('fealty') and isReady('JA', "Fealty") and not buff(344) and _act and target then
-                        add(bp.MA["Fealty"], player)
-
-                    -- ENLIGHT.
-                    elseif _cast and (target or private.__alwaysbuff) then
-
-                        if bp.player.job_points['pld'].jp_spent >= 100 then
-
-                            if isReady('MA', "Enlight II") and not buff(274) then
-                                add(bp.MA["Enlight II"], player)
-                            end
-
-                        else
-
-                            if isReady('MA', "Enlight") and not buff(274) then
-                                add(bp.MA["Enlight"], player)
-                            end
-
-                        end
-    
-                    end
-                    helpers['buffs'].cast()
-    
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
+            elseif bp.player.status == 0 then
 
             end
 
         end
-        
-    end
 
-    private.items = function()
+        return self
 
     end
 
-    -- Private Events.
-    private.events.commands = windower.register_event('addon command', function(...)
-        local commands = T{...}
-        local helper = table.remove(commands, 1)
+    function self:castNukes(target)
 
-        if bp and bp.player and helper and helper:lower() == 'pld' then
-            local command = commands[1] and table.remove(commands, 1):lower() or false
+        if target and settings.nuke then
 
-            if command then
+            for spell in self.__nukes:it() do
 
-                if command == 'alwaysbuff' then
-                    local option = commands[1] and table.remove(commands, 1):lower() or false
-
-                    if option and option == '!' then
-                        private.__alwaysbuff = true
-                        bp.helpers['console'].log("ALWAYS BUFF ENABLED")
-
-                    elseif option and option == '#' then
-                        private.__alwaysbuff = false
-                        bp.helpers['console'].log("ALWAYS BUFF DISABLED!")
-
-                    else
-                        private.__alwaysbuff = private.__alwaysbuff ~= true and true or false
-                        bp.helpers['popchat'].pop(string.format("ALWAYS BUFF: %s.", tostring(private.__alwaysbuff)))
-
-                    end
-
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
             end
 
         end
 
-    end)
+        return self
 
+    end
+
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+            end
+            self:castNukes(target)
+
+        elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+                -- DRAINS.
+                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+
+                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
+                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+
+                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+
+                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+
+                    end
+
+                end
+
+                -- ASPIRS.
+                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+
+                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+
+                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
+
+                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
+        end
+
+        return self
+
+    end
+    
     return self
 
 end

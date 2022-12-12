@@ -1,200 +1,138 @@
 local job = {}
-function job:init(bp, settings)
+function job:init(bp, settings, __getsub)
 
     if not bp or not settings then
-        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON OUR GITHUB!\\cr', "20, 200, 125"))
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local flags     = {}
-    local timers    = {}
-    local sublogic  = bp.libs.__core.getSubjob(bp.player.sub_job)
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    -- Private Methods.
-    local useItems = function()
+    function self:useItems()
+
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
+
+        elseif bp.core.canItem() then
+
+            if bp.player.status == 1 then
+
+            elseif bp.player.status == 0 then
+
+            end
+
+        end
+
+        return self
 
     end
 
-    -- Public Methods.
-    function self:automate()
+    function self:castNukes(target)
 
-        useItems()
+        if target and settings.nuke then
+
+            for spell in self.__nukes:it() do
+
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
+                end
+
+            end
+
+        end
+
+        return self
+
+    end
+
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
         if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+            end
+            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            sublogic.hate(bp, settings, self)
-            sublogic.buffs(bp, settings, self)
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
 
-        end
+            end
 
-    end
+            if settings.ja and bp.core.canAct() then
 
-    -- Private Events.
-    
-    return self
+            end
 
-end
-return job
+            if settings.buffs then
 
+            end
 
---[[
-local job = {}
-function job.get(bp)
-    local self = {}
+            if target and bp.core.canCast() then
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
-        return
-    end
+                -- DRAINS.
+                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {sleep=0}
-    local flags     = {}
+                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
+                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
 
-    do
-        flags.__sleep = false
-        flags.__count = 2
+                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
 
-    end
+                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                        bp.core.add("Drain", target, bp.core.priority("Drain"))
 
-    self.getFlags = function()
-        return flags
-    end
-
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
-        
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-    
-                if get('buffs') and _cast then
-                    helpers['songs'].playJukebox()
-                    helpers['buffs'].cast()
+                    end
 
                 end
 
-                -- DEBUFFS.
-                if get('debuffs') then
-                    helpers['debuffs'].cast()                    
-                end
+                -- ASPIRS.
+                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
 
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-    
-                if get('buffs') and _cast then
-                    helpers['songs'].playJukebox()  
-                    helpers['buffs'].cast()  
-                    
-                end
+                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
 
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()                    
-                end
+                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
 
-                -- AUTO-HORDE
-                if _cast and bp.helpers['aggro'] and flags.__sleep and (os.clock()-timers.sleep) > 12 then
-                    local aggro = bp.helpers['aggro'].getAggro()
-
-                    if aggro and #aggro > flags.__count and (isReady('MA', "Horde Lullaby") or isReady('MA', "Horde Lullaby II")) then
-                        local target = windower.ffxi.get_mob_by_id(aggro[1]) or false
-
-                        if target then
-
-                            if isReady('MA', "Horde Lullaby II") then
-                                helpers['queue'].addToFront(bp.MA["Horde Lullaby II"], target)
-                                timers.sleep = os.clock()
-
-                            elseif isReady('MA', "Horde Lullaby") then
-                                helpers['queue'].addToFront(bp.MA["Horde Lullaby"], target)
-                                timers.sleep = os.clock()
-
-                            end
-
-                        end
+                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
 
                     end
 
                 end
 
             end
-
-        end
-        
-    end
-
-    private.items = function()
-        local _act    = bp.helpers['actions'].canAct()
-        local _cast   = bp.helpers['actions'].canCast()
-        local _item   = bp.helpers['actions'].canItem()
-        local add     = bp.helpers['queue'].addToFront
-        local buffs   = T(bp.player.buffs)
-
-        if _item then
-
-            if buffs:contains(6) then
-                add(bp.IT["Echo Drops"], bp.player)
-            end
-
-        end        
-
-    end
-
-    -- Private Events.
-    private.events.commands = windower.register_event('addon command', function(...)
-        local commands = T{...}
-        local helper = table.remove(commands, 1)
-
-        if bp and bp.player and helper and helper:lower() == 'brd' then
-            local command = commands[1] and table.remove(commands, 1):lower()
-
-            if command then
-
-                if command == 'sleep' then
-
-                    if commands[1] then
-                        local option = commands[1] and table.remove(commands, 1):lower()
-
-                        if option == '!' then
-                            flags.__sleep = true
-
-                        elseif option == '#' then
-                            flags.__sleep = false
-
-                        end
-
-                    else
-                        flags.__sleep = flags.__sleep ~= true and true or false
-
-                    end
-                    bp.helpers['popchat'].pop(string.format('AUTO HORDE-LULLABY: %s.', tostring(flags.__sleep)))
-
-                end
-
-            end
+            self:castNukes(target)
 
         end
 
-    end)
+        return self
 
+    end
+    
     return self
 
 end
 return job
-]]

@@ -1,265 +1,137 @@
 local job = {}
-function job.get(bp)
-    local self = {}
+function job:init(bp, settings, __getsub)
 
-    if not bp then
-        print('ERROR LOADING CORE! PLEASE POST AN ISSUE ON OUR GITHUB!')
+    if not bp or not settings then
+        print(string.format('\\cs(%s)ERROR INITIALIZING JOB! PLEASE POST AN ISSUE ON GITHUB!\\cr', "20, 200, 125"))
         return
     end
 
-    -- Private Variables.
-    local bp        = bp
-    local private   = {events={}}
-    local timers    = {}
-    local flags     = {}
-    local move      = 0
-    local scavenge  = false
+    -- Public Variables.
+    self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
+    self.__events   = {}
+    self.__flags    = {}
+    self.__timers   = {hate=0, aoehate=0}
+    self.__nukes    = T{}
 
-    self.getFlags = function()
-        return flags
-    end
+    function self:useItems()
 
-    self.automate = function()
-        local player    = bp.player
-        local helpers   = bp.helpers
-        local isReady   = helpers['actions'].isReady
-        local inQueue   = helpers['queue'].inQueue
-        local buff      = helpers['buffs'].buffActive
-        local add       = helpers['queue'].add
-        local get       = bp.core.get
+        if self.__subjob and settings.food and settings.skillup and not settings.skillup.enabled and bp.core.canItem() then
 
-        do
-            private.items()
-            if bp and bp.player and bp.player.status == 1 then
-                local target  = helpers['target'].getTarget() or windower.ffxi.get_mob_by_target('t') or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
+        elseif bp.core.canItem() then
 
-                if get('ja') and _act then
+            if bp.player.status == 1 then
 
-                    -- SCAVENGE.
-                    if get('scavenge') and isReady('JA', "Scavenge") and scavenge and helpers['inventory'].hasSpace() then
-                        add(bp.JA["Scavenge"], player)
-                    end
-    
-                end
-    
-                if get('buffs') and _act then
-
-                    -- BOUNTY SHOT.
-                    if get('bounty shot') and isReady('JA', "Bounty Shot") then
-                        add(bp.JA["Bounty Shot"], target)
-                    end
-
-                    -- DECOY SHOT.
-                    if get('decoy shot').enabled and isReady('JA', "Decoy Shot") and not buff(482) then
-                        local decoy = get('decoy shot').target ~= "" and windower.ffxi.get_mob_by_name(get('decoy shot').target) or false
-
-                        if decoy and helpers['actions'].isBehind(decoy) and helpers['distance'].getDistance(decoy) <= 20 then
-                            add(bp.JA["Decoy Shot"], player)
-                        end
-
-                    end
-    
-                    -- SHARPSHOT.
-                    if get('sharpshot') and isReady('JA', "Sharpshot") then
-                        add(bp.JA["Sharpshot"], player)
-    
-                    -- BARRAGE.
-                    elseif get('barrage') and isReady('JA', "Barrage") then
-    
-                        if get('camouflage') and isReady('JA', "Camouflage") then
-                            add(bp.JA["Camouflage"], player)
-                            add(bp.JA["Barrage"], player)
-    
-                        else
-                            add(bp.JA["Barrage"], player)
-    
-                        end
-    
-                    -- VELOCITY SHOT.
-                    elseif get('velocity shot') and isReady('JA', "Velocity Shot") then
-                        add(bp.JA["Velocity Shot"], player)
-
-                    -- HOVER SHOT.
-                    elseif get('hover shot') and isReady('JA', "Hover Shot") and not buff(628) then
-                        add(bp.JA["Hover Shot"], player)
-
-                    -- STEALTH SHOT.
-                    elseif get('stealth shot') and isReady('JA', "Stealth Shot") then
-                        add(bp.JA["Stealth Shot"], target)
-
-                    -- FLASHY SHOT.
-                    elseif get('flashy shot') and isReady('JA', "Flashy Shot") then
-                        add(bp.JA["Flashy Shot"], target)
-
-                    -- DOUBLE SHOT.
-                    elseif get('double shot') and isReady('JA', "Double Shot") and not buff(433) then
-                        add(bp.JA["Double Shot"], player)
-    
-                    end
-
-                    -- UNLIMITED SHOT.
-                    if get('unlimited shot') and isReady('JA', "Unlimited Shot") and get('ws').enabled and player['vitals'].tp > get('ws').tp and bp.helpers['aftermath'].hasAftermath() and not buff(115) then
-                        add(bp.JA["Unlimited Shot"], player)
-                    end
-                    helpers['buffs'].cast()
-                    
-                end
-
-                -- DEBUFFS.
-                if get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
-
-            elseif bp and bp.player and bp.player.status == 0 then
-                local target  = helpers['target'].getTarget() or false
-                local _act    = helpers['actions'].canAct()
-                local _cast   = helpers['actions'].canCast()
-
-                if get('ja') and _act then
-
-                    -- SCAVENGE.
-                    if get('scavenge') and isReady('JA', "Scavenge") and scavenge and helpers['inventory'].hasSpace() then
-                        add(bp.JA["Scavenge"], player)
-                    end
-    
-                end
-    
-                if get('buffs') and _act then
-
-                    -- BOUNTY SHOT.
-                    if get('bounty shot') and isReady('JA', "Bounty Shot") then
-                        add(bp.JA["Bounty Shot"], target)
-                    end
-
-                    -- DECOY SHOT.
-                    if target and get('decoy shot').enabled and isReady('JA', "Decoy Shot") and not buff(482) then
-                        local decoy = get('decoy shot').target ~= "" and windower.ffxi.get_mob_by_name(get('decoy shot').target) or false
-
-                        if decoy and helpers['actions'].isBehind(decoy) and helpers['distance'].getDistance(decoy) <= 20 then
-                            add(bp.JA["Decoy Shot"], player)
-                        end
-
-                    end
-    
-                    -- SHARPSHOT.
-                    if target and get('sharpshot') and isReady('JA', "Sharpshot") then
-                        add(bp.JA["Sharpshot"], player)
-    
-                    -- BARRAGE.
-                    elseif target and get('barrage') and isReady('JA', "Barrage") then
-    
-                        if get('camouflage') and isReady('JA', "Camouflage") then
-                            add(bp.JA["Camouflage"], player)
-                            add(bp.JA["Barrage"], player)
-    
-                        else
-                            add(bp.JA["Barrage"], player)
-    
-                        end
-    
-                    -- VELOCITY SHOT.
-                    elseif target and get('velocity shot') and isReady('JA', "Velocity Shot") then
-                        add(bp.JA["Velocity Shot"], player)
-
-                    -- HOVER SHOT.
-                    elseif target and get('hover shot') and isReady('JA', "Hover Shot") and not buff(628) then
-                        add(bp.JA["Hover Shot"], player)
-
-                    -- STEALTH SHOT.
-                    elseif target and get('stealth shot') and isReady('JA', "Stealth Shot") then
-                        add(bp.JA["Stealth Shot"], target)
-
-                    -- FLASHY SHOT.
-                    elseif target and get('flashy shot') and isReady('JA', "Flashy Shot") then
-                        add(bp.JA["Flashy Shot"], target)
-
-                    -- DOUBLE SHOT.
-                    elseif target and get('double shot') and isReady('JA', "Double Shot") and not buff(433) then
-                        add(bp.JA["Double Shot"], player)
-    
-                    end
-
-                    -- UNLIMITED SHOT.
-                    if target and get('unlimited shot') and isReady('JA', "Unlimited Shot") and get('ws').enabled and player['vitals'].tp > get('ws').tp and bp.helpers['aftermath'].hasAftermath() and not buff(115) then
-                        add(bp.JA["Unlimited Shot"], player)
-                    end
-                    helpers['buffs'].cast()
-                    
-                end
-
-                -- DEBUFFS.
-                if target and get('debuffs') then
-                    helpers['debuffs'].cast()
-                    
-                end
+            elseif bp.player.status == 0 then
 
             end
 
         end
-        
-    end
 
-    private.items = function()
+        return self
 
     end
 
-    -- Private Events.
-    private.events.actions = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
-        
-        if bp and id == 0x028 then
-            local pack      = bp.packets.parse('incoming', original)
-            local player    = bp.player
-            local actor     = windower.ffxi.get_mob_by_id(pack['Actor'])
-            local target    = windower.ffxi.get_mob_by_id(pack['Target 1 ID'])
-            local count     = pack['Target Count']
-            local category  = pack['Category']
-            local param     = pack['Param']
-            
-            if player and actor and target then
-                local buff  = bp.helpers['buffs'].buffActive
-                local get   = bp.core.get
+    function self:castNukes(target)
 
-                -- Finish Ranged Attack.
-                if pack['Category'] == 2 and player.id == actor.id and not scavenge then
-                    scavenge = true
+        if target and settings.nuke then
 
-                    if get('hover shot') and buff(628) then
+            for spell in self.__nukes:it() do
 
-                        if move == 0 then
-                            bp.helpers['controls'].stepLeft()
-                            move = 1
-
-                        else
-                            bp.helpers['controls'].stepRight()
-                            move = 0
-
-                        end
-
-                    end
-
+                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                    bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
             end
 
         end
 
-    end)
+        return self
 
-    private.events.zone = windower.register_event('zone change', function()
-        scavenge = false
-    end)
+    end
 
-    private.events.jobchange = windower.register_event('job change', function()
-        
-        for _,id in pairs(private.events) do
-            windower.unregister_event(id)
+    function self:automate()
+        local target = bp.core.target()
+
+        self:useItems()
+        if bp.player.status == 1 then
+            local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+            end
+            self:castNukes(target)
+
+        elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
+
+            end
+
+            if settings.ja and bp.core.canAct() then
+
+            end
+
+            if settings.buffs then
+
+            end
+
+            if target and bp.core.canCast() then
+
+                -- DRAINS.
+                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+
+                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
+                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+
+                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
+                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+
+                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
+                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+
+                    end
+
+                end
+
+                -- ASPIRS.
+                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+
+                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
+                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+
+                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
+                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
+
+                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
+                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+
+                    end
+
+                end
+
+            end
+            self:castNukes(target)
+
         end
 
-    end)
+        return self
 
+    end
+    
     return self
 
 end

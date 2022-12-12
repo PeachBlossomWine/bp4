@@ -50,7 +50,6 @@ function job:init(bp, settings, __getsub)
     end
 
     function self:automate()
-        local target = bp.core.target()
 
         self:useItems()
         if bp.player.status == 1 then
@@ -69,6 +68,20 @@ function job:init(bp, settings, __getsub)
             end
 
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+                    local benediction = bp.cures.getWeight()
+
+                    if settings.benediction and bp.core.isReady("Benediction") and not bp.core.inQueue("Benediction") and bp.core.vitals.mpp < 50 and benediction.count > 2 and benediction.weight >= 1800 and target then
+                        bp.core.add("Benediction", bp.player, bp.core.priority("Benediction"))
+                    end
+                    
+                    if settings.asylum and bp.core.isReady("Asylum") and not bp.core.inQueue("Asylum") and not bp.core.buff(492) and target then
+                        bp.core.add("Asylum", target, bp.core.priority("Asylum"))
+                    end
+
+                end
 
                 -- MARTYR.
                 if settings.martyr and settings.martyr.enabled and bp.core.isReady("Martyr") and not bp.core.inQueue("Martyr") then
@@ -236,6 +249,7 @@ function job:init(bp, settings, __getsub)
             self:castNukes(target)
 
         elseif bp.player.status == 0 then
+            local target = bp.core.target()
 
             -- HATE GENERATION.
             if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
@@ -250,6 +264,20 @@ function job:init(bp, settings, __getsub)
             end
 
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+                    local benediction = bp.cures.getWeight()
+
+                    if settings.benediction and bp.core.isReady("Benediction") and not bp.core.inQueue("Benediction") and bp.core.vitals.mpp < 50 and benediction.count > 2 and benediction.weight >= 1800 and target then
+                        bp.core.add("Benediction", bp.player, bp.core.priority("Benediction"))
+                    end
+                    
+                    if settings.asylum and bp.core.isReady("Asylum") and not bp.core.inQueue("Asylum") and not bp.core.buff(492) and target then
+                        bp.core.add("Asylum", target, bp.core.priority("Asylum"))
+                    end
+
+                end
 
                 -- MARTYR.
                 if settings.martyr and settings.martyr.enabled and bp.core.isReady("Martyr") and not bp.core.inQueue("Martyr") then
