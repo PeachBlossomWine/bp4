@@ -420,6 +420,7 @@ local buildHelper = function(bp, hmt)
     
         end
 
+        new.getWeight = function() return pvt.getWeight() end
         new.getMode = function() return settings.mode end
         new.setMode = function(mode)
             local mode = tonumber(mode)
@@ -554,7 +555,7 @@ local buildHelper = function(bp, hmt)
     
         end)
 
-        helper('incoming chunk', function(id, original, modified, injected, blocked)
+        helper('incoming chunk', function(id, original)
         
             if bp and id == 0x028 and settings.enabled then
                 local parsed    = bp.packets.parse('incoming', original)
