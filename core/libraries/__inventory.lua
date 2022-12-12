@@ -41,6 +41,23 @@ function library:new(bp)
         return windower.ffxi.get_items(bag, index)
     end
 
+    self.findItem = function(search)
+
+        for bag in T(__bags.equippable):it() do
+
+            for item, index in T(windower.ffxi.get_items(bag.id)):it() do
+                
+                if type(item) == 'table' and item.id and bp.res.items[item.id] and bp.res.items[item.id].en:lower():startswith(search:lower()) then
+                    return bag.id, index, item.id
+                end
+
+            end
+
+        end
+        return nil
+
+    end
+
     self.findByName = function(search, bag)
         local items = {}
 
