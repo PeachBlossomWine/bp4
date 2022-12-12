@@ -96,6 +96,7 @@ local buildHelper = function(bp, hmt)
                 ["Curaga III"]          = 50,
                 ["Cure VI"]             = 49,
                 ["Cure V"]              = 49,
+                ["Vivacious Pulse"]     = 49,
                 ["Holy Water"]          = 48,
                 ["Cursna"]              = 48,
                 ["Stona"]               = 47,
