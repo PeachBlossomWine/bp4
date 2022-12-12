@@ -86,7 +86,22 @@ function library:new(bp)
 
     end
 
-    self.equipItem = function(name, slot) -- UPDATE NEEDED!
+    self.equipItem = function(name, slot)
+
+        if name and slot and bp.res.slots[slot] then
+            local bag, index = bp.__inventory.findItem(name)
+
+            if bag and index then
+                bp.packets.inject(bp.packets.new('outgoing', 0x050, {
+                    ['Item Index'] = index,
+                    ['Equip Slot'] = slot,
+                    ['Bag'] = bag,
+
+                }))
+
+            end
+
+        end
 
     end
 
