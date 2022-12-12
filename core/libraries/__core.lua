@@ -39,6 +39,8 @@ function library:new(bp)
             ["tomahawk"]            = false,
             ["restraint"]           = false,
             ["blood rage"]          = false,
+            ["mighty strikes"]      = false,
+            ["brazen rush"]         = false,
         },
 
         ["MNK"] = {
@@ -72,6 +74,8 @@ function library:new(bp)
             ["protect"]             = false,
             ["shell"]               = false,
             ["regen"]               = false,
+            ["benediction"]         = false,
+            ["asylum"]              = false,
         },
 
         ["BLM"] = {
@@ -84,6 +88,8 @@ function library:new(bp)
             ["mana wall"]           = false,
             ["enmity douse"]        = false,
             ["manawell"]            = false,
+            ["manafont"]            = false,
+            ["subtle sorcery"]      = false,
         },
 
         ["RDM"] = {
@@ -151,6 +157,8 @@ function library:new(bp)
             ["scarlet delirium"]    = false,
             ["endark"]              = false,
             ["stun"]                = false,
+            ["blood weapon"]        = false,
+            ["soul enslavement"]    = false,
         },
 
         ["BST"] = {
@@ -340,6 +348,8 @@ function library:new(bp)
             ["refresh"]             = false,
             ["phalanx"]             = false,
             ["regen"]               = false,
+            ["elemental sforzo"]    = false,
+            ["odyllic subterfuge"]  = false,
         },
 
     }
