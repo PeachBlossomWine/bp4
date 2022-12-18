@@ -6,9 +6,6 @@ function library:new(bp)
     -- Private Variables.
     local equipment = T{}
 
-    -- Public Variables.
-    self.get = function(slot) return slot and equipment[slot] or equipment end
-
     -- Private Methods.
     pm.update = function(id, original)
         
@@ -41,6 +38,9 @@ function library:new(bp)
 
     end
     pm.init()
+
+    -- Public Methods.
+    self.get = function(slot) return slot and equipment[slot] or equipment end
 
     -- Private Events.
     windower.register_event('outgoing chunk', pm.update)

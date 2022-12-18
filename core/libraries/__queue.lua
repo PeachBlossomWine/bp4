@@ -15,10 +15,19 @@ function library:new(bp)
     -- Private Methods.
     pm.attempt = function(prefix, action, target)
         
-        if bp and bp.player and __queue and action and target and __queue[1] and __queue[1].attempts and (os.clock()-__protect) > 0.50 then
-            windower.send_command(string.format("input %s '%s' %s", prefix, action.en, target.id))
-            __queue[1].attempts = (__queue[1].attempts + 1)
-            __protect = os.clock()
+        if bp and bp.player and __queue and action and target and __queue[1] and __queue[1].attempts and (os.clock()-__protect) > 1 then
+
+            if action.en == 'Ranged' then
+                windower.send_command(string.format('input %s', prefix))
+                __queue[1].attempts = (__queue[1].attempts + 1)
+                __protect = os.clock()
+
+            else
+                windower.send_command(string.format('input %s "%s" %s', prefix, action.en, target.id))
+                __queue[1].attempts = (__queue[1].attempts + 1)
+                __protect = os.clock()
+
+            end
 
         end
 
@@ -73,9 +82,10 @@ function library:new(bp)
                 return (os.clock() + 1.50)
 
             elseif S{'/ra'}:contains(action.prefix) then
+                return (os.clock() + 2.50)
 
             elseif action.flags and action.flags:contains('Usable') then
-                return (os.clock() + action.cast_delay)
+                return (os.clock() + action.cast_delay + 1.50)
 
             end
             
@@ -106,7 +116,7 @@ function library:new(bp)
                             if action.en == 'Pianissimo' then
                                 pm.push(action, target, priority)
 
-                            elseif bp.__actions.isReady(action.en) and bp.__actions.canAct() and not bp.__queue.inQueue(action, target) then
+                            elseif bp.__actions.isReady(action.en) and not bp.__queue.inQueue(action, target) and bp.__actions.canAct() then
                                 pm.push(action, target, priority)
 
                             end
@@ -177,12 +187,15 @@ function library:new(bp)
                         end
 
                     elseif action.prefix == '/pet' then
-
+                        
                         if action.type == 'Monster' then
                             print(action.en)
 
                         elseif S{'BloodPactRage','BloodPactRage'}:contains(action.type) then
                             print(action.en)
+
+                        elseif bp.__actions.isReady(action.en) and not bp.__queue.inQueue(action, target) then
+                            pm.push(action, target, priority)
 
                         end
 
@@ -197,19 +210,19 @@ function library:new(bp)
 
                             if action.en:startswith("Geo-") then
                                 
-                                if (not pet or bp.bubbles.geoRecast()) then
+                                if (not pet or bp.__bubbles.geoRecast()) then
                                     pm.push(action, target, priority)
                                 end
 
                             elseif action.en:startswith("Indi-") then
 
-                                if (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                                if (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                                     pm.push(action, target, priority)
                                 end
 
                             elseif bp.__target.castable(target, action) then
-                                
-                                if action.status and not bp.__buffs.hasBuff(target.id, action.status) then
+
+                                if action.status and bp.__party.isMember(target.id, true) and not bp.__buffs.hasBuff(target.id, action.status) then
                                     pm.push(action, target, priority)
 
                                 else
@@ -247,6 +260,7 @@ function library:new(bp)
 
                 -- RANGED ATTACKS.
                 elseif S{'/ra'}:contains(action.prefix) then
+                    pm.push({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}, target, 1)
 
                 -- USEABLE ITEMS.
                 elseif action.flags and action.flags:contains('Usable') and bp.__actions.canItem() and not bp.__queue.inQueue(action, target) then
@@ -280,8 +294,6 @@ function library:new(bp)
 
                         if action.en == 'Pianissimo' then
 
-                        elseif action.en == 'Double-Up' then
-
                         elseif S{'Full Circle','Ecliptic Attrition','Lasting Emanation','Radial Arcana','Mending Halation'}:contains(action.en) then
                             
                             if pet and not T{2,3}:contains(pet.status) then
@@ -308,7 +320,7 @@ function library:new(bp)
 
                         else
 
-                            if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
+                            if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) and bp.__actions.isReady(action.en) and bp.__actions.canAct() then
                                 pm.attempt(action.prefix, action, target)
 
                             else
@@ -321,6 +333,22 @@ function library:new(bp)
 
                     elseif action.prefix == '/pet' then
 
+                        if action.type == 'Monster' then
+
+                        elseif S{'BloodPactRage','BloodPactRage'}:contains(action.type) then
+
+                        else
+                            
+                            if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
+                                pm.attempt(action.prefix, action, target)
+
+                            else
+                                __queue:remove(1)
+
+                            end
+
+                        end
+
                     end
 
                 elseif S{'/magic','/ninjutsu','/song'}:contains(action.prefix) then
@@ -329,14 +357,14 @@ function library:new(bp)
 
                         if attempts < 15 and (distance - target.model_size) < range and (bp.__target.castable(target, action) or action.skill == 44) and bp.__actions.canCast() then
 
-                            if bp.status.isRemoval(action.id) then
+                            if bp.__status.isRemoval(action.id) then
                                 pm.attempt(action.prefix, action, target)
 
                             elseif T{44,34,37,39}:contains(action.skill) and action.status then
                                 
                                 if action.en:startswith("Geo-") then
 
-                                    if (not pet or bp.bubbles.geoRecast()) then
+                                    if (not pet or bp.__bubbles.geoRecast()) then
                                         pm.attempt(action.prefix, action, target)
                                         
                                     else
@@ -346,7 +374,7 @@ function library:new(bp)
 
                                 elseif action.en:startswith("Indi-") then
 
-                                    if (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                                    if (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                                         pm.attempt(action.prefix, action, target)
 
                                     else
@@ -387,7 +415,7 @@ function library:new(bp)
                     end
 
                 elseif S{'/weaponskill'}:contains(action.prefix) then
-
+                    
                     if vitals.tp >= 1000 and bp.__actions.isReady(action.en) and (distance - target.model_size) < range and bp.__target.castable(target, action) then
                         pm.attempt(action.prefix, action, target)
 
@@ -398,7 +426,23 @@ function library:new(bp)
 
                 elseif S{'/ra'}:contains(action.prefix) then
 
+                    if bp.__actions.canAct() and (distance - target.model_size) < range then
+                        pm.attempt("/ra", action, target)
+
+                    else
+                        __queue:remove(1)
+
+                    end
+
                 elseif action.flags and action.flags:contains('Usable') then
+
+                    if bp.__actions.canItem() and (distance - target.model_size) < 10 and bp.__target.castable(target, action) then
+                        pm.attempt("/item", action, target)
+
+                    else
+                        __queue:remove(1)
+
+                    end
 
                 end
 
@@ -517,7 +561,7 @@ function library:new(bp)
                         
                 if type(search) == 'string' then
                     
-                    if act.action.en:lower():startswith(search:lower()) then
+                    if act.action.en:lower():match(search:lower()) then
                         return true
                     end
 
@@ -525,7 +569,7 @@ function library:new(bp)
 
                     for check in T(search):it() do
 
-                        if act.action.en:lower():startswith(check:lower()) then
+                        if act.action.en:lower():match(check:lower()) then
                             return true
                         end
 
@@ -540,70 +584,7 @@ function library:new(bp)
 
     end
 
-    self.replace = function(action, target, name)
-        --[[
-        if bp and action and target and name then
-            local helpers       = bp.helpers
-            local action_type   = helpers['queue'].getType(action)
-            local data          = __queue.data
-
-            if data and name ~= '' then
-
-                if #data > 0 then
-
-                    for i,v in ipairs(data) do
-
-                        if type(v) == 'table' and type(action) == 'table' and type(target) == 'table' and v.action and v.target then
-                            local player = bp.player
-
-                            if v.target.id == target.id and (name):match(v.action.en) and v.action.id ~= action.id then
-
-                                -- Convert to self target.
-                                if player and helpers['target'].onlySelf(action) and target.id ~= player.id then
-                                    target = windower.ffxi.get_mob_by_target('me')
-                                end
-
-                                if action_type == 'JobAbility' then
-                                    __queue.data[i] = {action=action, target=target, priority=0, attempts=1}
-                                    break
-
-                                elseif action_type == 'Magic' then
-                                    __queue.data[i] = {action=action, target=target, priority=0, attempts=1}
-                                    break
-
-                                elseif action_type == 'WeaponSkill' then
-                                    __queue.data[i] = {action=action, target=target, priority=0, attempts=1}
-                                    break
-
-                                end
-
-                            elseif v.target.id == target.id and not (name):match(v.action.en) and v.action.id ~= action.id then
-
-                                -- Convert to self target.
-                                if player and helpers['target'].onlySelf(action) and target.id ~= player.id then
-                                    target = windower.ffxi.get_mob_by_target('me')
-                                end
-                                helpers['queue'].add(action, target)
-                                break
-
-                            end
-
-                        end
-
-                    end
-
-                end
-
-            end
-
-        end
-        return false
-        ]]
-
-    end
-
     -- Private Events.
-    windower.register_event('zone change', function() __ready = (os.clock() + 12) end)
     windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
     
         if bp and id == 0x028 then
@@ -697,6 +678,12 @@ function library:new(bp)
 
         end
 
+    end)
+
+    windower.register_event('zone change', function()
+        __ready = (os.clock() + 12)
+        self.clear()
+    
     end)
 
     return self

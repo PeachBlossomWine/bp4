@@ -14,8 +14,8 @@ function library:new(bp)
             local parsed = bp.packets.parse('incoming', original)
 
             if parsed then
-                local actor     = windower.ffxi.get_mob_by_id(parsed['Actor'])
-                local target    = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])
+                local actor = windower.ffxi.get_mob_by_id(parsed['Actor'])
+                local target = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])
 
                 if actor and target and T{1,6,7,8,11,12,13,14,15}:contains(parsed['Category']) then
 

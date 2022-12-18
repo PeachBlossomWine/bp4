@@ -37,7 +37,7 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spell) then
                     bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
@@ -51,80 +51,151 @@ function job:init(bp, settings, __getsub)
 
     function self:automate()
         local target = bp.core.target()
+        local pet = windower.ffxi.get_mob_by_target('pet')
 
         self:useItems()
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
 
+                if not pet then
+
+                    -- ACTIVATE.
+                    if settings.activate and not bp.core.searchQueue({"Activate","Deus Ex"}) then
+
+                        if bp.core.ready("Activate") then
+                            bp.core.add("Activate", bp.player, bp.core.priority("Activate"))
+
+                        elseif bp.core.ready("Deus Ex Automata") then
+                            bp.core.add("Deus Ex Automata", bp.player, bp.core.priority("Deus Ex Automata"))
+
+                        end
+
+                    end
+
+                elseif pet and not T{2,3}:contains(pet.status) then
+
+                    -- REPAIR.
+                    if settings.repair and settings.repair.enabled and bp.core.ready("Repair") and pet.hpp < settings.repair.hpp and target then
+                        local oil = bp.__equipment.get(3)
+
+                        if oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
+                            bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                        end
+
+                    end
+
+                    -- MANEUVERS.
+                    if settings.maneuvers and settings.maneuvers.enabled and bp.core.ready("Fire Maneuver", 299) then
+                        local current = bp.__maneuvers.active()
+
+                        if #current < 3 then
+                            local maneuvers = bp.__maneuvers.getMissing(T(settings.maneuvers.list):copy())
+
+                            if maneuvers:length() > 0 and not bp.core.searchQueue(maneuvers[1]) then
+                                bp.core.add(maneuvers[1], bp.player, bp.core.priority(maneuvers[1]))
+                            end
+
+                        end
+
+                    end
+
+                    -- COOLDOWN.
+                    if settings.cooldown and bp.core.ready("Cooldown") then
+                        bp.core.add("Cooldown", bp.player, bp.core.priority("Cooldown"))
+                    end
+
+                    if pet.status == 0 then
+
+                        -- DEPLOY.
+                        if settings.deploy and bp.core.ready("Deploy") and target then
+                            bp.core.add("Deploy", target, bp.core.priority("Deploy"))
+                        end
+
+                    elseif pet.status == 1 then
+
+                        -- RETRIEVE.
+                        if not settings.deploy and bp.core.ready("Retrieve") then
+                            bp.core.add("Retrieve", bp.player, bp.core.priority("Retrieve"))
+                        end
+
+                    end
+
+                end
+
             end
-
-            if settings.buffs then
-
-            end
-
-            if target and bp.core.canCast() then
-
-            end
-            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
 
-            end
+                if not pet then
 
-            if settings.buffs then
+                    -- ACTIVATE.
+                    if settings.activate and not bp.core.searchQueue({"Activate","Deus Ex"}) then
 
-            end
+                        if bp.core.ready("Activate") then
+                            bp.core.add("Activate", bp.player, bp.core.priority("Activate"))
 
-            if target and bp.core.canCast() then
+                        elseif bp.core.ready("Deus Ex Automata") then
+                            bp.core.add("Deus Ex Automata", bp.player, bp.core.priority("Deus Ex Automata"))
 
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+                        end
 
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+                    end
 
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+                elseif pet and not T{2,3}:contains(pet.status) then
 
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+                    -- REPAIR.
+                    if settings.repair and settings.repair.enabled and bp.core.ready("Repair") and pet.hpp < settings.repair.hpp and target then
+                        local oil = bp.__equipment.get(3)
+
+                        if oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
+                            bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                        end
+
+                    end
+
+                    -- MANEUVERS.
+                    if settings.maneuvers and settings.maneuvers.enabled and bp.core.ready("Fire Maneuver", 299) then
+                        local current = bp.__maneuvers.active()
+
+                        if #current < 3 then
+                            local maneuvers = bp.__maneuvers.getMissing(T(settings.maneuvers.list):copy())
+
+                            if maneuvers:length() > 0 and not bp.core.searchQueue(maneuvers[1]) then
+                                bp.core.add(maneuvers[1], bp.player, bp.core.priority(maneuvers[1]))
+                            end
+
+                        end
+
+                    end
+
+                    -- COOLDOWN.
+                    if settings.cooldown and bp.core.ready("Cooldown") then
+                        bp.core.add("Cooldown", bp.player, bp.core.priority("Cooldown"))
+                    end
+
+                    if pet.status == 0 then
+
+                        -- DEPLOY.
+                        if settings.deploy and bp.core.ready("Deploy") and target then
+                            bp.core.add("Deploy", target, bp.core.priority("Deploy"))
+                        end
+
+                    elseif pet.status == 1 then
+
+                        -- RETRIEVE.
+                        if not settings.deploy and bp.core.ready("Retrieve") then
+                            bp.core.add("Retrieve", bp.player, bp.core.priority("Retrieve"))
+                        end
 
                     end
 
                 end
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
-
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
-                    end
-
-                end
-
             end
-            self:castNukes(target)
 
         end
 

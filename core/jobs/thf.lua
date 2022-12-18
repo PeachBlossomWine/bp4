@@ -37,7 +37,7 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spell) then
                     bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
@@ -56,75 +56,119 @@ function job:init(bp, settings, __getsub)
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- BULLY.
+                if settings.bully and bp.core.ready("Bully") and target then
+                    bp.core.add("Bully", target, bp.core.priority("Bully"))
+                end
+
+                -- STEAL.
+                if settings.steal and bp.core.ready("Steal") then
+                    bp.core.add("Steal", target, bp.core.priority("Steal"))
+
+                -- MUG.
+                elseif settings.mug and bp.core.ready("Mug") then
+                    bp.core.add("Mug", target, bp.core.priority("Mug"))
+
+                -- DESPOIL.
+                elseif settings.despoil and bp.core.ready("Despoil") then
+                    bp.core.add("Despoil", target, bp.core.priority("Despoil"))
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                    -- CONSPIRATOR.
+                    if settings.feint and bp.core.ready("Conspirator", 462) then
+                        bp.core.add("Conspirator", bp.player, bp.core.priority("Conspirator"))
+                    end
+
+                    -- FEINT.
+                    if settings.feint and bp.core.ready("Feint", 343) then
+                        bp.core.add("Feint", bp.player, bp.core.priority("Feint"))
+                    end
+
+                    -- ASSASINS CHARGE.
+                    if settings["assassin's charge"] and bp.core.ready("Assassin's Charge", 342) then
+                        bp.core.add("Assassin's Charge", bp.player, bp.core.priority("Assassin's Charge"))
+                    end
+
+                    -- SNEAK ATTACK.
+                    if settings["sneak attack"] and bp.core.ready("Sneak Attck", 65) and bp.__actions.isBehind(target) then
+                        bp.core.add("Sneak Attck", bp.player, bp.core.priority("Sneak Attck"))
+                    end
+
+                    -- TRICK ATTACK.
+                    if settings["trick attack"] and bp.core.ready("Trick Attack", 87) and bp.__actions.isFacing(target) then
+                        bp.core.add("Trick Attack", bp.player, bp.core.priority("Trick Attack"))
+                    end
+
+                end
 
             end
-            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- BULLY.
+                if settings.bully and bp.core.ready("Bully") and target then
+                    bp.core.add("Bully", target, bp.core.priority("Bully"))
+                end
+
+                -- STEAL.
+                if settings.steal and bp.core.ready("Steal") then
+                    bp.core.add("Steal", target, bp.core.priority("Steal"))
+
+                -- MUG.
+                elseif settings.mug and bp.core.ready("Mug") then
+                    bp.core.add("Mug", target, bp.core.priority("Mug"))
+
+                -- DESPOIL.
+                elseif settings.despoil and bp.core.ready("Despoil") then
+                    bp.core.add("Despoil", target, bp.core.priority("Despoil"))
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
-
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
-
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
-
+                    -- CONSPIRATOR.
+                    if settings.feint and bp.core.ready("Conspirator", 462) then
+                        bp.core.add("Conspirator", bp.player, bp.core.priority("Conspirator"))
                     end
 
-                end
+                    -- FEINT.
+                    if settings.feint and bp.core.ready("Feint", 343) then
+                        bp.core.add("Feint", bp.player, bp.core.priority("Feint"))
+                    end
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+                    -- ASSASINS CHARGE.
+                    if settings["assassin's charge"] and bp.core.ready("Assassin's Charge", 342) then
+                        bp.core.add("Assassin's Charge", bp.player, bp.core.priority("Assassin's Charge"))
+                    end
 
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+                    -- SNEAK ATTACK.
+                    if settings["sneak attack"] and bp.core.ready("Sneak Attck", 65) and bp.__actions.isBehind(target) then
+                        bp.core.add("Sneak Attck", bp.player, bp.core.priority("Sneak Attck"))
+                    end
 
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
+                    -- TRICK ATTACK.
+                    if settings["trick attack"] and bp.core.ready("Trick Attack", 87) and bp.__actions.isFacing(target) then
+                        bp.core.add("Trick Attack", bp.player, bp.core.priority("Trick Attack"))
                     end
 
                 end
 
             end
-            self:castNukes(target)
 
         end
 

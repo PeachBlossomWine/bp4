@@ -51,7 +51,7 @@ function library:new(bp)
 
         if target then
             print(string.format('ID: %s | Index: %s | Claim ID: %s | POS(x=%s, y=%s, z=%s) | Zone: %s [ %s ]', target.id, target.index, target.claim_id, target.x, target.y, target.z, bp.info.zone, bp.res.zones[bp.info.zone].en))
-            --table.vprint(target)
+            table.vprint(target)
             --table.vprint(windower.ffxi.get_player())
             --table.vprint(self.me)
         end

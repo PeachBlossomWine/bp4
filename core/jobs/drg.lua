@@ -37,7 +37,7 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spell) then
                     bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
@@ -51,80 +51,187 @@ function job:init(bp, settings, __getsub)
 
     function self:automate()
         local target = bp.core.target()
+        local pet = windower.ffxi.get_mob_by_target('pet')
 
         self:useItems()
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+
+                    if settings["spirit surge"] and bp.core.ready("Spirit Surge", 126) and target and pet then
+                        bp.core.add("Spirit Surge", bp.player, bp.core.priority("Spirit Surge"))
+                    end
+                    
+                    if settings["fly high"] and bp.core.ready("Fly High", 503) and target then
+                        bp.core.add("Fly High", bp.player, bp.core.priority("Fly High"))
+                    end
+
+                end
+
+                -- CALL WYVERN.
+                if settings["call wyvern"] and not pet and bp.core.ready("Call Wyvern") then
+                    bp.core.add("Call Wyvern", bp.player, bp.core.priority("Call Wyvern"))
+                end
+
+                -- ANGON.
+                if settings.angon and bp.core.ready("Angon") and bp.__inventory.canEquip("Angon") and target then
+                    bp.core.add("Angon", target, bp.core.priority("Angon"))
+                end
+
+                -- JUMP.
+                if settings.jump and bp.core.ready("Jump") and target then
+                    bp.core.add("Jump", target, bp.core.priority("Jump"))
+
+                -- HIGH JUMP.
+                elseif settings["high jump"] and bp.core.ready("High Jump") and target then
+                    bp.core.add("High Jump", target, bp.core.priority("High Jump"))
+
+                -- SUPER JUMP.
+                elseif settings["super jump"] and bp.core.ready("Super Jump") and target then
+                    bp.core.add("Super Jump", target, bp.core.priority("Super Jump"))
+
+                -- SPIRIT JUMP.
+                elseif settings["spirit jump"] and bp.core.ready("Spirit Jump") and target then
+                    bp.core.add("Spirit Jump", target, bp.core.priority("Spirit Jump"))
+
+                -- SOUL JUMP.
+                elseif settings["soul jump"] and bp.core.ready("Soul Jump") and target then
+                    bp.core.add("Soul Jump", target, bp.core.priority("Soul Jump"))
+
+                end
+
+                if pet then
+
+                    -- SMITING BREATH.
+                    if settings["smiting breath"] and bp.core.ready("Smiting Breath") and target then
+
+                        if settings["deep breathing"] and bp.core.ready("Deep Breathing") then
+                            bp.core.add("Deep Breathing", bp.player, bp.core.priority("Deep Breathing"))
+                        end
+                        bp.core.add("Smiting Breath", target, bp.core.priority("Smiting Breath"))
+
+                    -- RESTORING BREATH.
+                    elseif settings["restoring breath"] and bp.core.ready("Restoring Breath") then
+
+                        if settings["deep breathing"] and bp.core.ready("Deep Breathing") then
+                            bp.core.add("Deep Breathing", bp.player, bp.core.priority("Deep Breathing"))
+                        end
+                        bp.core.add("Restoring Breath", bp.player, bp.core.priority("Restoring Breath"))
+
+                    -- STEADY WING.
+                    elseif settings["steady wing"] and bp.core.ready("Steady Wing") then
+                        bp.core.add("Steady Wing", bp.player, bp.core.priority("Steady Wing"))
+
+                    end
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                end
+
+                if bp.core.canCast() then
+
+                end
 
             end
-            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+
+                    if settings["spirit surge"] and bp.core.ready("Spirit Surge", 126) and target and pet then
+                        bp.core.add("Spirit Surge", bp.player, bp.core.priority("Spirit Surge"))
+                    end
+                    
+                    if settings["fly high"] and bp.core.ready("Fly High", 503) and target then
+                        bp.core.add("Fly High", bp.player, bp.core.priority("Fly High"))
+                    end
+
+                end
+
+                -- CALL WYVERN.
+                if settings["call wyvern"] and not pet and bp.core.ready("Call Wyvern") then
+                    bp.core.add("Call Wyvern", bp.player, bp.core.priority("Call Wyvern"))
+                end
+
+                -- ANGON.
+                if settings.angon and bp.core.ready("Angon") and bp.__inventory.canEquip("Angon") and target then
+                    bp.core.add("Angon", target, bp.core.priority("Angon"))
+                end
+
+                -- JUMP.
+                if settings.jump and bp.core.ready("Jump") and target then
+                    bp.core.add("Jump", target, bp.core.priority("Jump"))
+
+                -- HIGH JUMP.
+                elseif settings["high jump"] and bp.core.ready("High Jump") and target then
+                    bp.core.add("High Jump", target, bp.core.priority("High Jump"))
+
+                -- SUPER JUMP.
+                elseif settings["super jump"] and bp.core.ready("Super Jump") and target then
+                    bp.core.add("Super Jump", target, bp.core.priority("Super Jump"))
+
+                -- SPIRIT JUMP.
+                elseif settings["spirit jump"] and bp.core.ready("Spirit Jump") and target then
+                    bp.core.add("Spirit Jump", target, bp.core.priority("Spirit Jump"))
+
+                -- SOUL JUMP.
+                elseif settings["soul jump"] and bp.core.ready("Soul Jump") and target then
+                    bp.core.add("Soul Jump", target, bp.core.priority("Soul Jump"))
+
+                end
+
+                if pet then
+
+                    -- SMITING BREATH.
+                    if settings["smiting breath"] and bp.core.ready("Smiting Breath") and target then
+
+                        if settings["deep breathing"] and bp.core.ready("Deep Breathing") then
+                            bp.core.add("Deep Breathing", bp.player, bp.core.priority("Deep Breathing"))
+                        end
+                        bp.core.add("Smiting Breath", target, bp.core.priority("Smiting Breath"))
+
+                    -- RESTORING BREATH.
+                    elseif settings["restoring breath"] and bp.core.ready("Restoring Breath") then
+
+                        if settings["deep breathing"] and bp.core.ready("Deep Breathing") then
+                            bp.core.add("Deep Breathing", bp.player, bp.core.priority("Deep Breathing"))
+                        end
+                        bp.core.add("Restoring Breath", bp.player, bp.core.priority("Restoring Breath"))
+
+                    -- STEADY WING.
+                    elseif settings["steady wing"] and bp.core.ready("Steady Wing") then
+                        bp.core.add("Steady Wing", bp.player, bp.core.priority("Steady Wing"))
+
+                    end
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
-
-            if target and bp.core.canCast() then
-
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
-
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
-
-                    end
+                if bp.core.canAct() then
 
                 end
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
-
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
-                    end
+                if bp.core.canCast() then
 
                 end
 
             end
-            self:castNukes(target)
 
         end
 

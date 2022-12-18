@@ -37,8 +37,23 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
-                    bp.core.add(spell, target, bp.core.priority(spell))
+                if bp.core.canCast() and bp.core.ready(spell) then
+                    local tools = bp.__inventory.findByName(bp.__tools.get(spell).cast, 0)
+
+                    if tools and tools[1] then
+                        local index, count = table.unpack(tools[2] and tools[2] or tools[1])
+
+                        if count > 0 then
+
+                            if count > 1 and settings.futae and bp.core.ready("Futae", 441) then
+                                bp.core.add("Futae", target, bp.core.priority("Futae"))
+                            end
+                            bp.core.add(spell, target, bp.core.priority(spell))
+
+                        end
+
+                    end
+
                 end
 
             end
@@ -56,68 +71,158 @@ function job:init(bp, settings, __getsub)
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+
+                    -- MIKAGE.
+                    if settings.mikage and bp.core.ready("Mikage", 502) and target then
+                        bp.core.add("Mikage", bp.player, bp.core.priority("Mikage"))
+                    end
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                    -- YONIN.
+                    if settings.yonin and bp.core.ready("Yonin", 420) and bp.__actions.isFacing(target) then
+                        bp.core.add("Yonin", bp.player, bp.core.priority("Yonin"))
+
+                    -- INNIN.
+                    elseif settings.innin and bp.core.ready("Innin", 421) and bp.__actions.isBehind(target) then
+                        bp.core.add("Innin", bp.player, bp.core.priority("Innin"))
+
+                    -- SANGE.
+                    elseif settings.sange and bp.core.ready("Sange", 352) then
+                        bp.core.add("Sange", bp.player, bp.core.priority("Sange"))
+
+                    -- ISSEKIGAN.
+                    elseif settings.issekigan and bp.core.ready("Issekigan", 484) then
+                        bp.core.add("Issekigan", bp.player, bp.core.priority("Issekigan"))
+
+                    end
+
+                end
+
+                if bp.core.canCast() then
+
+                    -- UTSUSEMI.
+                    if settings.utsusemi then
+                        local tools = bp.__inventory.findByName(bp.__tools.get("Utsu").cast, 0)
+
+                        if tools and tools[1] then
+                            local index, count = table.unpack(tools[2] and tools[2] or tools[1])
+
+                            if index and count and count > 0 and not bp.__buffs.hasShadows() and not bp.core.searchQueue('Utsusemi') then
+                                
+                                if bp.core.isReady("Utsusemi: San") then
+                                    bp.core.add("Utsusemi: San", bp.player, bp.core.priority("Utsusemi: San"))
+            
+                                elseif bp.core.isReady("Utsusemi: Ni") then
+                                    bp.core.add("Utsusemi: Ni", bp.player, bp.core.priority("Utsusemi: Ni"))
+                                        
+                                elseif bp.core.isReady("Utsusemi: Ichi") then
+                                    bp.core.add("Utsusemi: Ichi", bp.player, bp.core.priority("Utsusemi: Ichi"))
+                                        
+                                end
+
+                            end
+
+                        elseif settings.items and (not tools or not tools[1]) then
+                            local toolbags = bp.__inventory.findByName(bp.__tools.get("Utsu").toolbags, 0) or false
+
+                            if toolbags and toolbags[1] then
+                                local index, count, id = table.unpack(toolbags[2] and toolbags[2] or toolbags[1])
+
+                                if index and count and id and count > 0 and bp.res.items[id] and not bp.core.inQueue(bp.res.items[id], bp.player) then
+                                    bp.core.add(bp.res.items[id], bp.player, bp.core.priority(bp.res.items[id].en))
+                                end
+
+                            end
+
+                        end
+
+                    end
+
+                end
 
             end
             self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- ONE-HOURS.
+                if settings['1hr'] then
+
+                    -- MIKAGE.
+                    if settings.mikage and bp.core.ready("Mikage", 502) and target then
+                        bp.core.add("Mikage", bp.player, bp.core.priority("Mikage"))
+                    end
+
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                    -- YONIN.
+                    if settings.yonin and bp.core.ready("Yonin", 420) and bp.__actions.isFacing(target) then
+                        bp.core.add("Yonin", bp.player, bp.core.priority("Yonin"))
 
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
-
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+                    -- ISSEKIGAN.
+                    elseif settings.issekigan and bp.core.ready("Issekigan", 484) then
+                        bp.core.add("Issekigan", bp.player, bp.core.priority("Issekigan"))
 
                     end
 
                 end
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+                if bp.core.canCast() then
 
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+                    -- UTSUSEMI.
+                    if settings.utsusemi then
+                        local tools = bp.__inventory.findByName(bp.__tools.get("Utsu").cast, 0)
 
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
+                        if tools and tools[1] then
+                            local index, count = table.unpack(tools[2] and tools[2] or tools[1])
 
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+                            if index and count and count > 0 and not bp.__buffs.hasShadows() and not bp.core.searchQueue('Utsusemi') then
+                                
+                                if bp.core.isReady("Utsusemi: San") then
+                                    bp.core.add("Utsusemi: San", bp.player, bp.core.priority("Utsusemi: San"))
+            
+                                elseif bp.core.isReady("Utsusemi: Ni") then
+                                    bp.core.add("Utsusemi: Ni", bp.player, bp.core.priority("Utsusemi: Ni"))
+                                        
+                                elseif bp.core.isReady("Utsusemi: Ichi") then
+                                    bp.core.add("Utsusemi: Ichi", bp.player, bp.core.priority("Utsusemi: Ichi"))
+                                        
+                                end
+
+                            end
+
+                        elseif settings.items and (not tools or not tools[1]) then
+                            local toolbags = bp.__inventory.findByName(bp.__tools.get("Utsu").toolbags, 0) or false
+
+                            if toolbags and toolbags[1] then
+                                local index, count, id = table.unpack(toolbags[2] and toolbags[2] or toolbags[1])
+
+                                if index and count and id and count > 0 and bp.res.items[id] and not bp.core.inQueue(bp.res.items[id], bp.player) then
+                                    bp.core.add(bp.res.items[id], bp.player, bp.core.priority(bp.res.items[id].en))
+                                end
+
+                            end
+
+                        end
 
                     end
 

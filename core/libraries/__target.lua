@@ -152,27 +152,32 @@ function library:new(bp)
     self.castable = function(target, spell)
         local target = self.get(target)
 
-        if bp and target and spell and spell.targets then
+        if bp and target and spell then
+            local spell = type(spell) == 'table' and spell or bp.MA[spell] or bp.JA[spell] or bp.WS[spell] or bp.IT[spell] or false
 
-            for i,v in pairs(spell.targets) do
+            if spell and spell.targets then
 
-                if i == 'Self' and target.name == bp.player.name then
-                    return v
+                for i,v in pairs(spell.targets) do
 
-                elseif i == 'Party' and bp.__party.isMember(target) then
-                    return v
+                    if i == 'Self' and target.name == bp.player.name then
+                        return v
 
-                elseif i == 'Ally' and bp.__party.isMember(target, true) then
-                    return v
+                    elseif i == 'Party' and bp.__party.isMember(target) then
+                        return v
 
-                elseif i == 'Player' and not target.is_npc then
-                    return v
+                    elseif i == 'Ally' and bp.__party.isMember(target, true) then
+                        return v
 
-                elseif i == 'NPC' and target.is_npc then
-                    return v
+                    elseif i == 'Player' and not target.is_npc then
+                        return v
 
-                elseif i == 'Enemy' and target.spawn_type == 16 and (target.claim_id == 0 or bp.__party.isMember(target.claim_id, true)) then
-                    return v
+                    elseif i == 'NPC' and target.is_npc then
+                        return v
+
+                    elseif i == 'Enemy' and target.spawn_type == 16 and (target.claim_id == 0 or bp.__party.isMember(target.claim_id, true)) then
+                        return v
+
+                    end
 
                 end
 

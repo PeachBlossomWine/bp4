@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=1, y=1}, bg={alpha=75, red=0, green=0, blue=0, visible=true}, flags={draggable=true, bold=false}, text={size=8, font='Lucida Console', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=10}
+    local layout    = {pos={x=1, y=1}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=true}, text={size=12, font='Calibri', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=10}
     local settings  = bp.__settings.new('buffs')
 
     helper.new = function()
@@ -38,8 +38,8 @@ local buildHelper = function(bp, hmt)
                 end
                 settings.display:text(table.concat(update, '\n'))
     
-            else
-                settings.display:text('')
+            elseif settings.display:visible() then
+                settings.display:hide()
     
             end
     
@@ -48,8 +48,20 @@ local buildHelper = function(bp, hmt)
         pvt.getSpell = function(name)
             local name = windower.convert_auto_trans(table.concat(name, ' '))
 
-            if bp and name and bp.MA[name] and T{33,34,37,39}:contains(bp.MA[name].skill) and bp.__actions.isAvailable(bp.MA[name].en) then
-                return bp.MA[name]    
+            if bp and name and bp.MA[name] and T{33,34,37,39,43}:contains(bp.MA[name].skill) and bp.__actions.isAvailable(bp.MA[name].en) then
+
+                if bp.player.main_job == 'BLU' then
+                    local spells = T(windower.ffxi.get_mjob_data().spells)
+
+                    if spells:contains(bp.MA[name].id) then
+                        return bp.MA[name]
+                    end
+
+                else
+                    return bp.MA[name]
+
+                end
+
             end
             return false
     

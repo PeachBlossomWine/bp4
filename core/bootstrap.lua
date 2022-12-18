@@ -34,7 +34,7 @@ function bootstrap:new()
     require('chat')
     require('pack')
 
-    -- Class variables.
+    -- Class Variables.
     self.accounts       = false
     self.info           = windower.ffxi.get_info()
     self.player         = windower.ffxi.get_player()
@@ -47,7 +47,6 @@ function bootstrap:new()
     self.authorized     = false
 
     -- Class Objects.
-    --self.helpers        = buildManager(self)
     self.helpers        = manager:new(self)
     self.common         = {}
     self.JA             = {}
@@ -61,7 +60,7 @@ function bootstrap:new()
         important   = string.format('%s,%s,%s', 025, 165, 200),
         setting     = string.format('%s,%s,%s', 200, 200, 200),
         on          = string.format('%s,%s,%s', 020, 250, 020),
-        off         = string.format('%s,%s,%s', 255, 060, 070),
+        off         = string.format('%s,%s,%s', 090, 090, 090),
 
     }
 

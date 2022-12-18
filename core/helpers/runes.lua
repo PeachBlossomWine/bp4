@@ -11,19 +11,18 @@ local buildHelper = function(bp, hmt)
         -- Private Variables.
         local __colors = {
 
-            ['Ignis']       = {string.format('%s,%s,%s', 100, 190, 255),    string.format('%s,%s,%s', 195, 25, 35)},
+            ['Ignis']       = {string.format('%s,%s,%s', 100, 190, 255),    string.format('%s,%s,%s', 235, 65, 75)},
             ['Gelus']       = {string.format('%s,%s,%s', 100, 190, 30),     string.format('%s,%s,%s', 100, 190, 255)},
             ['Flabra']      = {string.format('%s,%s,%s', 170, 145, 75),     string.format('%s,%s,%s', 100, 190, 30)},
-            ['Tellus']      = {string.format('%s,%s,%s', 110, 10, 195),     string.format('%s,%s,%s', 25, 165, 200)},
-            ['Sulpor']      = {string.format('%s,%s,%s', 25, 35, 195),      string.format('%s,%s,%s', 110, 10, 195)},
-            ['Unda']        = {string.format('%s,%s,%s', 195, 25, 35),      string.format('%s,%s,%s', 25, 35, 195)},
-            ['Lux']         = {string.format('%s,%s,%s', 155, 0, 60),       string.format('%s,%s,%s', 155, 0, 60)},
-            ['Tenebrae']    = {string.format('%s,%s,%s', 230, 235, 250),    string.format('%s,%s,%s', 230, 235, 250)},
+            ['Tellus']      = {string.format('%s,%s,%s', 155, 15, 235),     string.format('%s,%s,%s', 190, 135, 45)},
+            ['Sulpor']      = {string.format('%s,%s,%s', 75, 110, 235),     string.format('%s,%s,%s', 110, 10, 195)},
+            ['Unda']        = {string.format('%s,%s,%s', 235, 65, 75),      string.format('%s,%s,%s', 75, 110, 235)},
+            ['Lux']         = {string.format('%s,%s,%s', 155, 0, 60),       string.format('%s,%s,%s', 230, 235, 250)},
+            ['Tenebrae']    = {string.format('%s,%s,%s', 230, 235, 250),    string.format('%s,%s,%s', 155, 0, 60)},
 
         }
 
         do -- Private Settings.
-            settings.runes      = settings.runes or {"Ignis","Ignis","Ignis"}
             settings.mode       = settings.mode or 1
             settings.visible    = settings.visible ~= nil and settings.visible or true
             settings.layout     = settings.layout or layout
@@ -37,16 +36,12 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.render = function()
 
-            if settings.visible then
+            if bp and settings.visible and (bp.player.main_job == 'RUN' or bp.player.sub_job == 'RUN') then
 
                 bp.__ui.renderUI(settings.display, function()
 
-                    if bp and bp.player and settings.visible and settings.display:text() == "" and (bp.player.main_job == 'RUN' or bp.player.sub_job == 'RUN') then
+                    if bp and bp.player and settings.visible and settings.display:text() == "" then
                         pvt.updateDisplay()
-
-                    elseif settings.display:visible() then
-                        settings.display:hide()
-
                     end
                 
                 end)
@@ -57,79 +52,21 @@ local buildHelper = function(bp, hmt)
 
         pvt.updateDisplay = function()
             local updated = {}
-            local mode = settings.mode or 1
 
-            for i=1, bp.__runes.max() do
-                local rune = settings.runes[i]
+            if bp.core.get('runes') then
 
-                if rune then
-                    table.insert(updated, string.format("\\cs(%s)%s\\cr", __colors[rune][mode], rune))
+                for i=1, bp.__runes.max() do
+                    local rune = bp.core.get('runes').list[i]
+
+                    if rune then
+                        table.insert(updated, string.format("\\cs(%s)%s\\cr", __colors[rune][settings.mode], rune:upper()))
+                    end
+
                 end
+                settings.display:text(string.format("{ %s }", table.concat(updated, "  •  ")))
 
             end
-            settings.display:text(string.format("{ %s }", table.concat(updated, "  +  ")))
 
-        end
-
-        pvt.matchRune = function(search)
-            
-            if (("ignis"):startswith(search) or ("fire"):startswith(search)) then
-                return "Ignis"
-
-            elseif (("gelus"):startswith(search) or ("ice"):startswith(search)) then
-                return "Gelus"
-
-            elseif (("flabra"):startswith(search) or ("wind"):startswith(search)) then
-                return "Flabra"
-
-            elseif (("tellus"):startswith(search) or ("earth"):startswith(search)) then
-                return "Tellus"
-
-            elseif (("sulpor"):startswith(search) or ("thunder"):startswith(search)) then
-                return "Sulpor"
-
-            elseif (("unda"):startswith(search) or ("water"):startswith(search)) then
-                return "Unda"
-
-            elseif (("lux"):startswith(search) or ("light"):startswith(search)) then
-                return "Lux"
-
-            elseif (("tenebrae"):startswith(search) or ("dark"):startswith(search)) then
-                return "Tenebrae"
-
-            end
-            return false
-
-        end
-        
-        -- Public Methods.
-        new.get = function() return T(settings.runes):copy() end
-        new.setRunes = function(runes)
-            
-            for i=1, #runes do
-                local rune = pvt.matchRune(runes[i])
-
-                if rune then
-                    settings.runes[i] = rune
-                end
-
-            end
-            pvt.updateDisplay()
-
-        end
-
-        new.inactive = function()
-            local runes = new.get()
-
-            for i=1, bp.__runes.count() do
-                
-                if bp.__runes.current[i] == runes[i] then
-                    table.remove(runes, i)
-                end
-
-            end
-            return T(runes)
-            
         end
         
         -- Private Events.
@@ -137,22 +74,28 @@ local buildHelper = function(bp, hmt)
         helper('addon command', function(...)
             local commands  = T{...}
             local command   = table.remove(commands, 1)
+
+            if command == "?" then
+                coroutine.schedule(function()
+                    pvt.updateDisplay()
+                end, 0.15)
+            end
             
             if bp and command and command:lower() == 'runes' and #commands > 0 then
                 local command = commands[1] and table.remove(commands, 1):lower() or false
 
                 if command then
 
-                    if ("visible"):startswith(command) then
+                    if ('visible'):startswith(command) then
                         settings.visible = (settings.visible ~= true) and true or false
                         bp.popchat.pop(string.format("RUNES DISPLAY: \\cs(%s)%s\\cr", bp.colors.setting, tostring(settings.visible)))
 
-                    elseif ("mode"):startswith(command) and tonumber(commands[1]) then
+                    elseif ('mode'):startswith(command) and tonumber(commands[1]) then
                         settings.mode = (tonumber(commands[1]) and tonumber(commands[1]) == 1) and 1 or 2
                         bp.popchat.pop(string.format("RUNES MODE: \\cs(%s)%s\\cr", bp.colors.setting, (settings.mode == 1) and "RESISTANCE" or "DAMAGE"))
 
-                    else
-                        new.setRunes({command, commands[1], commands[2]})
+                    elseif ('position'):startswith(command) and #commands > 0 then
+                        settings.display:pos(tonumber(commands[1]) or settings.display:pos_x(), tonumber(commands[2]) or settings.display:pos_y())
 
                     end
                     pvt.updateDisplay()

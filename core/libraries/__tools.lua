@@ -30,7 +30,7 @@ function library:new(bp)
     }
   
     -- Public Methods.
-    self.get = function(spell) return (namspelle and __tools[spell:sub(1,4)]) and __tools[spell:sub(1,4)] or __tools end
+    self.get = function(spell) return (spell and __tools[spell:sub(1,4)]) and __tools[spell:sub(1,4)] or __tools end
 
     return self
 

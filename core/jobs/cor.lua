@@ -37,7 +37,7 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spell) then
                     bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
@@ -56,75 +56,153 @@ function job:init(bp, settings, __getsub)
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- QUICK DRAW.
+                if settings["quick draw"] and bp.core.ready("Quick Draw") and target and bp.__inventory.getCount("Trump Card") > 0 then
+                    bp.core.add("Quick Draw", target, bp.core.priority("Quick Draw"))
+                end
+
+                -- RANDOM DEAL.
+                if settings["random deal"] and bp.core.ready("Random Deal") and target then
+                    bp.core.add("Random Deal", bp.player, bp.core.priority("Random Deal"))
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                    -- TRIPLE SHOT
+                    if settings["triple shot"] and bp.core.ready("Triple Shot", 467) and target then
+                        bp.core.add("Triple Shot", bp.player, bp.core.priority("Triple Shot"))
+                    end
+
+                    -- ROLLS.
+                    if settings.rolls and settings.rolls.enabled and bp.core.ready("Phantom Roll") then
+
+                        if bp.core.buff(309) and bp.core.ready("Fold") then
+                            bp.core.add("Fold", bp.player, bp.core.priority("Fold"))
+
+                        else
+
+                            if bp.__rolls.getMidroll() and bp.core.ready("Double-Up") then
+                                local rolling = bp.__rolls.getRolling()
+
+                                if rolling then
+
+                                    if rolling.number < bp.rolls.getStop() then
+                                        bp.core.add("Double-Up", bp.player, bp.core.priority("Double-Up"))
+
+                                    elseif bp.core.ready("Snake Eye", 357) and rolling.number >= bp.rolls.getStop() and rolling.number < 11 then
+                                        bp.core.add("Snake Eye", bp.player, bp.core.priority("Snake Eye"))
+
+                                    elseif bp.core.buff(357) then
+                                        bp.core.add("Double-Up", bp.player, bp.core.priority("Double-Up"))
+
+                                    end
+
+                                end
+
+                            elseif bp.__rolls.active():length() < 2 then
+                                local roll = bp.__rolls.getMissing()[1]
+
+                                if roll and bp.core.ready(roll) then
+
+                                    -- CROOKED CARDS.
+                                    if bp.__rolls.active():length() == 0 and settings["crooked cards"] and bp.core.ready("Crooked Cards", 601) then
+                                        bp.core.add("Crooked Cards", bp.player, bp.core.priority("Crooked Cards"))
+
+                                    end
+                                    bp.core.add(roll, bp.player, bp.core.priority(roll))
+
+                                end
+
+                            end
+
+                        end
+
+                    end
+
+                end
 
             end
-            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
             if settings.ja and bp.core.canAct() then
+
+                -- QUICK DRAW.
+                if settings["quick draw"] and bp.core.ready("Quick Draw") and target and bp.__inventory.getCount("Trump Card") > 0 then
+                    bp.core.add("Quick Draw", target, bp.core.priority("Quick Draw"))
+                end
+
+                -- RANDOM DEAL.
+                if settings["random deal"] and bp.core.ready("Random Deal") and target then
+                    bp.core.add("Random Deal", bp.player, bp.core.priority("Random Deal"))
+                end
 
             end
 
             if settings.buffs then
 
-            end
+                if bp.core.canAct() then
 
-            if target and bp.core.canCast() then
+                    -- TRIPLE SHOT
+                    if settings["triple shot"] and bp.core.ready("Triple Shot", 467) and target then
+                        bp.core.add("Triple Shot", bp.player, bp.core.priority("Triple Shot"))
+                    end
 
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
+                    -- ROLLS.
+                    if settings.rolls and settings.rolls.enabled and bp.core.ready("Phantom Roll") then
 
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+                        if bp.core.buff(309) and bp.core.ready("Fold") then
+                            bp.core.add("Fold", bp.player, bp.core.priority("Fold"))
 
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
+                        else
 
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
+                            if bp.__rolls.getMidroll() and bp.core.ready("Double-Up") then
+                                local rolling = bp.__rolls.getRolling()
+
+                                if rolling then
+
+                                    if rolling.number < bp.rolls.getStop() then
+                                        bp.core.add("Double-Up", bp.player, bp.core.priority("Double-Up"))
+
+                                    elseif bp.core.ready("Snake Eye", 357) and rolling.number >= bp.rolls.getStop() and rolling.number < 11 then
+                                        bp.core.add("Snake Eye", bp.player, bp.core.priority("Snake Eye"))
+
+                                    elseif bp.core.buff(357) then
+                                        bp.core.add("Double-Up", bp.player, bp.core.priority("Double-Up"))
+
+                                    end
+
+                                end
+
+                            elseif bp.__rolls.active():length() < 2 then
+                                local roll = bp.__rolls.getMissing()[1]
+
+                                if roll and bp.core.ready(roll) then
+
+                                    -- CROOKED CARDS.
+                                    if bp.__rolls.active():length() == 0 and settings["crooked cards"] and bp.core.ready("Crooked Cards", 601) then
+                                        bp.core.add("Crooked Cards", bp.player, bp.core.priority("Crooked Cards"))
+
+                                    end
+                                    bp.core.add(roll, bp.player, bp.core.priority(roll))
+
+                                end
+
+                            end
+
+                        end
 
                     end
 
                 end
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
-
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
-                    end
-
-                end
-
             end
-            self:castNukes(target)
 
         end
 

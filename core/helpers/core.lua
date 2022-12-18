@@ -49,7 +49,7 @@ local buildHelper = function(bp, hmt)
 
         -- Private Methods.
         pvt.cures = function() bp.cures.handle() end
-        pvt.statuses = function() bp.status.fix() end
+        pvt.statuses = function() bp.__status.fix() end
         pvt.buffs = function() bp.buffs.cast() end
         pvt.weaponskill = function()
             local target = bp.core.target()
@@ -206,6 +206,31 @@ local buildHelper = function(bp, hmt)
 
         end
 
+        pvt.ranged = function()
+            local target = (bp.player.status == 1) and windower.ffxi.get_mob_by_target('t') or bp.core.target() or false
+            local ranged = bp.__equipment.get(2)
+            local ammo = bp.__equipment.get(3)
+
+            if bp.core.get('ra') and ranged and ammo and ranged.index > 0 and target then
+                local ranged = bp.__inventory.getByIndex(ranged.bag, ranged.index)
+                
+                if ranged and bp.res.items[ranged.id] and T{25,26}:contains(bp.res.items[ranged.id].skill) and new.ready({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}) then
+                    bp.core.add({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}, target, 1)
+                end
+
+            end
+
+        end
+
+        pvt.debuff = function()
+            local target = (bp.player.status == 1) and windower.ffxi.get_mob_by_target('t') or bp.core.target() or false
+
+            if target then
+                bp.debuffs.cast(target)
+            end
+
+        end
+
         pvt.handleIdle = function()
             
             if core and new.__idle then
@@ -232,6 +257,8 @@ local buildHelper = function(bp, hmt)
                 do
                     pvt.cures()
                     pvt.buffs()
+                    pvt.debuff()
+                    pvt.ranged()
                     pvt.skillup()
                     pvt.statuses()
                     pvt.weaponskill()
@@ -272,6 +299,23 @@ local buildHelper = function(bp, hmt)
             if new.__idle then
                 new.__idle = os.clock()
             end
+
+        end
+
+        new.ready = function(action, buffs)
+
+            if action and bp.__queue.isReady(action) and not bp.__queue.inQueue(action) then
+
+                if buffs and not bp.__buffs.active(buffs) then
+                    return true
+
+                elseif buffs == nil then
+                    return true
+                    
+                end
+
+            end
+            return false
 
         end
 

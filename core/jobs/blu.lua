@@ -37,8 +37,39 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
-                    bp.core.add(spell, target, bp.core.priority(spell))
+                if bp.core.canCast() and bp.core.ready(spell) then
+
+                    if bp.MA[spell] and bp.MA[spell].element == 15 then
+
+                        if settings.buffs and bp.core.canAct() then
+
+                            -- CHAIN AFFINITY.
+                            if settings["chain affinity"] and bp.core.ready("Chain Affinity", 164) then
+                                bp.core.add("Chain Affinity", target, bp.core.priority("Chain Affinity"))
+                            end
+
+                            -- EFFLUX.
+                            if settings.efflux and bp.core.ready("Efflux", 457) then
+                                bp.core.add("Efflux", target, bp.core.priority("Efflux"))                        
+                            end
+
+                        end
+                        bp.core.add(spell, target, bp.core.priority(spell))
+
+                    else
+
+                        if settings.buffs and bp.core.canAct() then
+
+                            -- CONVERGENCE.
+                            if settings.convergence and bp.core.ready("Convergence", 355) then
+                                bp.core.add("Convergence", target, bp.core.priority("Convergence"))
+                            end
+
+                        end
+                        bp.core.add(spell, target, bp.core.priority(spell))
+
+                    end
+
                 end
 
             end
@@ -50,79 +81,96 @@ function job:init(bp, settings, __getsub)
     end
 
     function self:automate()
+        local spells = T(windower.ffxi.get_mjob_data().spells)
         local target = bp.core.target()
 
         self:useItems()
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
-            if settings.ja and bp.core.canAct() then
-
-            end
-
+            -- BUFFS.
             if settings.buffs then
 
+                if bp.core.canAct() then
+
+                    -- DIFFUSION.
+                    if settings.diffusion and settings.diffusion.enabled and bp.core.ready("Diffusion") and bp.core.canCast() then
+                        local spell = settings.diffusion.spell
+
+                        if spell and bp.MA[spell] and bp.core.ready(spell, bp.MA[spell].status) and target and spells:contains(bp.MA[spell].id) then
+                            local unbridled = T{"Carcharian Verve","Mighty Guard","Pyric Bulwark","Harden Shell"}
+
+                            if unbridled:contains(spell) then
+
+                                if settings["unbridled learning"] and bp.core.ready("Unbridled Learning", 485) then
+                                    bp.core.add("Unbridled Learning", bp.player, bp.core.priority("Unbridled Learning"))
+                                    bp.core.add("Diffusion", bp.player, bp.core.priority("Diffusion"))
+                                    bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                                end
+
+                            else
+                                bp.core.add("Diffusion", bp.player, bp.core.priority("Diffusion"))
+                                bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
             end
 
-            if target and bp.core.canCast() then
-
+            -- MAGIC HAMMER.
+            if settings["magic hammer"] and settings["magic hammer"].enabled and spells:contains(bp.MA["Magic Hammer"].id) and bp.core.ready("Magic Hammer") and bp.core.vitals.mpp < settings["magic hammer"].mpp and target then
+                bp.core.add("Magic Hammer", target, bp.core.priority("Magic Hammer"))
+            
             end
             self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
-            if settings.ja and bp.core.canAct() then
-
-            end
-
+            -- BUFFS.
             if settings.buffs then
 
+                if bp.core.canAct() then
+
+                    -- DIFFUSION.
+                    if settings.diffusion and settings.diffusion.enabled and bp.core.ready("Diffusion") and bp.core.canCast() then
+                        local spell = settings.diffusion.name
+
+                        if spell and bp.MA[spell] and bp.core.ready(spell, bp.MA[spell].status) and target and spells:contains(bp.MA[spell].id) then
+                            local unbridled = T{"Carcharian Verve","Mighty Guard","Pyric Bulwark","Harden Shell"}
+
+                            if unbridled:contains(spell) then
+
+                                if settings["unbridled learning"] and bp.core.ready("Unbridled Learning", 485) then
+                                    bp.core.add("Unbridled Learning", bp.player, bp.core.priority("Unbridled Learning"))
+                                    bp.core.add("Diffusion", bp.player, bp.core.priority("Diffusion"))
+                                    bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                                end
+
+                            else
+                                bp.core.add("Diffusion", bp.player, bp.core.priority("Diffusion"))
+                                bp.core.add(spell, bp.player, bp.core.priority(spell))
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
             end
 
-            if target and bp.core.canCast() then
-
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
-
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
-
-                    end
-
-                end
-
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
-
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
-                    end
-
-                end
-
+            -- MAGIC HAMMER.
+            if settings["magic hammer"] and settings["magic hammer"].enabled and spells:contains(bp.MA["Magic Hammer"].id) and bp.core.ready("Magic Hammer") and bp.core.vitals.mpp < settings["magic hammer"].mpp and target then
+                bp.core.add("Magic Hammer", target, bp.core.priority("Magic Hammer"))
+            
             end
             self:castNukes(target)
 

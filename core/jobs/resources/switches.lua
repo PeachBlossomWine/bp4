@@ -632,28 +632,6 @@ switches['spikes'] = function(bp, setting, commands)
 
 end
 
-switches['footwork'] = function(bp, setting, commands)
-
-    if setting and #commands > 0 then
-        bp.__core.hardSet(setting, commands)
-
-        if commands[1] then
-
-            if S{"!","#"}:contains(commands[1]) then
-                setting.impetus = (commands[1] == "!") and true or false
-            end
-
-        end
-        bp.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
-
-    elseif setting and #commands == 0 then
-        setting.enabled = setting.enabled ~= true and true or false
-        bp.popchat.pop(string.format('AUTO-FOOTWORK (\\cs(%s)%s\\cr): IMPETUS-ALLOWED → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, tostring(setting.impetus)))
-
-    end
-
-end
-
 switches['drain'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
@@ -713,7 +691,6 @@ switches['convert'] = function(bp, setting, commands)
     if setting and #commands > 0 then
         bp.__core.hardSet(setting, commands)
         
-        print(commands)
         if #commands > 0 then
             local mpp = commands[1] and tonumber(commands[1])
             local hpp = commands[2] and tonumber(commands[2])
@@ -1204,6 +1181,36 @@ switches['shikikoyo'] = function(bp, setting, commands)
 
 end
 
+switches['diffusion'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        if commands[1] then
+            local options = T(windower.ffxi.get_mjob_data().spells):map(function(id) return (bp.res.spells[id] and bp.res.spells[id].targets:contains('Self')) and bp.res.spells[id].en or nil end)
+            local spell = windower.convert_auto_trans(commands[1]):lower()
+
+            for cast in options:it() do
+
+                if cast:lower():startswith(spell) then
+                    setting.name = cast
+                    break
+
+                end
+
+            end
+
+        end
+        bp.popchat.pop(string.format('AUTO-DIFFUSION (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-DIFFUSION (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+
+    end
+
+end
+
 switches['quick draw'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
@@ -1229,6 +1236,39 @@ switches['quick draw'] = function(bp, setting, commands)
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
         bp.popchat.pop(string.format('AUTO-QUICK DRAW (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
+
+    end
+
+end
+
+switches['rolls'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        if #commands > 0 then
+            local options = bp.__rolls.list
+            local roll1 = commands[1] and windower.convert_auto_trans(commands[1]):lower() or false
+            local roll2 = commands[2] and windower.convert_auto_trans(commands[2]):lower() or false
+
+            for roll in options:it() do
+
+                if (roll:lower():startswith(roll1) or bp.__rolls.getShort(roll1) == roll) then
+                    setting.list[1] = roll
+
+                elseif (roll:lower():startswith(roll2) or bp.__rolls.getShort(roll2) == roll) then
+                    setting.list[2] = roll
+
+                end
+
+            end
+
+        end
+        bp.popchat.pop(string.format('AUTO-ROLLS (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-ROLLS (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
 
     end
 
@@ -1268,6 +1308,7 @@ switches['maneuvers'] = function(bp, setting, commands)
         
         if #commands > 0 then
             local options = S{'Fire Maneuver','Water Maneuver','Wind Maneuver','Ice Maneuver','Earth Maneuver','Thunder Maneuver','Light Maneuver','Dark Maneuver'}
+            local count = 1
 
             for i=1, #commands do
                 local spell = windower.convert_auto_trans(commands[i]):lower()
@@ -1275,19 +1316,25 @@ switches['maneuvers'] = function(bp, setting, commands)
                 for maneuver in options:it() do
 
                     if maneuver:lower():startswith(spell) then
-                        setting[string.format('maneuver%s', i)] = maneuver
+                        setting.list[count] = maneuver
+                        count = (count + 1)
+
                     end
 
+                end
+
+                if count == 3 then
+                    break
                 end
 
             end
 
         end
-        bp.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+        bp.popchat.pop(string.format('AUTO-MANEUVERS (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
 
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
-        bp.popchat.pop(string.format('AUTO-MANEUVER (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T{setting["maneuver1"],setting["maneuver2"],setting["maneuver3"]}:concat(", ")))
+        bp.popchat.pop(string.format('AUTO-MANEUVERS (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr } ', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
 
     end
 
@@ -1299,7 +1346,7 @@ switches['sambas'] = function(bp, setting, commands)
         bp.__core.hardSet(setting, commands)
 
         if #commands > 0 then
-            local options = S{'Drain Samba','Aspir Samba','Haste Samba','Drain Samba II','Aspir Samba II','Drain Samba III'}
+            local options = S{'Drain Samba','Aspir Samba','Haste Samba'}
             local spell = windower.convert_auto_trans(table.concat(commands, " ")):lower()
 
             for samba in options:it() do
@@ -1348,107 +1395,6 @@ switches['steps'] = function(bp, setting, commands)
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
         bp.popchat.pop(string.format('AUTO-STEPS (\\cs(%s)%s\\cr): \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.name))
-
-    end
-
-end
-
-switches['flourishes'] = function(bp, setting, commands)
-
-    if setting and #commands > 0 then
-        bp.__core.hardSet(setting, commands)
-
-        if #commands > 0 then
-            local cat1 = T{'Animated Flourish','Desperate Flourish','Violent Flourish'}
-            local cat2 = T{'Reverse Flourish','Building Flourish','Wild Flourish'}
-            local cat3 = T{'Climactic Flourish','Striking Flourish','Ternary Flourish'}
-
-            for i in ipairs(commands) do
-                local value = tonumber(commands[i]) ~= nil and tonumber(commands[i]) or commands[i]
-
-                if value then
-                    local spell = windower.convert_auto_trans(value)
-
-                    if cat1:contains(spell) then
-                        local options = cat1
-                        local spell = windower.convert_auto_trans(value)
-                        local error = true
-
-                        for _,flourish in ipairs(options) do
-
-                            if flourish:lower():sub(1, #spell) == spell:lower():sub(1, #spell) then
-                                flags.cat_1 = flourish
-                                error = false
-
-                            end
-
-                        end
-
-                        if error then
-                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
-
-                        else
-                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
-
-                        end
-
-                    elseif cat2:contains(spell) then
-                        local options = cat2
-                        local spell = windower.convert_auto_trans(value)
-                        local error = true
-
-                        for _,flourish in ipairs(options) do
-
-                            if flourish:lower():sub(1, #spell) == spell:lower():sub(1, #spell) then
-                                flags.cat_2 = flourish
-                                error = false
-
-                            end
-
-                        end
-
-                        if error then
-                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
-
-                        else
-                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
-
-                        end
-
-                    elseif cat3:contains(spell) then
-                        local options = cat3
-                        local spell = windower.convert_auto_trans(value)
-                        local error = true
-
-                        for _,flourish in ipairs(options) do
-
-                            if flourish:lower():sub(1, #spell) == spell:lower():sub(1, #spell) then
-                                flags.cat_3 = flourish
-                                error = false
-
-                            end
-
-                        end
-
-                        if error then
-                            bp.popchat.pop(string.format('INVALID OPTION (#%s) - FLOURISH NAME NOT FOUND!', i))
-
-                        else
-                            bp.popchat.pop(string.format('AUTO-FLOURISHES (CATEGORY I) (\\cs(%s)%s\\cr): %s.', flags.cat_1))
-
-                        end
-
-                    end
-
-                end
-
-            end
-
-        end
-
-    elseif setting and #commands == 0 then
-        setting.enabled = setting.enabled ~= true and true or false
-        bp.popchat.pop(string.format('AUTO-FLOURISHES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper()))
 
     end
 
@@ -1614,6 +1560,47 @@ switches['storms'] = function(bp, setting, commands)
 
 end
 
+switches['bubbles'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        if #commands > 0 then
+
+            for i=1, #commands do
+                local spell = windower.convert_auto_trans(commands[i]):lower()
+
+                if (bp.__bubbles.shortcuts.indicolure[spell] or bp.__bubbles.shortcuts.geocolure[spell]) then
+
+                    if i == 1 and bp.__bubbles.isIndicolure(bp.__bubbles.shortcuts.indicolure[spell]) then
+                        setting.list[i] = bp.__bubbles.shortcuts.indicolure[spell]
+                        bp.__bubbles.recast('indi', true)
+
+                    elseif i == 2 and bp.__bubbles.isGeocolure(bp.__bubbles.shortcuts.geocolure[spell]) then
+                        setting.list[i] = bp.__bubbles.shortcuts.geocolure[spell]
+                        bp.__bubbles.recast('geo', true)
+
+                    elseif i == 3 and bp.__bubbles.isIndicolure(bp.__bubbles.shortcuts.indicolure[spell]) then
+                        setting.list[i] = bp.__bubbles.shortcuts.indicolure[spell]
+                        bp.__bubbles.recast('indi', true)
+
+                    end
+
+                end
+
+            end
+
+        end
+        bp.popchat.pop(string.format('AUTO-BUBBLES (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-BUBBLES (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+
+    end
+
+end
+
 switches['full circle'] = function(bp, setting, commands)
 
     if setting and #commands > 0 then
@@ -1663,6 +1650,33 @@ switches['radial'] = function(bp, setting, commands)
     elseif setting and #commands == 0 then
         setting.enabled = setting.enabled ~= true and true or false
         bp.popchat.pop(string.format('AUTO-RADIAL ARCANA (\\cs(%s)%s\\cr): MP%% → \\cs(%s)%s\\cr', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, setting.mpp))
+
+    end
+
+end
+
+switches['runes'] = function(bp, setting, commands)
+
+    if setting and #commands > 0 then
+        bp.__core.hardSet(setting, commands)
+
+        if #commands > 0 then
+
+            for i=1, 3 do
+                local rune = commands[i] and windower.convert_auto_trans(commands[i]):lower() or false
+
+                if rune and bp.__runes.isRune(rune) then
+                    setting.list[i] = bp.__runes.isRune(rune)
+                end
+
+            end
+
+        end
+        bp.popchat.pop(string.format('AUTO-RUNES (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
+
+    elseif setting and #commands == 0 then
+        setting.enabled = setting.enabled ~= true and true or false
+        bp.popchat.pop(string.format('AUTO-RUNES (\\cs(%s)%s\\cr): { \\cs(%s)%s\\cr }', bp.colors.setting, tostring(setting.enabled):upper(), bp.colors.setting, T(setting.list):concat(string.format("\\cr • \\cs(%s)", bp.colors.setting))))
 
     end
 

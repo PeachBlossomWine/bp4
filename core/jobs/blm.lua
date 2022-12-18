@@ -37,9 +37,9 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spellspell) then
 
-                    if settings.cascade and settings.cascade.enabled and bp.core.vitals.tp >= settings.cascade.tp and bp.core.isReady("Cascade") and not bp.core.inQueue("Cascade") and not bp.core.buff(598) and bp.core.canAct() then
+                    if settings.cascade and settings.cascade.enabled and bp.core.vitals.tp >= settings.cascade.tp and bp.core.ready("Cascade", 598) and bp.core.canAct() then
                         bp.core.add("Cascade", target, bp.core.priority("Cascade"))
                     end
                     bp.core.add(spell, target, bp.core.priority(spell))
@@ -64,7 +64,7 @@ function job:init(bp, settings, __getsub)
             if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
 
                 -- STUN.
-                if settings.stun and bp.core.isReady("Stun") and not bp.core.inQueue("Stun") then
+                if settings.stun and bp.core.ready("Stun") then
                     bp.core.add("Stun", target, bp.core.priority("Stun"))
                     self.__timers.hate = os.clock()
 
@@ -72,39 +72,36 @@ function job:init(bp, settings, __getsub)
 
             end
 
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
                 -- ONE-HOURS.
                 if settings['1hr'] then
 
-                    if settings.manafont and bp.core.isReady("Manafont") and not bp.core.inQueue("Manafont") and not bp.core.buff(47) and target then
+                    if settings.manafont and bp.core.ready("Manafont", 47) and target then
                         bp.core.add("Manafont", bp.player, bp.core.priority("Manafont"))
                     end
                     
-                    if settings["subtle sorcery"] and bp.core.isReady("Subtle Sorcery") and not bp.core.inQueue("Subtle Sorcery") and not bp.core.buff(490) and target then
+                    if settings["subtle sorcery"] and bp.core.ready("Subtle Sorcery", 490) and target then
                         bp.core.add("Subtle Sorcery", bp.player, bp.core.priority("Subtle Sorcery"))
                     end
 
                 end
 
-                -- TOMAHAWK.
-                if settings.tomahawk and bp.core.isReady("Tomahawk") and not bp.core.inQueue("Tomahawk") and bp.__inventory.canEquip("Tomahawk") then
-                    bp.core.add("Tomahawk", target, bp.core.priority("Tomahawk"))
-                end
-
             end
 
+            -- BUFFS.
             if settings.buffs then
 
                 if bp.core.canAct() then
 
                     -- ELEMENTAL SEAL.
-                    if settings["elemental seal"] and (settings.nuke or settings.debuffs) and bp.core.isReady("Elemental Seal") and not bp.core.inQueue("Elemental Seal") and not bp.core.buff(79) then
+                    if settings["elemental seal"] and (settings.nuke or settings.debuffs) and bp.core.ready("Elemental Seal", 79) then
                         bp.core.add("Elemental Seal", bp.player, bp.core.priority("Elemental Seal"))
                     end
 
                     -- MANA WALL.
-                    if settings["mana wall"] and bp.core.isReady("Mana Wall") and not bp.core.inQueue("Mana Wall") and not bp.core.buff(437) then
+                    if settings["mana wall"] and bp.core.ready("Mana Wall", 437) then
                         local enmity = bp.__enmity.hasEnmity()
 
                         if enmity and enmity.id == bp.player.id then
@@ -114,7 +111,7 @@ function job:init(bp, settings, __getsub)
                     end
 
                     -- ENMITY DOUSE.
-                    if settings["enmity douse"] and bp.core.isReady("Enmity Douse") and not bp.core.inQueue("Enmity Douse") then
+                    if settings["enmity douse"] and bp.core.ready("Enmity Douse") then
                         local enmity = bp.__enmity.hasEnmity()
 
                         if enmity and enmity.id == bp.player.id then
@@ -124,7 +121,7 @@ function job:init(bp, settings, __getsub)
                     end
 
                     -- MANAWELL.
-                    if settings.manawell (settings.nuke or (settings.mb and settings.mb.enabled)) and bp.core.isReady("Manawell") and not bp.core.inQueue("Manawell") and not bp.core.buff(229) then
+                    if settings.manawell and (settings.nuke or (settings.mb and settings.mb.enabled)) and bp.core.ready("Manawell", 229) then
                         bp.core.add("Manawell", bp.player, bp.core.priority("Manawell"))
                     end
 
@@ -136,7 +133,7 @@ function job:init(bp, settings, __getsub)
                     if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
                         local spikes = settings.spikes.name
 
-                        if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
+                        if spikes and bp.core.ready(spikes) then
                             bp.core.add(spikes, bp.player, bp.core.priority(spikes))
                         end
 
@@ -145,14 +142,11 @@ function job:init(bp, settings, __getsub)
                     -- DRAINS.
                     if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
 
-                        if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                            bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+                        for drain in T{"Drain III","Drain II","Drain"}:it() do
 
-                        elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                            bp.core.add("Drain", target, bp.core.priority("Drain"))
+                            if cp.core.ready(drain) then
+                                bp.core.add(drain, target, bp.core.priority(drain))
+                            end
 
                         end
 
@@ -161,14 +155,11 @@ function job:init(bp, settings, __getsub)
                     -- ASPIRS.
                     if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
 
-                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+                        for aspir in T{"Aspir III","Aspir II","Aspir"}:it() do
 
-                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+                            if cp.core.ready(aspir) then
+                                bp.core.add(aspir, target, bp.core.priority(aspir))
+                            end
 
                         end
 
@@ -180,13 +171,12 @@ function job:init(bp, settings, __getsub)
             self:castNukes(target)
 
         elseif bp.player.status == 0 then
-            local target = bp.core.target()
 
             -- HATE GENERATION.
             if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
 
                 -- STUN.
-                if settings.stun and bp.core.isReady("Stun") and not bp.core.inQueue("Stun") then
+                if settings.stun and bp.core.ready("Stun") then
                     bp.core.add("Stun", target, bp.core.priority("Stun"))
                     self.__timers.hate = os.clock()
 
@@ -194,39 +184,36 @@ function job:init(bp, settings, __getsub)
 
             end
 
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
                 -- ONE-HOURS.
                 if settings['1hr'] then
 
-                    if settings.manafont and bp.core.isReady("Manafont") and not bp.core.inQueue("Manafont") and not bp.core.buff(47) and target then
+                    if settings.manafont and bp.core.ready("Manafont", 47) and target then
                         bp.core.add("Manafont", bp.player, bp.core.priority("Manafont"))
                     end
                     
-                    if settings["subtle sorcery"] and bp.core.isReady("Subtle Sorcery") and not bp.core.inQueue("Subtle Sorcery") and not bp.core.buff(490) and target then
+                    if settings["subtle sorcery"] and bp.core.ready("Subtle Sorcery", 490) and target then
                         bp.core.add("Subtle Sorcery", bp.player, bp.core.priority("Subtle Sorcery"))
                     end
 
                 end
 
-                -- TOMAHAWK.
-                if settings.tomahawk and bp.core.isReady("Tomahawk") and not bp.core.inQueue("Tomahawk") and bp.__inventory.canEquip("Tomahawk") then
-                    bp.core.add("Tomahawk", target, bp.core.priority("Tomahawk"))
-                end
-
             end
 
+            -- BUFFS.
             if settings.buffs then
 
                 if bp.core.canAct() then
 
                     -- ELEMENTAL SEAL.
-                    if settings["elemental seal"] and (settings.nuke or settings.debuffs) and bp.core.isReady("Elemental Seal") and not bp.core.inQueue("Elemental Seal") and not bp.core.buff(79) then
+                    if settings["elemental seal"] and (settings.nuke or settings.debuffs) and bp.core.ready("Elemental Seal", 79) then
                         bp.core.add("Elemental Seal", bp.player, bp.core.priority("Elemental Seal"))
                     end
 
                     -- MANA WALL.
-                    if settings["mana wall"] and bp.core.isReady("Mana Wall") and not bp.core.inQueue("Mana Wall") and not bp.core.buff(437) then
+                    if settings["mana wall"] and bp.core.ready("Mana Wall", 437) then
                         local enmity = bp.__enmity.hasEnmity()
 
                         if enmity and enmity.id == bp.player.id then
@@ -236,7 +223,7 @@ function job:init(bp, settings, __getsub)
                     end
 
                     -- ENMITY DOUSE.
-                    if settings["enmity douse"] and bp.core.isReady("Enmity Douse") and not bp.core.inQueue("Enmity Douse") then
+                    if settings["enmity douse"] and bp.core.ready("Enmity Douse") then
                         local enmity = bp.__enmity.hasEnmity()
 
                         if enmity and enmity.id == bp.player.id then
@@ -246,7 +233,7 @@ function job:init(bp, settings, __getsub)
                     end
 
                     -- MANAWELL.
-                    if settings.manawell (settings.nuke or (settings.mb and settings.mb.enabled)) and bp.core.isReady("Manawell") and not bp.core.inQueue("Manawell") and not bp.core.buff(229) then
+                    if settings.manawell and (settings.nuke or (settings.mb and settings.mb.enabled)) and bp.core.ready("Manawell", 229) then
                         bp.core.add("Manawell", bp.player, bp.core.priority("Manawell"))
                     end
 
@@ -258,7 +245,7 @@ function job:init(bp, settings, __getsub)
                     if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
                         local spikes = settings.spikes.name
 
-                        if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
+                        if spikes and bp.core.ready(spikes) then
                             bp.core.add(spikes, bp.player, bp.core.priority(spikes))
                         end
 
@@ -267,14 +254,11 @@ function job:init(bp, settings, __getsub)
                     -- DRAINS.
                     if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
 
-                        if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                            bp.core.add("Drain III", target, bp.core.priority("Drain III"))
+                        for drain in T{"Drain III","Drain II","Drain"}:it() do
 
-                        elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                            bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                        elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                            bp.core.add("Drain", target, bp.core.priority("Drain"))
+                            if bp.core.ready(drain) then
+                                bp.core.add(drain, target, bp.core.priority(drain))
+                            end
 
                         end
 
@@ -283,14 +267,11 @@ function job:init(bp, settings, __getsub)
                     -- ASPIRS.
                     if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
 
-                        if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                            bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
+                        for aspir in T{"Aspir III","Aspir II","Aspir"}:it() do
 
-                        elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                            bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                        elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                            bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+                            if bp.core.ready(aspir) then
+                                bp.core.add(aspir, target, bp.core.priority(aspir))
+                            end
 
                         end
 

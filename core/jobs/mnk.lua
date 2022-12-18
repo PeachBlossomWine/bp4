@@ -56,75 +56,114 @@ function job:init(bp, settings, __getsub)
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
+                -- ONE-HOURS.
+                if settings['1hr'] then
+
+                    -- HUNDRED FISTS.
+                    if settings["hundred fists"] and bp.core.ready("Hundred Fists", 46) and target then
+                        bp.core.add("Hundred Fists", bp.player, bp.core.priority("Hundred Fists"))
+                    end
+                    
+                    -- INNER STRENGTH.
+                    if settings["inner strength"] and bp.core.ready("Inner Strength", 491) and target then
+                        bp.core.add("Inner Strength", bp.player, bp.core.priority("Inner Strength"))
+                    end
+
+                end
+
+                -- CHI BLAST.
+                if settings["chi blast"] and bp.core.ready("Chi Blast") then
+                    bp.core.add("Chi Blast", bp.player, bp.core.priority("Chi Blast"))
+                end
+
             end
 
+            -- BUFFS.
             if settings.buffs then
 
-            end
+                if bp.core.canAct() and target then
 
-            if target and bp.core.canCast() then
+                    -- MANTRA.
+                    if settings["mantra"] and bp.core.ready("Mantra") then
+                        bp.core.add("Mantra", bp.player, bp.core.priority("Mantra"))
+                    end
+
+                    -- DODGE.
+                    if settings.dodge and bp.core.ready("Dodge", 60) then
+                        bp.core.add("Dodge", bp.player, bp.core.priority("Dodge"))
+
+                    -- FOCUS.
+                    elseif settings.focus and bp.core.ready("Focus", 59) then
+                        bp.core.add("Focus", bp.player, bp.core.priority("Focus"))
+
+                    -- IMPETUS.
+                    elseif settings.impetus and bp.core.ready("Impetus", 461) then
+                        bp.core.add("Impetus", bp.player, bp.core.priority("Impetus"))
+
+                    -- FOOTWORK.
+                    elseif settings.footwork and bp.core.ready("Footwork", 406) then
+                        bp.core.add("Footwork", bp.player, bp.core.priority("Footwork"))
+
+                    -- FORMLESS STRIKES.
+                    elseif settings["formless strikes"] and bp.core.ready("Formless Strikes", 341) then
+                        bp.core.add("Formless Strikes", bp.player, bp.core.priority("Formless Strikes"))
+
+                    -- COUNTERSTANCE.
+                    elseif settings.counterstance and bp.core.ready("Counterstance", 61) then
+                        bp.core.add("Counterstance", bp.player, bp.core.priority("Counterstance"))
+
+                    -- PERFECT COUNTER.
+                    elseif settings["perfect counter"] and bp.core.ready("Perfect Counter", 436) then
+                        bp.core.add("Perfect Counter", bp.player, bp.core.priority("Perfect Counter"))
+
+                    end
+
+                end
 
             end
-            self:castNukes(target)
 
         elseif bp.player.status == 0 then
 
-            -- HATE GENERATION.
-            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
-
-            end
-
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
+                -- CHI BLAST.
+                if settings["chi blast"] and bp.core.ready("Chi Blast") then
+                    bp.core.add("Chi Blast", bp.player, bp.core.priority("Chi Blast"))
+                end
+
             end
 
+            -- BUFFS.
             if settings.buffs then
 
-            end
+                if bp.core.canAct() and target then
 
-            if target and bp.core.canCast() then
-
-                -- DRAINS.
-                if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp then
-
-                    if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-                        bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                    elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                        bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                    elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                        bp.core.add("Drain", target, bp.core.priority("Drain"))
-
+                    -- MANTRA.
+                    if settings["mantra"] and bp.core.ready("Mantra") then
+                        bp.core.add("Mantra", bp.player, bp.core.priority("Mantra"))
                     end
 
-                end
+                    -- DODGE.
+                    if settings.dodge and bp.core.ready("Dodge", 60) then
+                        bp.core.add("Dodge", bp.player, bp.core.priority("Dodge"))
 
-                -- ASPIRS.
-                if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp then
+                    -- COUNTERSTANCE.
+                    elseif settings.counterstance and bp.core.ready("Counterstance", 61) then
+                        bp.core.add("Counterstance", bp.player, bp.core.priority("Counterstance"))
 
-                    if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                        bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                    elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                        bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                    elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                        bp.core.add("Aspir", target, bp.core.priority("Aspir"))
+                    -- PERFECT COUNTER.
+                    elseif settings["perfect counter"] and bp.core.ready("Perfect Counter", 436) then
+                        bp.core.add("Perfect Counter", bp.player, bp.core.priority("Perfect Counter"))
 
                     end
 
                 end
 
             end
-            self:castNukes(target)
 
         end
 

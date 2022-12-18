@@ -37,7 +37,7 @@ function job:init(bp, settings, __getsub)
 
             for spell in self.__nukes:it() do
 
-                if bp.core.canCast() and bp.core.isReady(spell) and not bp.core.inQueue(spell) then
+                if bp.core.canCast() and bp.core.ready(spell) then
                     bp.core.add(spell, target, bp.core.priority(spell))
                 end
 
@@ -58,22 +58,8 @@ function job:init(bp, settings, __getsub)
             -- HATE GENERATION.
             if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
 
-                -- LAST RESORT.
-                if settings.tank and bp.core.isReady("Last Resort") and bp.core.inQueue("Last Resort") then
-                    bp.core.add("Last Resort", bp.player, bp.core.priority("Last Resort"))
-                    coroutine.schedule(function() windower.send_command("cancel last resort") end, 1)
-                    self.__timers.hate = os.clock()
-
-                -- SOULEATER
-                elseif settings.tank and bp.core.isReady("Souleater") and bp.core.inQueue("Souleater") then
-                    bp.core.add("Souleater", bp.player, bp.core.priority("Souleater"))
-                    coroutine.schedule(function() windower.send_command("cancel souleater") end, 1)
-                    self.__timers.hate = os.clock()
-
-                end
-
                 -- STUN.
-                if settings.stun and bp.core.isReady("Stun") and not bp.core.inQueue("Stun") and bp.core.canCast() then
+                if settings.stun and bp.core.ready("Stun") and bp.core.canCast() then
                     bp.core.add("Stun", target, bp.core.priority("Stun"))
                     self.__timers.hate = os.clock()
 
@@ -81,140 +67,130 @@ function job:init(bp, settings, __getsub)
 
             end
 
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
                 -- ONE-HOURS.
                 if settings['1hr'] then
 
-                    if settings["blood weapon"] and bp.core.isReady("Blood Weapon") and not bp.core.inQueue("Blood Weapon") and not bp.core.buff(51) and target then
+                    if settings["blood weapon"] and bp.core.ready("Blood Weapon", 51) and target then
                         bp.core.add("Blood Weapon", bp.player, bp.core.priority("Blood Weapon"))
                     end
                     
-                    if settings["soul enslavement"] and bp.core.isReady("Soul Enslavement") and not bp.core.inQueue("Soul Enslavement") and not bp.core.buff(497) and target then
+                    if settings["soul enslavement"] and bp.core.ready("Soul Enslavement", 497) and target then
                         bp.core.add("Soul Enslavement", bp.player, bp.core.priority("Soul Enslavement"))
                     end
 
                 end
 
                 -- WEAPON BASH.
-                if settings['weapon bash'] and bp.core.isReady("Weapon Bash") and not bp.core.inQueue("Weapon Bash") and target then
+                if settings['weapon bash'] and bp.core.ready("Weapon Bash") and target then
                     bp.core.add("Weapon Bash", target, bp.core.priority("Weapon Bash"))
                 end
 
             end
 
+            -- BUFFS.
             if settings.buffs then
 
-                if bp.core.canAct() then
+                if bp.core.canAct() and target then
 
                     -- CONSUME MANA.
-                    if settings['consume mana'] and bp.core.isReady("Consume Mana") and not bp.core.inQueue("Consume Mana") and not bp.core.buff(599) and bp.core.vitals.tp >= settings.ws.tp and target then
+                    if settings['consume mana'] and bp.core.ready("Consume Mana", 599) and bp.core.vitals.tp >= settings.ws.tp then
                         bp.core.add("Consume Mana", bp.player, bp.core.priority("Consume Mana"))
                     end
 
                     -- LAST RESORT.
-                    if not settings.tank and settings['last resort'] and bp.core.isReady("Last Resort") and not bp.core.inQueue("Last Resort") and not bp.core.buff(63) and target then
+                    if not settings.tank and settings['last resort'] and bp.core.ready("Last Resort", 63) then
                         bp.core.add("Last Resort", bp.player, bp.core.priority("Last Resort"))
 
                     -- SOULEATER.
-                    elseif not settings.tank and settings['souleater'] and bp.core.isReady("Souleater") and not bp.core.inQueue("Souleater") and not bp.core.buff(64) and target then
+                    elseif not settings.tank and settings['souleater'] and bp.core.ready("Souleater", 64) then
                         bp.core.add("Souleater", bp.player, bp.core.priority("Souleater"))
 
                     -- DIABOLIC EYE.
-                    elseif settings['diabolic eye'] and bp.core.isReady("Diabolic Eye") and not bp.core.inQueue("Diabolic Eye") and not bp.core.buff(346) and target then
+                    elseif settings['diabolic eye'] and bp.core.ready("Diabolic Eye", 349) then
                         bp.core.add("Diabolic Eye", bp.player, bp.core.priority("Diabolic Eye"))
 
                     -- SCARLET DELIRIUM.
-                    elseif settings['scarlet delirium'] and bp.core.isReady("Scarlet Delirium") and not bp.core.inQueue("Scarlet Delirium") and not bp.core.buff({479,480}) and target then
+                    elseif settings['scarlet delirium'] and bp.core.ready("Scarlet Delirium", {479,480}) then
                         bp.core.add("Scarlet Delirium", bp.player, bp.core.priority("Scarlet Delirium"))
 
                     end
 
-                    if bp.core.canCast() then
+                end
 
-                        -- ENDARK.
-                        if settings.endark and not bp.core.searchQueue({"Endark","Endark II"}) and target then
+                if bp.core.canCast() then
 
-                            if bp.core.jp >= 100 then
-                                
-                                if bp.core.isReady("Endark II") and not bp.core.buff(288) then
-                                    bp.core.add("Endark II", bp.player, bp.core.priority("Endark II"))
-                                end
+                    -- ENDARK.
+                    if settings.endark and not bp.core.searchQueue({"Endark","Endark II"}) and target then
 
-                            elseif bp.core.jp < 100 then
-                                
-                                if bp.core.isReady("Endark") and not bp.core.buff(288) then
-                                    bp.core.add("Endark", bp.player, bp.core.priority("Endark"))
-                                end
+                        if bp.core.jp >= 100 and bp.core.ready("Endark II", 288) then
+                            bp.core.add("Endark II", bp.player, bp.core.priority("Endark II"))
 
-                            end
+                        elseif bp.core.jp < 100 and bp.core.ready("Endark", 288) then
+                            bp.core.add("Endark", bp.player, bp.core.priority("Endark"))
 
                         end
 
-                        -- ABSORBS.
-                        if settings.absorb and settings.absorb.enabled and target then
-                            local absorb = settings.absorb.name
+                    end
 
-                            if absorb and bp.core.isReady(absorb) and not bp.core.inQueue(absorb) and (not bp.__buffs.hasAbsorb() or absorb == "Absorb-Attri" or absorb == "Absorb-TP") then
+                    -- ABSORBS.
+                    if settings.absorb and settings.absorb.enabled and target then
+                        local absorb = settings.absorb.name
 
-                                -- DARK SEAL.
-                                if settings['dark seal'] and bp.core.isReady("Dark Seal") and not bp.core.inQueue("Dark Seal") and not bp.core.buff(345) and bp.core.canAct() then
+                        if absorb and bp.core.ready(absorb) and (not bp.__buffs.hasAbsorb() or absorb == "Absorb-Attri" or absorb == "Absorb-TP") then
+
+                            -- DARK SEAL.
+                            if settings['dark seal'] and bp.core.ready("Dark Seal", 345) and bp.core.canAct() then
+                                bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
+                            end
+
+                            -- NETHER VOID.
+                            if settings['nether void'] and bp.core.ready("Nether Void", 439) and bp.core.canAct() then
+                                bp.core.add("Nether Void", bp.player, bp.core.priority("Nether Void"))
+                            end
+                            bp.core.add(absorb, target, bp.core.priority(absorb))
+
+                        end
+
+                    end
+
+                    -- SPIKES.
+                    if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
+                        local spikes = settings.spikes.name
+
+                        if spikes and bp.core.ready(spikes) then
+                            bp.core.add(spikes, bp.player, bp.core.priority(spikes))
+                        end
+
+                    end
+
+                    -- DRAINS.
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
+
+                        for drain in T{"Drain III","Drain II","Drain"}:it() do
+
+                            if bp.core.ready(drain) then
+
+                                if drain == "Drain III" and settings['dark seal'] and bp.core.ready("Dark Seal", 345) and bp.core.canAct() then
                                     bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
-                                end
-
-                                -- NETHER VOID.
-                                if settings['nether void'] and bp.core.isReady("Nether Void") and not bp.core.inQueue("Nether Void") and not bp.core.buff(439) and bp.core.canAct() then
-                                    bp.core.add("Nether Void", bp.player, bp.core.priority("Nether Void"))
-                                end
-                                bp.core.add(absorb, target, bp.core.priority(absorb))
+                                end                                
+                                bp.core.add(drain, target, bp.core.priority(drain))
 
                             end
 
                         end
 
-                        -- SPIKES.
-                        if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
-                            local spikes = settings.spikes.name
+                    end
 
-                            if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
-                                bp.core.add(spikes, bp.player, bp.core.priority(spikes))
-                            end
+                    -- ASPIRS.
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
 
-                        end
+                        for aspir in T{"Aspir III","Aspir II","Aspir"}:it() do
 
-                        -- DRAINS.
-                        if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
-
-                            if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-
-                                -- DARK SEAL.
-                                if settings['dark seal'] and bp.core.isReady("Dark Seal") and not bp.core.inQueue("Dark Seal") and not bp.core.buff(345) and bp.core.canAct() then
-                                    bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
-                                end
-                                bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                            elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                                bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                            elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                                bp.core.add("Drain", target, bp.core.priority("Drain"))
-
-                            end
-
-                        end
-
-                        -- ASPIRS.
-                        if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
-
-                            if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                                bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                            elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                                bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                            elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                                bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
+                            if bp.core.ready(aspir) then
+                                bp.core.add(aspir, target, bp.core.priority(aspir))
                             end
 
                         end
@@ -232,22 +208,8 @@ function job:init(bp, settings, __getsub)
             -- HATE GENERATION.
             if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target then
 
-                -- LAST RESORT.
-                if settings.tank and bp.core.isReady("Last Resort") and bp.core.inQueue("Last Resort") then
-                    bp.core.add("Last Resort", bp.player, bp.core.priority("Last Resort"))
-                    coroutine.schedule(function() windower.send_command("cancel last resort") end, 1)
-                    self.__timers.hate = os.clock()
-
-                -- SOULEATER
-                elseif settings.tank and bp.core.isReady("Souleater") and bp.core.inQueue("Souleater") then
-                    bp.core.add("Souleater", bp.player, bp.core.priority("Souleater"))
-                    coroutine.schedule(function() windower.send_command("cancel souleater") end, 1)
-                    self.__timers.hate = os.clock()
-
-                end
-
                 -- STUN.
-                if settings.stun and bp.core.isReady("Stun") and not bp.core.inQueue("Stun") and bp.core.canCast() then
+                if settings.stun and bp.core.ready("Stun") and bp.core.canCast() then
                     bp.core.add("Stun", target, bp.core.priority("Stun"))
                     self.__timers.hate = os.clock()
 
@@ -255,127 +217,77 @@ function job:init(bp, settings, __getsub)
 
             end
 
+            -- JOB ABILITIES.
             if settings.ja and bp.core.canAct() then
 
                 -- WEAPON BASH.
-                if settings['weapon bash'] and bp.core.isReady("Weapon Bash") and not bp.core.inQueue("Weapon Bash") and target then
+                if settings['weapon bash'] and bp.core.ready("Weapon Bash") and target then
                     bp.core.add("Weapon Bash", target, bp.core.priority("Weapon Bash"))
                 end
 
             end
 
+            -- BUFFS.
             if settings.buffs then
 
-                if bp.core.canAct() then
+                if bp.core.canCast() then
 
-                    -- CONSUME MANA.
-                    if settings['consume mana'] and bp.core.isReady("Consume Mana") and not bp.core.inQueue("Consume Mana") and not bp.core.buff(599) and bp.core.vitals.tp >= settings.ws.tp and target then
-                        bp.core.add("Consume Mana", bp.player, bp.core.priority("Consume Mana"))
+                    -- ABSORBS.
+                    if settings.absorb and settings.absorb.enabled and target then
+                        local absorb = settings.absorb.name
+
+                        if absorb and bp.core.ready(absorb) and (not bp.__buffs.hasAbsorb() or absorb == "Absorb-Attri" or absorb == "Absorb-TP") then
+
+                            -- DARK SEAL.
+                            if settings['dark seal'] and bp.core.ready("Dark Seal", 345) and bp.core.canAct() then
+                                bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
+                            end
+
+                            -- NETHER VOID.
+                            if settings['nether void'] and bp.core.ready("Nether Void", 439) and bp.core.canAct() then
+                                bp.core.add("Nether Void", bp.player, bp.core.priority("Nether Void"))
+                            end
+                            bp.core.add(absorb, target, bp.core.priority(absorb))
+
+                        end
+
                     end
 
-                    -- LAST RESORT.
-                    if not settings.tank and settings['last resort'] and bp.core.isReady("Last Resort") and not bp.core.inQueue("Last Resort") and not bp.core.buff(63) and target then
-                        bp.core.add("Last Resort", bp.player, bp.core.priority("Last Resort"))
+                    -- SPIKES.
+                    if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
+                        local spikes = settings.spikes.name
 
-                    -- SOULEATER.
-                    elseif not settings.tank and settings['souleater'] and bp.core.isReady("Souleater") and not bp.core.inQueue("Souleater") and not bp.core.buff(64) and target then
-                        bp.core.add("Souleater", bp.player, bp.core.priority("Souleater"))
-
-                    -- DIABOLIC EYE.
-                    elseif settings['diabolic eye'] and bp.core.isReady("Diabolic Eye") and not bp.core.inQueue("Diabolic Eye") and not bp.core.buff(346) and target then
-                        bp.core.add("Diabolic Eye", bp.player, bp.core.priority("Diabolic Eye"))
-
-                    -- SCARLET DELIRIUM.
-                    elseif settings['scarlet delirium'] and bp.core.isReady("Scarlet Delirium") and not bp.core.inQueue("Scarlet Delirium") and not bp.core.buff({479,480}) and target then
-                        bp.core.add("Scarlet Delirium", bp.player, bp.core.priority("Scarlet Delirium"))
+                        if spikes and bp.core.ready(spikes) then
+                            bp.core.add(spikes, bp.player, bp.core.priority(spikes))
+                        end
 
                     end
 
-                    if bp.core.canCast() then
+                    -- DRAINS.
+                    if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
 
-                        -- ENDARK.
-                        if settings.endark and not bp.core.searchQueue({"Endark","Endark II"}) and target then
+                        for drain in T{"Drain III","Drain II","Drain"}:it() do
 
-                            if bp.core.jp >= 100 then
-                                
-                                if bp.core.isReady("Endark II") and not bp.core.buff(288) then
-                                    bp.core.add("Endark II", bp.player, bp.core.priority("Endark II"))
-                                end
+                            if bp.core.ready(drain) then
 
-                            elseif bp.core.jp < 100 then
-                                
-                                if bp.core.isReady("Endark") and not bp.core.buff(288) then
-                                    bp.core.add("Endark", bp.player, bp.core.priority("Endark"))
-                                end
-
-                            end
-
-                        end
-
-                        -- ABSORBS.
-                        if settings.absorb and settings.absorb.enabled and target then
-                            local absorb = settings.absorb.name
-
-                            if absorb and bp.core.isReady(absorb) and not bp.core.inQueue(absorb) and (not bp.__buffs.hasAbsorb() or absorb == "Absorb-Attri" or absorb == "Absorb-TP") then
-
-                                -- DARK SEAL.
-                                if settings['dark seal'] and bp.core.isReady("Dark Seal") and not bp.core.inQueue("Dark Seal") and not bp.core.buff(345) and bp.core.canAct() then
+                                if drain == "Drain III" and settings['dark seal'] and bp.core.ready("Dark Seal", 345) and bp.core.canAct() then
                                     bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
-                                end
-
-                                -- NETHER VOID.
-                                if settings['nether void'] and bp.core.isReady("Nether Void") and not bp.core.inQueue("Nether Void") and not bp.core.buff(439) and bp.core.canAct() then
-                                    bp.core.add("Nether Void", bp.player, bp.core.priority("Nether Void"))
-                                end
-                                bp.core.add(absorb, target, bp.core.priority(absorb))
+                                end                                
+                                bp.core.add(drain, target, bp.core.priority(drain))
 
                             end
 
                         end
 
-                        -- SPIKES.
-                        if settings.spikes and settings.spikes.enabled and not bp.__buffs.hasSpikes() then
-                            local spikes = settings.spikes.name
+                    end
 
-                            if spikes and bp.core.isReady(spikes) and not bp.core.inQueue(spikes) then
-                                bp.core.add(spikes, bp.player, bp.core.priority(spikes))
-                            end
+                    -- ASPIRS.
+                    if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
 
-                        end
+                        for aspir in T{"Aspir III","Aspir II","Aspir"}:it() do
 
-                        -- DRAINS.
-                        if settings.drain and settings.drain.enabled and bp.core.vitals.hpp < settings.drain.hpp and target then
-
-                            if bp.core.isReady("Drain III") and not bp.core.inQueue("Drain III") then
-
-                                -- DARK SEAL.
-                                if settings['dark seal'] and bp.core.isReady("Dark Seal") and not bp.core.inQueue("Dark Seal") and not bp.core.buff(345) and bp.core.canAct() then
-                                    bp.core.add("Dark Seal", bp.player, bp.core.priority("Dark Seal"))
-                                end
-                                bp.core.add("Drain III", target, bp.core.priority("Drain III"))
-
-                            elseif bp.core.isReady("Drain II") and not bp.core.inQueue("Drain II") then
-                                bp.core.add("Drain II", target, bp.core.priority("Drain II"))
-
-                            elseif bp.core.isReady("Drain") and not bp.core.inQueue("Drain") then
-                                bp.core.add("Drain", target, bp.core.priority("Drain"))
-
-                            end
-
-                        end
-
-                        -- ASPIRS.
-                        if settings.aspir and settings.aspir.enabled and bp.core.vitals.mpp < settings.aspir.mpp and target then
-
-                            if bp.core.isReady("Aspir III") and not bp.core.inQueue("Aspir III") then
-                                bp.core.add("Aspir III", target, bp.core.priority("Aspir III"))
-
-                            elseif bp.core.isReady("Aspir II") and not bp.core.inQueue("Aspir II") then
-                                bp.core.add("Aspir II", target, bp.core.priority("Aspir II"))
-
-                            elseif bp.core.isReady("Aspir") and not bp.core.inQueue("Aspir") then
-                                bp.core.add("Aspir", target, bp.core.priority("Aspir"))
-
+                            if bp.core.ready(aspir) then
+                                bp.core.add(aspir, target, bp.core.priority(aspir))
                             end
 
                         end

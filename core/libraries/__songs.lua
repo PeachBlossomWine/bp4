@@ -4,8 +4,7 @@ function library:new(bp)
     local pm = {}
 
     -- Private Variables.
-    local __songs   = bp.res.spells:type('BardSong')
-    local __dummies = {{__songs[378], __songs[379]}, {__songs[409], __songs[410]}, {__songs[403], __songs[404]}}
+    local __dummies = {{bp.res.spells[378], bp.res.spells[379]}, {bp.res.spells[409], bp.res.spells[410]}, {bp.res.spells[403], bp.res.spells[404]}}
     local __complex = {
 
         ["march"]       = {count=1, songs={"Honor March","Victory March","Advancing March"}},
@@ -70,6 +69,7 @@ function library:new(bp)
     }
   
     -- Public Variables.
+    self.list = T(bp.res.spells):map(function(spell) return spell.type == "BardSong" and spell.en or nil end)
 
     -- Private Methods.
 

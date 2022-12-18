@@ -58,7 +58,6 @@ local buildHelper = function(bp, hmt)
         }
 
         do -- Private Settings.
-            settings.enabled    = (settings.enabled ~= nil) and settings.enabled or false
             settings.mode       = settings.mode or 1
             settings.power      = settings.power or 15
 
@@ -397,7 +396,7 @@ local buildHelper = function(bp, hmt)
         -- Public Methods.
         new.handle = function()
 
-            if __party and __alliance and settings.enabled then
+            if __party and __alliance and bp.core.get('cures') then
                 local curaga = new.getCuraga()
 
                 if not curaga then
@@ -406,7 +405,7 @@ local buildHelper = function(bp, hmt)
                     if (bp.player.main_job == 'WHM' or bp.player.sub_job == 'WHM') then
                         new.doWHMCures(party)
 
-                    elseif (bp.player.main_job == 'DNC' or bp.player.sub_job == 'DNC') then
+                    elseif (bp.player.main_job == 'DNC' or bp.player.sub_job == 'DNC') and not bp.__buffs.active(410) then
                         new.doDNCCures(party)
 
                     end
@@ -536,18 +535,6 @@ local buildHelper = function(bp, hmt)
                 elseif command and tonumber(command) then
                     new.setMode(command)
 
-                else
-                    
-                    if command and settings.enabled ~= nil and L{'!','#'}:contains(command) then
-                        settings.enabled = (command == "!") and true or false
-                        bp.popchat.pop(string.format('AUTO-CURES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
-
-                    elseif settings.enabled ~= nil then
-                        settings.enabled = settings.enabled ~= true and true or false
-                        bp.popchat.pop(string.format('AUTO-CURES: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
-
-                    end
-
                 end
                 settings:save()
 
@@ -557,7 +544,7 @@ local buildHelper = function(bp, hmt)
 
         helper('incoming chunk', function(id, original)
         
-            if bp and id == 0x028 and settings.enabled then
+            if bp and id == 0x028 and bp.core.get('cures') then
                 local parsed    = bp.packets.parse('incoming', original)
                 local actor     = windower.ffxi.get_mob_by_id(parsed['Actor'])
                 local target    = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])

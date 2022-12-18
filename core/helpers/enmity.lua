@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=false}, text={size=18, font='Impact', alpha=255, red=245, green=200, blue=20, stroke={width=1, alpha=255, red=0, green=0, blue=0}}, padding=5}
+    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=false}, text={size=18, font='Calibri', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
     local settings  = bp.libs.__settings.new('enmity')
 
     helper.new = function()
@@ -44,7 +44,11 @@ local buildHelper = function(bp, hmt)
             local command   = table.remove(commands, 1)
             
             if bp and command and command:lower() == 'enmity' and #commands > 0 then
-                local command = commands[1] and table.remove(commands, 1):lower() or false                
+                local command = commands[1] and table.remove(commands, 1):lower() or false
+
+                if ('position'):startswith(command) and #commands > 0 then
+                    settings.display:pos(tonumber(commands[1]) or settings.display:pos_x(), tonumber(commands[2]) or settings.display:pos_y())
+                end
 
             end
     

@@ -54,8 +54,8 @@ local buildHelper = function(bp, hmt)
         end
         
         -- Public Methods.
-        new.get = function(resource)
-            local resource = bp.MA[resource] or bp.JA[resource] or bp.WS[resource] or bp.IT[resource] or false
+        new.get = function(name)
+            local resource = bp.MA[name] or bp.JA[name] or bp.WS[name] or bp.IT[name] or false
     
             if resource then
                 

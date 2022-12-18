@@ -124,11 +124,11 @@ function job:init(bp, settings, __getsub)
                     if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                             bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -275,11 +275,11 @@ function job:init(bp, settings, __getsub)
                     if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                             bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -432,11 +432,11 @@ function job:init(bp, settings, __getsub)
                     if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                        if settings.indicolure and bp.core.ready(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                             bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
@@ -583,11 +583,11 @@ function job:init(bp, settings, __getsub)
                     if bp.core.canCast() then
 
                         -- INDICOLURE BUFFS.
-                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.bubbles.indiRecast()) then
+                        if settings.indicolure and bp.core.isReady(indicolure) and not bp.core.inQueue(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
                             bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
                         -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.bubbles.geoRecast()) and target then
+                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
                             local spell = bp.MA[geocolure]
 
                             if spell then
