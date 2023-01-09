@@ -15,6 +15,7 @@ function library:new(bp)
         settings.isNew      = data and T(data):length() == 0 and true or false
 
         -- Public Object Methods.
+        function settings:get() return data:copy() end
         function settings:save()
             file:write(string.format('return %s', T(data):tovstring()))
             return self
