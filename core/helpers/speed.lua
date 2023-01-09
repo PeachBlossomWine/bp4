@@ -11,6 +11,7 @@ local buildHelper = function(bp, hmt)
 
         do -- Private Settings.
             settings.layout     = settings.layout or layout
+            settings.enabled    = settings.enabled or false
             settings.speed      = settings.speed or 70
             settings.zones      = settings.zones or {}
             settings.display    = settings:getDisplay()
@@ -51,6 +52,10 @@ local buildHelper = function(bp, hmt)
     
                     if command == 'pos' and commands[1] then
                         bp.__displays.position(settings, commands[1], commands[2])
+
+                    elseif T{'!','#'}:contains(command) then
+                        settings.enabled = (command == '!')
+                        bp.popchat.pop(string.format('SPEED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
 
                     elseif tonumber(command) ~= nil then
                         new.set(tonumber(command))
