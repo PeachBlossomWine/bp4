@@ -38,7 +38,12 @@ function library:new(bp)
     end
 
     self.getByIndex = function(bag, index)
-        return windower.ffxi.get_items(bag, index)
+        local item = windower.ffxi.get_items(bag, index)
+
+        if item then
+            return index, item.count, item.id, item.status, bag, bp.res.items[item.id]
+        end
+
     end
 
     self.findItem = function(search)
@@ -48,7 +53,7 @@ function library:new(bp)
             for item, index in T(windower.ffxi.get_items(bag.id)):it() do
                 
                 if type(item) == 'table' and item.id and bp.res.items[item.id] and bp.res.items[item.id].en:lower():startswith(search:lower()) then
-                    return bag.id, index, item.id
+                    return bag.id, index, item.id, item.status
                 end
 
             end
@@ -218,6 +223,59 @@ function library:new(bp)
 
     self.isEquippable = function(bag)
         return T(__bags.equippable):contains(bag)
+    end
+
+    self.sellItems = function(list)
+        local list = list and T(list) or false
+
+        if list and list:length() > 0 then
+            local queue = {}
+            
+            for index=1, 80 do
+                local item = windower.ffxi.get_items(0, index)
+
+                if item and item.id and item.status and item.status == 0 and bp.res.items[item.id] and list:contains(bp.res.items[item.id].en) then
+                    table.insert(queue, function()
+                        bp.packets.inject(bp.packets.new('outgoing', 0x084, {['Count']=item.count, ['Item']=item.id, ['Inventory Index']=index}))
+                        bp.packets.inject(bp.packets.new('outgoing', 0x085))
+                    
+                    end)
+
+                end
+
+            end                
+        
+            if #queue > 0 then
+                bp.popchat.pop(string.format('SELLING %s ITEMS...', #queue))
+
+                for i=1, #queue do
+                    queue[i]:schedule((1.25) * i)
+                end
+                return (#queue * 1.3)
+
+            end
+
+        end
+        return 0
+
+    end
+
+    self.lot = function(slot)
+        if not slot then return end
+        bp.packets.inject(bp.packets.new('outgoing', 0x041, {['Slot']=slot}))
+
+    end
+
+    self.pass = function(slot)
+        if not slot then return end
+        bp.packets.inject(bp.packets.new('outgoing', 0x042, {['Slot']=slot}))
+
+    end
+
+    self.drop = function(index, count)
+        if not (index or count) then return end
+        bp.packets.inject(bp.packets.new('outgoing', 0x028, {['Bag']=0, ['Count']=count, ['Inventory Index']=index}))
+
     end
 
     return self
