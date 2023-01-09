@@ -35,11 +35,11 @@ function library:new(bp)
     end
 
     pm['follow'] = function()
-        bp.__orders.deliver('p*', ('bp follow %s'):format(bp.player.name))
+        bp.__orders.deliver('p*', string.format('follow %s', bp.player.name))
     end
 
     pm['request_stop'] = function()
-        orders.deliver('p*', 'bp stop')
+        bp.__orders.deliver('p*', 'bp stop')
     end
 
     pm['stop'] = function()
@@ -54,6 +54,34 @@ function library:new(bp)
             table.vprint(target)
             --table.vprint(windower.ffxi.get_player())
             --table.vprint(self.me)
+        end
+
+    end
+
+    pm['trade'] = function(commands)
+        local target = bp.__target.get('t')
+
+        if bp and bp.player and target and target.id ~= bp.player.id and bp.__distance.get(target) < 7 then
+            local items = {}
+
+            for i=1, #commands do
+                local item, quant = unpack(commands[i]:split(':'))
+                
+                if item then
+                    local index, count, id = bp.__inventory.findByName(item)
+
+                    if index and count and id and count >= (tonumber(quant) or 1) and bp.res.items[id] then
+                        table.insert(items, {name=bp.res.items[id].en, count=tonumber(quant) or 1})
+                    end
+
+                end
+
+            end
+            
+            if #items > 0 then
+                bp.__actions.trade(target, unpack(items))
+            end
+
         end
 
     end
@@ -75,10 +103,8 @@ function library:new(bp)
     windower.register_event('addon command', function(...)
         local commands  = T{...}
         local command   = commands[1] and table.remove(commands, 1):lower()
-        
+
         if bp and command then
-            local popchat = bp.popchat
-            local orders = bp.__orders
 
             if pm[command] then
                 pm[command](commands)
