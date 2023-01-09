@@ -50,15 +50,15 @@ switches['ws'] = function(bp, setting, commands)
         end
 
         if #commands > 0 then
-            local main  = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
-            local range = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
+            local index1, count1, id1 = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
+            local index2, count2, id2 = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
             local skill = windower.convert_auto_trans(table.concat(commands, " ")):lower()
 
             for i=1, #commands do
 
-                if main and range and skill then
-                    local options1 = bp.res.items[main.id] and bp.res.items[main.id].skill and T(bp.res.weapon_skills:skill(bp.res.items[main.id].skill)):map(function(r) return r.en end) or T{}
-                    local options2 = bp.res.items[range.id] and bp.res.items[range.id].skill and T(bp.res.weapon_skills:skill(bp.res.items[range.id].skill)):map(function(r) return r.en end) or T{}
+                if id1 and id2 and skill then
+                    local options1 = bp.res.items[id1] and bp.res.items[id1].skill and T(bp.res.weapon_skills:skill(bp.res.items[id1].skill)):map(function(r) return r.en end) or T{}
+                    local options2 = bp.res.items[id2] and bp.res.items[id2].skill and T(bp.res.weapon_skills:skill(bp.res.items[id2].skill)):map(function(r) return r.en end) or T{}
 
                     if options1 and options2 then
                         local options = options1:update(options2)
@@ -114,13 +114,13 @@ switches['rws'] = function(bp, setting, commands)
         end
 
         if #commands > 0 then
-            local range = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
+            local index, count, id = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
             local skill = windower.convert_auto_trans(table.concat(commands, " ")):lower()
 
             for i=1, #commands do
 
-                if range and skill then
-                    local options = bp.res.items[range.id] and bp.res.items[range.id].skill and T(bp.res.weapon_skills:skill(bp.res.items[range.id].skill)):map(function(r) return r.en end) or T{}
+                if id and skill then
+                    local options = bp.res.items[id] and bp.res.items[id].skill and T(bp.res.weapon_skills:skill(bp.res.items[id].skill)):map(function(r) return r.en end) or T{}
 
                     for ws in options:it() do
                         
