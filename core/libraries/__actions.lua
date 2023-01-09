@@ -1,10 +1,13 @@
 local library = {}
 function library:new(bp)
     local bp = bp
+    local pm = {}
 
     -- Private Variables.
-    local anchor        = {__set=false, __midcast=false, __position={x=0, y=0, z=0}}
-    local unique        = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
+    local __anchor      = {__set=false, __midcast=false, __position={x=0, y=0, z=0}}
+    local __unique      = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
+    local __ftimer      = {last=0, delay=1}
+    local __dtimer      = {last=0, delay=0.25}
     local __position    = {x=0, y=0, z=0}
     local __moving      = false
     local __actions     = {
@@ -20,10 +23,12 @@ function library:new(bp)
     }
 
     -- Public Variables.
-    self.__castlock     = true
+    self.distance     = false
+    self.facing       = false
+    self.castlock     = true
 
     -- Private Methods.
-    local updatePosition = function()
+    pm.updatePosition = function()
 
         if bp.me then
             __moving        = (bp.me.x ~= __position.x or bp.me.y ~= __position.y) and true or false
@@ -41,11 +46,63 @@ function library:new(bp)
 
     end
 
+    pm.updateDistance = function()
+
+        if bp and self.distance and bp.player.status == 1 then
+            local target = bp.__target.get('t')
+
+            if target and bp.me and (os.clock()-__dtimer.last) > __dtimer.delay then
+                local distance  = bp.__distance.get(target)
+                local dmaximum   = ((2.5 + target.model_size) - bp.me.model_size)
+
+                if distance > dmaximum then
+                    self.move(target.x, target.y)
+
+                elseif distance <= (dmaximum - 1) then
+                    self.stop()
+                    windower.send_command("setkey numpad2 down; wait 0.2; setkey numpad2 up")
+
+                end
+                __dtimer.last = os.clock()
+                
+            end
+
+        end
+
+    end
+
+    pm.updateFacing = function()
+
+        pm.updatePosition()
+        pm.updateDistance()
+        if bp and self.facing and bp.player.status == 1 then
+            local target = bp.__target.get('t')
+        
+            if target and (os.clock()-__ftimer.last) > __ftimer.delay then
+                bp.__actions.face(bp.__target.get(target))
+                __ftimer.last = os.clock()
+                
+            end
+            
+        end
+
+    end
+
     -- Public Functions.
     self.isMoving = function() return __moving end
+
+    self.move = function(x, y)
+            
+        if bp and bp.me and x and y then
+            windower.ffxi.turn(-math.atan2(y-bp.me.y, x-bp.me.x))
+            windower.ffxi.run(-math.atan2(y-bp.me.y, x-bp.me.x))
+            
+        end
+        
+    end
     
-    self.perform = function(target, param, action, x, y, z)
-        local target = bp.libs.__target.get(target)
+    self.perform = function(target, action, param, x, y, z)
+        local target = bp.__target.get(target)
 
         if target and action and __actions[action] and not windower.ffxi.get_info().mog_house then
             bp.packets.inject(bp.packets.new('outgoing', 0x01A, {
@@ -63,8 +120,65 @@ function library:new(bp)
 
     end
 
+    self.trade = function(target, ...)
+        local target = bp.__target.get(target)
+        local total = T{...}:length()
+        local items = T{...}
+        
+        if bp and target and total > 0 then
+            local block = T{}
+            local trade = bp.packets.new('outgoing', 0x036, {
+                
+                ['Target']          = target.id,
+                ['Target Index']    = target.index,
+                ['Number of Items'] = total,
+
+            })
+
+            for i=1, total do
+
+                if items[i].name and items[i].count then
+            
+                    for item, index in T(windower.ffxi.get_items(0)):it() do
+
+                        if item and index and item.id and bp.res.items[item.id] and bp.res.items[item.id].en == items[i].name then
+
+                            if items[i].count <= item.count and not block:contains(index) then
+                                trade[string.format('Item Index %s', i)] = index
+                                trade[string.format('Item Count %s', i)] = items[i].count
+                                table.insert(block, index)
+                                break
+
+                            else
+                                trade[string.format('Item Index %s', i)] = 0
+                                trade[string.format('Item Count %s', i)] = 0
+
+                            end
+
+                        else
+                            trade[string.format('Item Index %s', i)] = 0
+                            trade[string.format('Item Count %s', i)] = 0
+
+                        end
+
+                    end
+
+                else
+                    trade[string.format('Item Index %s', i)] = 0
+                    trade[string.format('Item Count %s', i)] = 0
+
+                end
+
+            end
+            bp.packets.inject(trade)
+
+        end
+        return false
+
+    end
+
     self.tradeGil = function(target, amount)
-        local target = bp.libs.__target.get(target)
+        local target = bp.__target.get(target)
         local amount = tonumber(amount)
 
         if bp and target and amount and target.id and target.index and amount ~= nil and amount <= windower.ffxi.get_items().gil then
@@ -82,16 +196,60 @@ function library:new(bp)
 
     end
 
-    self.useItem = function(item, target) -- UPDATE NEEDED!
+    self.useItem = function(item, target, bag)
+        local target = bp.__target.get(target)
+
+        if item and target and type(item) == 'string' then
+            local bag, index, id = bp.__inventory.findItem(item)
+
+            if index and bag and self.itemReady(index, bag) then
+                bp.packets.inject(bp.packets.new('outgoing', 0x037, {
+                    ['Player']          = target.id,
+                    ['Player Index']    = target.index,
+                    ['Slot']            = index,
+                    ['Bag']             = bag,
+
+                }))
+
+            end
+
+        elseif item and target and bag and tonumber(item) ~= nil and tonumber(bag) ~= nil then
+            local index, count, id, status, bag = bp.__inventory.getByIndex(tonumber(bag), tonumber(item))
+
+            if index and bag and self.itemReady(index, bag) then
+                bp.packets.inject(bp.packets.new('outgoing', 0x037, {
+                    ['Player']          = target.id,
+                    ['Player Index']    = target.index,
+                    ['Slot']            = index,
+                    ['Bag']             = bag,
+
+                }))
+
+            end
+
+        end
 
     end
 
-    self.equipItem = function(name, slot)
+    self.equipItem = function(item, slot, bag)
 
-        if name and slot and bp.res.slots[slot] then
-            local bag, index = bp.__inventory.findItem(name)
+        if item and slot and type(item) == 'string' and bp.res.slots[slot] then
+            local bag, index = bp.__inventory.findItem(item)
 
-            if bag and index then
+            if index and bag then
+                bp.packets.inject(bp.packets.new('outgoing', 0x050, {
+                    ['Item Index'] = index,
+                    ['Equip Slot'] = slot,
+                    ['Bag'] = bag,
+
+                }))
+
+            end
+
+        elseif item and slot and bag and tonumber(item) ~= nil and bp.res.slots[slot] and bp.res.bags[bag] then
+            local index, count, id, status, bag = bp.__inventory.getByIndex(tonumber(bag), tonumber(item))
+            
+            if index and bag then
                 bp.packets.inject(bp.packets.new('outgoing', 0x050, {
                     ['Item Index'] = index,
                     ['Equip Slot'] = slot,
@@ -179,10 +337,10 @@ function library:new(bp)
 
     end
 
-    self.face = function(mob)
+    self.face = function(coords)
 
-        if bp and bp.me and mob and mob.x and mob.y then
-            windower.ffxi.turn(((math.atan2((mob.y - bp.me.y), (mob.x - bp.me.x))*180/math.pi)*-1):radian())
+        if bp and bp.me and coords and coords.x and coords.y then
+            windower.ffxi.turn(((math.atan2((coords.y - bp.me.y), (coords.x - bp.me.x))*180/math.pi)*-1):radian())
         end
 
     end
@@ -406,49 +564,50 @@ function library:new(bp)
     end
 
     self.acceptRaise = function()
-        self.perform(bp.player, 0, 'accept raise')
+        self.perform(bp.player, 'accept raise', 0)
     end
 
     self.engage = function(target)
-        self.perform(target, 0, 'engage')
+        self.perform(target, 'engage', 0)
     end
 
     self.disengage = function()
-
+        
         if bp and bp.player.status == 1 then
-            self.perform(windower.ffxi.get_mob_by_target('t'), 1, 'disengage')
+            self.perform(bp.__target.get('t'), 'disengage', 0)
         end
 
     end
 
-    self.engageAll = function(target)
+    self.switchTarget = function(target)
+        local target = bp.__target.get(target)
 
-        if bp and bp.player and bp.player.status == 0 then
-            self.engage(target)
-            bp.libs.__orders.deliver('r*', ('bp action switch! %s'):format(target.id))
+        if target and bp.__target.canEngage(target) then
 
-        elseif bp and bp.player and bp.player.status == 1 then
-            bp.libs.__orders.deliver('r*', ('bp action switch! %s'):format(target.id))
+            if bp.player.status == 1 then
+                self.perform(target, 'switch target', 0)
+            
+            elseif bp.player.status == 0 then
+                self.engage(target)
+                
+            end
 
         end
 
     end
 
-    self.switchAll = function(target)
+    self.weaponskill = function(target)
+        local target = bp.__target.get(target)
 
-        if bp and bp.player and bp.player.status == 0 then
-            self.engage(target)
-
-        elseif bp and bp.player and bp.player.status == 1 then
-            self.perform(target, 0, 'switch target')
-
-        end
+        if target and bp.player.status == 1 then
+            bp.__queue.add(bp.core.get('ws').name, target, 100)
+        end        
 
     end
     
     self.stop = function()
         windower.ffxi.run(false)
-        self.keyCombo({'numpad7','numpad7'})
+        self.keyCombo:schedule(0.01, {'numpad7','numpad7'})
         
     end
 
@@ -462,7 +621,7 @@ function library:new(bp)
     end
 
     self.isFacing = function(target)
-        local target = bp.libs.__target.get(target)
+        local target = bp.__target.get(target)
 
         if bp and bp.me and target then
             local m_degrees = ((self.facing()*180)/math.pi)
@@ -479,7 +638,7 @@ function library:new(bp)
     end
 
     self.isBehind = function(target)
-        local target = bp.libs.__target.get(target)
+        local target = bp.__target.get(target)
 
         if bp and bp.me and target then
             local m_degrees = ((self.facing()*180)/math.pi)
@@ -496,7 +655,7 @@ function library:new(bp)
     end
 
     self.inRange = function(target)
-        local target = bp.libs.__target.get(target)
+        local target = bp.__target.get(target)
 
         if bp and bp.me and target then
             local d = ((V{bp.me.x, bp.me.y, bp.me.z} - V{target.x, target.y, target.z}):length())
@@ -511,7 +670,7 @@ function library:new(bp)
     end
 
     self.inConal = function(target)
-        local target = bp.libs.__target.get(target)
+        local target = bp.__target.get(target)
 
         if bp and bp.me and target then
             local m_degrees = ((self.facing()*180)/math.pi)
@@ -519,6 +678,48 @@ function library:new(bp)
 
             if math.abs(m_degrees - t_degrees) <= 38 then
                 return true
+            end
+
+        end
+        return false
+
+    end
+
+    self.itemReady = function(lookup, bag)
+
+        if lookup and type(lookup) == 'string' then
+            local bag, index, id = bp.__inventory.findItem(lookup)
+
+            if bp and bag and index and id and bp.res.items[id] then
+                local index, count, id, status, bag = bp.__inventory.getByIndex(bag, index)
+                local data = index and bag and bp.extdata.decode(windower.ffxi.get_items(bag, index)) or false
+
+                if index and data and data.type and data.type == 'Enchanted Equipment' then
+                    local charges   = data.charges_remaining
+                    local ready     = math.max((data.activation_time + 18000) - os.time(), 0)
+                    local next_use  = math.max((data.next_use_time + 18000) - os.time(), 0)
+
+                    if charges > 0 and ready == 0 and next_use == 0 then
+                        return index, count, id, status, bag, bp.res.items[id]
+                    end
+
+                end
+
+            end
+
+        elseif lookup and bag and tonumber(lookup) ~= nil and tonumber(bag) ~= nil then
+            local index, count, id, status, bag = bp.__inventory.getByIndex(bag, lookup)
+            local data = index and bag and bp.extdata.decode(windower.ffxi.get_items(bag, index)) or false
+
+            if index and data and data.type and data.type == 'Enchanted Equipment' then
+                local charges   = data.charges_remaining
+                local ready     = math.max((data.activation_time + 18000) - os.time(), 0)
+                local next_use  = math.max((data.next_use_time + 18000) - os.time(), 0)
+
+                if charges > 0 and ready == 0 and next_use == 0 then
+                    return index, count, id, status, bag, bp.res.items[id]
+                end
+
             end
 
         end
@@ -535,23 +736,57 @@ function library:new(bp)
             local command = commands[1] and table.remove(commands, 1):lower() or false
             
             if command then
-                local target = windower.ffxi.get_mob_by_target('t') or false
+                local target = bp.__target.get('t')
                 
                 if command == 'weaponskill' and target then
+                    bp.__orders.deliver('r', string.format('bp action __weaponskill %s', target.id))
 
                 elseif command == 'switch' and target then
-                    self.engageAll(target)
+                    bp.__orders.deliver('r', string.format('bp action __switch %s', target.id))
 
-                elseif command == 'weaponskill!' and commands[1] then
+                elseif command == '__weaponskill' and commands[1] then
+                    self.weaponskill(tonumber(commands[1]))
 
-                elseif command == 'switch!' and commands[1] then
-                    self.switchAll(bp.libs.__target.get(commands[1]))
+                elseif command == '__switch' and commands[1] then
+                    self.switchTarget(tonumber(commands[1]))
 
                 elseif command == 'castlock' then
-                    local option = commands[1] and table.remove(commands, 1):lower() or ''
+                    local option = commands[1] and table.remove(commands, 1):lower() or false
 
-                    if option then
-                        bp.toggleOption(option, self.__castlock, "BLOCK SPELL INTERRUPTIONS:")
+                    if T{'!','#'}:contains(option) then
+                        self.castlock = (option == '!')
+                        bp.popchat.pop(string.format('NO-INTTERUPT: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
+
+                    else
+                        self.castlock = self.castlock ~= true and true or false
+                        bp.popchat.pop(string.format('AUTO-DISTANCING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
+
+                    end
+
+                elseif T{'distance','d'}:contains(command) then
+                    local option = commands[1] and table.remove(commands, 1):lower() or false
+
+                    if T{'!','#'}:contains(option) then
+                        self.distance = (option == '!')
+                        bp.popchat.pop(string.format('AUTO-DISTANCING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.distance):upper()))
+
+                    else
+                        self.distance = self.distance ~= true and true or false
+                        bp.popchat.pop(string.format('AUTO-DISTANCING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.distance):upper()))
+
+                    end
+
+                elseif T{'facing','f'}:contains(command) then
+                    local option = commands[1] and table.remove(commands, 1):lower() or false
+
+                    if T{'!','#'}:contains(option) then
+                        self.facing = (option == '!')
+                        bp.popchat.pop(string.format('AUTO-FACING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.facing):upper()))
+
+                    else
+                        self.facing = self.facing ~= true and true or false
+                        bp.popchat.pop(string.format('AUTO-FACING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.facing):upper()))
+
                     end
 
                 end
@@ -562,43 +797,43 @@ function library:new(bp)
 
     end)
 
-    windower.register_event('prerender', updatePosition)
-    windower.register_event('zone change', function() anchor.__set = false end)
+    windower.register_event('prerender', pm.updateFacing)
+    windower.register_event('zone change', function() __anchor.__set = false end)
     windower.register_event('outgoing chunk', function(id, original, modified, injected, blocked)
 
-        if bp and not blocked and id == 0x015 and self.__castlock then
+        if bp and not blocked and id == 0x015 and self.castlock then
             local parsed = bp.packets.parse('outgoing', original)
 
-            if parsed and anchor.__set and anchor.__position and math.abs(T(anchor.__position):sum()) > 0 then
+            if parsed and __anchor.__set and __anchor.__position and math.abs(T(__anchor.__position):sum()) > 0 then
 
                 do
                     parsed['Run Count'] = 2
-                    parsed['X'] = anchor.__position.x
-                    parsed['Y'] = anchor.__position.y
-                    parsed['Z'] = anchor.__position.z
+                    parsed['X'] = __anchor.__position.x
+                    parsed['Y'] = __anchor.__position.y
+                    parsed['Z'] = __anchor.__position.z
 
                 end
                 return bp.packets.build(parsed)
             
             else
-                anchor.__position = {x=parsed['X'], y=parsed['Y'], z=parsed['Z']}
+                __anchor.__position = {x=parsed['X'], y=parsed['Y'], z=parsed['Z']}
             
             end
 
-        elseif bp and not blocked and id == 0x01a and self.__castlock then
+        elseif bp and not blocked and id == 0x01a and self.castlock then
             local parsed = bp.packets.parse('outgoing', original)
 
-            if parsed['Category'] == 3 and not anchor.__set then
-                anchor.__set = true
+            if parsed['Category'] == 3 and not __anchor.__set then
+                __anchor.__set = true
             end
 
         end
 
     end)
 
-    windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
+    windower.register_event('incoming chunk', function(id, original)
 
-        if bp and id == 0x028 and self.__castlock then
+        if bp and id == 0x028 and self.castlock then
             local parsed = bp.packets.parse('incoming', original)
             
             if bp.player and parsed then
@@ -607,11 +842,11 @@ function library:new(bp)
                 if category == 8 and parsed['Actor'] == bp.player.id then
 
                     if parsed['Param'] ~= 24931 then
-                        anchor.__set, anchor.__midcast = false, true
+                        __anchor.__set, __anchor.__midcast = false, true
                     end
 
                 elseif category == 4 then
-                    anchor.__set, anchor.__midcast = false, false
+                    __anchor.__set, __anchor.__midcast = false, false
 
                 end
 
@@ -620,15 +855,15 @@ function library:new(bp)
         elseif id == 0x029 then
             local parsed = bp.packets.parse('incoming', original)
 
-            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{4,5,16,17,18,49,313,581}:contains(parsed['Message']) and not anchor.__midcast then
-                anchor.__set = false
+            if bp.player and parsed and parsed['Actor'] == bp.player.id and T{4,5,16,17,18,49,313,581}:contains(parsed['Message']) and not __anchor.__midcast then
+                __anchor.__set = false
             end
 
         elseif id == 0x053 then
             local parsed = bp.packets.parse('incoming', original)
 
-            if parsed['Message ID'] == 298 and not anchor.__midcast then
-                anchor.__set = false
+            if parsed['Message ID'] == 298 and not __anchor.__midcast then
+                __anchor.__set = false
             end
 
         end
