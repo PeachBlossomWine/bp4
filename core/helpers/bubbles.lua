@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=true}, text={size=15, font='Calibri', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
+    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=true}, text={size=15, font='Segoe UI', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
     local settings  = bp.libs.__settings.new('bubbles')
 
     helper.new = function()
