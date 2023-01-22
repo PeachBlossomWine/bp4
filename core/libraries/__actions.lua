@@ -23,9 +23,10 @@ function library:new(bp)
     }
 
     -- Public Variables.
-    self.distance     = false
-    self.facing       = false
-    self.castlock     = true
+    self.distance   = false
+    self.facing     = false
+    self.castlock   = true
+    self.knockback  = true
 
     -- Private Methods.
     pm.updatePosition = function()
@@ -202,7 +203,7 @@ function library:new(bp)
         if item and target and type(item) == 'string' then
             local bag, index, id = bp.__inventory.findItem(item)
 
-            if index and bag and self.itemReady(index, bag) then
+            if index and bag then
                 bp.packets.inject(bp.packets.new('outgoing', 0x037, {
                     ['Player']          = target.id,
                     ['Player Index']    = target.index,
@@ -216,7 +217,7 @@ function library:new(bp)
         elseif item and target and bag and tonumber(item) ~= nil and tonumber(bag) ~= nil then
             local index, count, id, status, bag = bp.__inventory.getByIndex(tonumber(bag), tonumber(item))
 
-            if index and bag and self.itemReady(index, bag) then
+            if index and bag then
                 bp.packets.inject(bp.packets.new('outgoing', 0x037, {
                     ['Player']          = target.id,
                     ['Player Index']    = target.index,
@@ -727,6 +728,25 @@ function library:new(bp)
 
     end
 
+    self.castItem = function(name, slot)
+        local index, count, id, status, bag = bp.__actions.itemReady(name)
+            
+        if index and bag and slot and bp.res.items[id] then
+            local item = bp.res.items[id]
+
+            if status == 0 then
+                bp.__actions.equipItem(index, slot, bag)
+                bp.__actions.useItem:schedule((item.cast_delay + 2), index, bp.player, bag)
+
+            elseif status == 5 then
+                bp.__actions.useItem(index, bp.player, bag)
+
+            end
+
+        end
+
+    end
+
     -- Private Events.
     windower.register_event('addon command', function(...)
         local commands  = T{...}
@@ -763,7 +783,7 @@ function library:new(bp)
 
                     end
 
-                elseif T{'distance','d'}:contains(command) then
+                elseif ('distance'):startswith(command) then
                     local option = commands[1] and table.remove(commands, 1):lower() or false
 
                     if T{'!','#'}:contains(option) then
@@ -776,7 +796,7 @@ function library:new(bp)
 
                     end
 
-                elseif T{'facing','f'}:contains(command) then
+                elseif ('facing'):startswith(command) then
                     local option = commands[1] and table.remove(commands, 1):lower() or false
 
                     if T{'!','#'}:contains(option) then
@@ -786,6 +806,19 @@ function library:new(bp)
                     else
                         self.facing = self.facing ~= true and true or false
                         bp.popchat.pop(string.format('AUTO-FACING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.facing):upper()))
+
+                    end
+
+                elseif ('knockback'):startswith(command) then
+                    local option = commands[1] and table.remove(commands, 1):lower() or false
+
+                    if T{'!','#'}:contains(option) then
+                        self.knockback = (option == '!')
+                        bp.popchat.pop(string.format('KNOCKBACK: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.knockback):upper()))
+
+                    else
+                        self.knockback = self.knockback ~= true and true or false
+                        bp.popchat.pop(string.format('KNOCKBACK: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.knockback):upper()))
 
                     end
 
@@ -847,6 +880,19 @@ function library:new(bp)
 
                 elseif category == 4 then
                     __anchor.__set, __anchor.__midcast = false, false
+
+                elseif category == 11 and self.knockback then
+
+                    for i=1, parsed['Target Count'] do
+
+                        for n=1, parsed[string.format("Target %s Action Count", i)] do
+                            parsed[string.format("Target %s Action %s Stagger", i, n)] = 0
+                            parsed[string.format("Target %s Action %s Knockback", i, n)] = 0
+
+                        end
+
+                    end
+                    return bp.packets.build(parsed)
 
                 end
 

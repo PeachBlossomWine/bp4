@@ -52,6 +52,33 @@ function manager:new(bp)
 
     end
 
+    self.updateSettings = function()
+        local count = 1
+
+        if bp.__client and bp.__client.isConnected() then
+
+            for helper in self.active():it() do
+                local class = getClass(helper)
+
+                if class and class.updateClient then
+                    coroutine.schedule(function()
+                        class.updateClient(helper)
+
+                    end, (count * 0.25))
+                    count = (count + 1)
+
+                end
+                
+            end
+
+        end
+
+    end
+
+    self.active = function()
+        return T(classes):keyset()
+    end
+
     -- Metatables.
     mt.__index = function(t, key)
 

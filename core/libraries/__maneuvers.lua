@@ -21,9 +21,10 @@ function library:new(bp)
                 end
 
             end
+            return maneuvers
 
         end
-        return maneuvers
+        return T{}
 
     end
 

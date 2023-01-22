@@ -1,5 +1,6 @@
 local manager = dofile(string.format("%score/manager.lua", windower.addon_path))
 local bootstrap, mt = {}, {}
+--local __bp = assert(package.loadlib(string.format("%s__buddypal.dll", windower.addon_path):gsub('\\', '/'), "luaopen_Buddypal"))()
 
 mt.__index = function(t, key)
     
@@ -61,6 +62,7 @@ function bootstrap:new()
         setting     = string.format('%s,%s,%s', 200, 200, 200),
         on          = string.format('%s,%s,%s', 020, 250, 020),
         off         = string.format('%s,%s,%s', 090, 090, 090),
+        teal        = string.format('%s,%s,%s', 050, 160, 160),
 
     }
 
@@ -164,7 +166,7 @@ function bootstrap:new()
         end
 
     end
-    loadLibraries()
+    loadLibraries:schedule(0)
 
     -- Setup all the helper classes.
     local loadHelpers = function()
@@ -188,8 +190,15 @@ function bootstrap:new()
 
         end
 
+        -- Load user built libraries & helpers.
+        self.usettings.loadLibraries:schedule(0.2)
+        self.usettings.loadHelpers:schedule(0.3)
+
     end
-    loadHelpers()
+    loadHelpers:schedule(0.1)
+
+    -- Send helper data to client.
+    self.helpers.updateSettings:schedule(5)
 
     -- Addon Events.
     windower.register_event('prerender', function()

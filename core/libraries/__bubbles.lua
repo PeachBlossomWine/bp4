@@ -56,8 +56,8 @@ function library:new(bp)
 
     -- Public Methods.
     self.active = function(id) return bp.__buffs and bp.__buffs.hasAura(id) or T{} end
-    self.isGeocolure = function(name) return name:startswith("Geo-") end
-    self.isIndicolure = function(name) return name:startswith("Indi-") end
+    self.isGeocolure = function(name) return name and name:startswith("Geo-") or false end
+    self.isIndicolure = function(name) return name and name:startswith("Indi-") or false end
     self.indiRecast = function() return __indirecast end
     self.geoRecast = function() return __georecast end
     self.recast = function(name, value)

@@ -4,13 +4,11 @@ _addon.version  = '4.20221212'
 _addon.command  = 'bp'
 --[[ From all your friends on Lakshmi, RIP Kanobrown, and you will be forever missed in the FFXI Community. ]]--
 
---local pal = assert(package.loadlib(string.format("%s__buddypal.dll", windower.addon_path):gsub('\\', '/'), "luaopen_Buddypal"))()
 local bp = require('/core/bootstrap')
+local start = function()
 
-do -- Initial add-on settings.
-    bp.accounts = T{'Eliidyr'}
-
-    -- Keybinds.
+    -- Initial add-on settings.
+    bp.accounts = T{'Eliidyr','Clapmycheeks','Curecat','Duped'}
     bp.__keybinds.register({
 
         '@b bp toggle',
@@ -35,4 +33,19 @@ do -- Initial add-on settings.
 
     })
 
+    bp.__alias.register({
+
+        -- RINGS.
+        {'wring',       "bp wring"},
+        {'dring',       "bp dring"},
+        {'hring',       "bp hring"},
+        {'mring',       "bp mring"},
+        {'wrings',      "ord p bp wring"},
+        {'drings',      "ord p bp dring"},
+        {'hrings',      "ord p bp hring"},
+        {'mrings',      "ord p bp mring"},
+
+    })
+
 end
+start:schedule(0.75)

@@ -6,6 +6,7 @@ local buildHelper = function(bp, hmt)
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
+        local pvt = {}
 
         -- Private Variables.
 
@@ -22,7 +23,7 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        local render = function()
+        pvt.render = function()
 
             bp.__ui.renderUI(settings.display, function()
 
@@ -39,7 +40,7 @@ local buildHelper = function(bp, hmt)
         new.set = function(value) settings.speed = value and tonumber(value) ~= nil and value or settings.speed end
 
         -- Private Events.
-        helper('prerender', render)
+        helper('prerender', pvt.render)
         helper('mouse', function(param, x, y, delta, blocked) settings:saveDisplay(x, y, param) end)
         helper('addon command', function(...)
             local commands  = T{...}

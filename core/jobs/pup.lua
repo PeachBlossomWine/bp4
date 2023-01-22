@@ -164,6 +164,10 @@ function job:init(bp, settings, __getsub)
                         if #current < 3 then
                             local maneuvers = bp.__maneuvers.getMissing(T(settings.maneuvers.list):copy())
 
+                            table.print(settings.maneuvers)
+                            print(current)
+                            print(maneuvers)
+
                             if maneuvers:length() > 0 and not bp.core.searchQueue(maneuvers[1]) then
                                 bp.core.add(maneuvers[1], bp.player, bp.core.priority(maneuvers[1]))
                             end

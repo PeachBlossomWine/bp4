@@ -3,11 +3,27 @@ function library:new(bp)
     local bp = bp
     local pm = {}
 
-    -- Private Variables.
-
-    -- Public Variables.
-
     -- Private Methods.
+    pm['wring'] = function()
+        bp.__actions.castItem("Warp Ring", 13)
+        bp.popchat.pop("ATTEMPTING TO USE WARP RING...")
+    end
+
+    pm['dring'] = function()
+        bp.__actions.castItem("Dim. Ring (Dem)", 13)
+        bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
+    end
+
+    pm['hring'] = function()
+        bp.__actions.castItem("Dim. Ring (Holla)", 13)
+        bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
+    end
+
+    pm['mring'] = function()
+        bp.__actions.castItem("Dim. Ring (Mea)", 13)
+        bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
+    end
+
     pm['toggle'] = function()
         bp.enabled = bp.enabled ~= true and true or false
         bp.core.resetIdle()

@@ -19,7 +19,7 @@ local buildHelper = function(bp, hmt)
         
             ['Cure'] = {
     
-                {id=1,      priority=false, min=100},
+                {id=1,      priority=false, min=75},
                 {id=2,      priority=false, min=200},
                 {id=3,      priority=false, min=650},
                 {id=4,      priority=true,  min=900},
@@ -30,7 +30,7 @@ local buildHelper = function(bp, hmt)
             
             ['Curaga'] = {
                 
-                {id=7,      priority=false, min=150},
+                {id=7,      priority=false, min=110},
                 {id=8,      priority=false, min=275},
                 {id=9,      priority=true,  min=700},
                 {id=10,     priority=true,  min=980},

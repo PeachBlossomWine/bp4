@@ -81,7 +81,6 @@ function library:new(bp)
 
     -- Private Events.
     windower.register_event('prerender', pm.calculate)
-    windower.register_event('login','load','job change', function()  pm.setStratagems:schedule(1) end)
     windower.register_event('incoming chunk', function(id, original)
         
         if bp and id == 0x028 then
@@ -94,6 +93,11 @@ function library:new(bp)
             end
     
         end
+        
+    end)
+
+    windower.register_event('login','load','job change', function()
+        pm.setStratagems:schedule(1)
         
     end)
 

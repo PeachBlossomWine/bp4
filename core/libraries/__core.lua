@@ -50,7 +50,6 @@ function library:new(bp)
             ["chi blast"]           = false,
             ["dodge"]               = false,
             ["focus"]               = false,
-            ["impetus"]             = false,
             ["counterstance"]       = false,
             ["mantra"]              = false,
             ["formless strikes"]    = false,
@@ -176,7 +175,7 @@ function library:new(bp)
 
         ["BST"] = {
             ["reward"]              = {enabled=false, pet_hpp=55},
-            ["ready"]               = {enabled=false, ""},
+            ["ready"]               = {enabled=false, moves=""},
             ["call beast"]          = false,
             ["bestial loyalty"]     = false,
             ["killer instinct"]     = false,
@@ -184,6 +183,7 @@ function library:new(bp)
             ["snarl"]               = false,
             ["spur"]                = false,
             ["run wild"]            = false,
+            ["unleash"]             = false,
         },
 
         ["RNG"] = {
@@ -203,8 +203,8 @@ function library:new(bp)
 
         ["SMN"] = {
             ["summon"]              = {enabled=false, name="Carbuncle"},
-            ["bpr"]                 = {enabled=false, pacts={}},
-            ["bpw"]                 = {enabled=false, pacts={}},
+            ["bpr"]                 = {enabled=false, pacts={["Ifrit"]="Flaming Crush"}},
+            ["bpw"]                 = {enabled=false, pacts={["Ifrit"]="Crimson Howl"}},
             ["myrkr"]               = {enabled=false, mpp=45},
             ["elemental siphon"]    = {enabled=false, mpp=55},
             ["apogee"]              = false,
@@ -311,7 +311,7 @@ function library:new(bp)
         },
 
         ["SCH"] = {
-            ['gems']                = {enabled=false, penury={}, celerity={}, accession={}, rapture={}, perpetuance={}, parsimony={}, alacrity={}, manifestation={}, ebullience={}},
+            ["gems"]                = {enabled=false, penury=false, celerity=false, accession=false, rapture=false, perpetuance=false, parsimony=false, alacrity=false, manifestation=false, ebullience=false},
             ["helix"]               = {enabled=false, name="Pyrohelix", tier=1},
             ["spikes"]              = {enabled=false, name="Blaze Spikes"},
             ["storms"]              = {enabled=false, name="Firestorm"},
@@ -377,6 +377,7 @@ function library:new(bp)
             ["refresh"]             = false,
             ["phalanx"]             = false,
             ["regen"]               = false,
+            ["crusade"]             = false,
             ["elemental sforzo"]    = false,
             ["odyllic subterfuge"]  = false,
         },
@@ -385,24 +386,29 @@ function library:new(bp)
 
     -- Public Methods.
     self.getJob = function(job)
-        if not job then return end
-        local file = bp.files.new(string.format('core/jobs/%s.lua', job:lower()))
 
-        if file:exists() then
-            return setmetatable(dofile(string.format('%score/jobs/%s.lua', windower.addon_path, job:lower())), {__index = function(t, key)
+        if job then
+            local file = bp.files.new(string.format('core/jobs/%s.lua', job:lower()))
+
+            if file:exists() then
+                return setmetatable(dofile(string.format('%score/jobs/%s.lua', windower.addon_path, job:lower())), {__index = function(t, key)
+                    
+                    if rawget(t, key) ~= nil then
+                        return rawget(t, key)            
+                    
+                    else
+                        return (function() return end)
                 
-                if rawget(t, key) ~= nil then
-                    return rawget(t, key)            
+                    end
                 
-                else
-                    return (function() return end)
-            
-                end
-            
-            end})
+                end})
+
+            end
+
+        elseif not job then
+            return {init = function() return {automate = function() return end} end}
 
         end
-        return false
     
     end
 
@@ -455,22 +461,24 @@ function library:new(bp)
     end
 
     self.set = function(settings, commands)
-        local command = commands[1] and table.remove(commands, 1):lower() or false
+        local commands  = type(commands) == 'string' and T(commands:split(" ")) or commands
+        local command   = commands[1] and table.remove(commands, 1):lower() or false
         
         if switches and settings and command then
-            local setting = settings():keyfind(function(key) return key:startswith(command) end) or T(settings[bp.player.sub_job]):keyfind(function(key) return key:startswith(command) end) or T(settings[bp.player.main_job]):keyfind(function(key) return key:startswith(command) end)
-            local match = false
+            local setting = settings():keyfind(function(key) return key:gsub(' ', ''):startswith(command) end) or T(settings[bp.player.sub_job]):keyfind(function(key) return key:gsub(' ', ''):startswith(command) end) or T(settings[bp.player.main_job]):keyfind(function(key) return key:gsub(' ', ''):startswith(command) end)
 
             if switches[setting] then
+                switches[setting](bp, settings[setting], commands)
 
+                --[[ ???
                 for _,switch in T(switches):it() do
 
                     if switch:lower():startswith(command) and switches[switch] then
                         switches[switch](bp, settings[switch], commands)
-
                     end 
                 
                 end
+                ]]
 
             elseif settings[setting] ~= nil then
 

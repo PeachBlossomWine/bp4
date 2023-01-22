@@ -3,6 +3,32 @@ function library:new(bp)
     local bp = bp
 
     -- Public Methods.
+    self.getMemberList = function()
+        local list = T{inside={}, outside={}}
+
+        if bp and bp.party then
+            
+            for member, index in T(bp.party):it() do
+                
+                if type(member) == 'table' and member.name then
+
+                    if index:sub(1,1) == 'p' then
+                        table.insert(list.inside, member.name)
+                    
+                    elseif index:sub(1,1) == 'a' then
+                        table.insert(list.outside, member.name)
+
+                    end
+
+                end
+            
+            end
+
+        end
+        return list
+
+    end
+
     self.count = function(party)
         return party and bp.party and bp.party[string.format('party%s_count', party)] or (bp.party['party1_count'] + bp.party['party2_count'] + bp.party['party3_count'])
     end

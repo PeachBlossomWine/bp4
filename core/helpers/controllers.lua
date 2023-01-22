@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local settings  = bp.libs.__settings.new('controllers')
+    local settings  = bp.__settings.new('controllers')
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
@@ -15,32 +15,44 @@ local buildHelper = function(bp, hmt)
 
         -- Private Methods.
         pvt.add = function(name)
-            local target = bp.libs.__target.get(name) or windower.ffxi.get_mob_by_target('t')
+            local target = bp.__target.get(name) or bp.__target.get('t')
 
-            if target and target.spawn_type == 1 and not target.is_npc and not settings.controllers:contains(target.name) then
-                table.insert(settings.controllers, target.name)
-                bp.helpers.popchat.pop(string.format("%s ADDED TO CONTROLLERS.", target.name))
+            if target and target.spawn_type == 13 and not target.is_npc and not settings.controllers:contains(target.name:lower()) then
+                table.insert(settings.controllers, target.name:lower())
+                bp.helpers.popchat.pop(string.format("\\cs(%s)%s\\cr ADDED TO CONTROLLERS", bp.colors.setting, target.name:upper()))
 
             end
 
         end
         
         pvt.delete = function(name)
-            local target = bp.libs.__target.get(name) or windower.ffxi.get_mob_by_target('t')
+            local target = bp.__target.get(name) or bp.__target.get('t')
 
-            if target and target.spawn_type == 1 and not target.is_npc and settings.controllers:contains(target.name) then
+            if target and target.spawn_type == 13 and not target.is_npc and settings.controllers:contains(target.name:lower()) then
                 
                 for name, index in settings.controllers:it() do
 
-                    if target.name == name then
+                    if target.name:lower() == name:lower() then
                         settings.controllers:remove(index)
-                        bp.helpers.popchat.pop(string.format("%s REMOVED FROM CONTROLLERS.", target.name))
+                        bp.helpers.popchat.pop(string.format("\\cs(%s)%s\\cr REMOVED FROM CONTROLLERS", bp.colors.setting, target.name:upper()))
+                        break
 
                     end
 
                 end
 
             end
+
+        end
+
+        -- Public Methods.
+        new.contains = function(name)
+            local name = type(name) == 'string' and name:lower() or false
+
+            if name then
+                return settings.controllers:contains(name)
+            end
+            return false
 
         end
 
@@ -53,17 +65,17 @@ local buildHelper = function(bp, hmt)
                 local command = commands[1] and table.remove(commands, 1):lower() or false
 
                 if command then
-                    
-                    if S{'add','a','+'}:contains(command) then
-                        add(commands[1])
+
+                    if T{'add','a','+'}:contains(command) then
+                        pvt.add(commands[1])
     
-                    elseif S{'remove','delete','r','d','-'}:contains(command) then
-                        delete(commands[1])
+                    elseif T{'remove','delete','r','d','-'}:contains(command) then
+                        pvt.delete(commands[1])
     
                     end
+                    settings:save()
 
                 end
-                settings:save()
     
             end        
     

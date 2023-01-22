@@ -1,15 +1,24 @@
 local library = {}
 function library:new(bp)
     local bp = bp
+    local pm = {}
 
     -- Private Variables.
     local mobs      = {}
+    local events    = {}
     local waiting   = false
     local pinged    = false
 
     -- Private Methods.
-    local updateMobs = function()
-        mobs = bp and bp.__resources.get(string.format("mobs/%s/%s",  bp.info.zone, bp.info.zone))
+    pm.updateMobs = function(id)
+
+        if bp and id and bp.res.zones[id] then
+            mobs = bp.__resources.get(string.format("mobs/%s/%s",  id, id))
+        else
+            mobs = bp.__resources.get(string.format("mobs/%s/%s",  bp.info.zone, bp.info.zone))
+        
+        end
+
     end
 
     -- Public Methods.
@@ -19,22 +28,27 @@ function library:new(bp)
 
     self.withName = function(name)
         if tonumber(name) then return {} end
-        return T(mobs):filter(function(mob)
-            return mob.name:sub(1, #name):gsub("[^?[%p]]", ""):lower() == name:gsub("[^?[%p]]", ""):lower()
+        local map = {}
+        
+        for mob, index in T(mobs):it() do
 
-        end)
+            if mob.name:sub(1, #name):gsub("[^?[%p]]", ""):lower() == name:gsub("[^?[%p]]", ""):lower() then
+                table.insert(map, mob)
+            end
+
+        end
+        return map
 
     end
 
-    self.ping = function(index, callback)
-        local mob = self.find(tonumber(index))
+    self.ping = function(value, valid, callback)
+        local mob = self.find(value, valid or false)
 
         if mob and mob.index then
             waiting = mob.index
             bp.packets.inject(bp.packets.new('outgoing', 0x016, {['Target Index']=mob.index}))
 
             if callback and type(callback) == 'function' then
-                
                 coroutine.schedule(function()
                     local pinged = self.getPinged()
 
@@ -51,13 +65,57 @@ function library:new(bp)
 
     end
 
+    self.pingAll = function(name, callback)
+        local targets = T(bp.__mobs.withName(name)):map(function(mob) return mob.index end)
+        local catch = {}
+
+        events.catch = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
+        
+            if id == 0x00e then
+                local parsed = bp.packets.parse('incoming', original)
+
+                if parsed and targets:contains(parsed['Index']) then
+                    table.insert(catch, {index=parsed['Index'], x=parsed['X'], y=parsed['Y'], z=parsed['Z']})
+                end
+
+            end
+
+        end)
+
+        for index in targets:it() do
+            bp.__mobs.ping(index)
+        end
+
+        coroutine.schedule(function()
+            windower.unregister_event(events.catch)
+            events.catch = nil
+            
+            if callback and type(callback) == 'function' then
+                callback(table.sort(catch, function(a, b) return bp.__distance.get(a) < bp.__distance.get(b) end)[1])
+            end
+
+        end, 1)
+
+    end
+
     self.find = function(value, valid)
         local mob = bp.__target.get(value)
 
-        for m in T(mobs):it() do    
-                
+        for m in T(mobs):it() do
+
             if mob and (valid and mob.valid_target or not valid) and mob.name == m.name then
                 return mob
+            
+            elseif not mob and not valid and value then
+
+                if tonumber(value) == nil and m.name:lower():startswith(value:lower()) then
+                    return m
+
+                elseif (value == m.index or value == m.id) then
+                    return m
+
+                end
+
             end
 
         end
@@ -77,7 +135,7 @@ function library:new(bp)
 
             if mob and (valid and mob.valid_target or not valid) then
 
-                if bp.__distance.get(mob) <= distance or 7 then
+                if bp.__distance.get(mob) <= (distance or 7) then
                     table.insert(found, {name=mob.name, id=mob.id, index=mob.index, status=mob.status, x=mob.x, y=mob.y, z=mob.z, distance=bp.__distance.get(mob)})
                 end
 
@@ -90,11 +148,12 @@ function library:new(bp)
 
     self.inArrayByList = function(list, distance, height)
         if not list then return end
+        local distance = (distance or 150)
         local m = T{}
 
         for mob in T(windower.ffxi.get_mob_array()):it() do -- ADD HEIGHT CHECK!!!
 
-            if bp.__distance.get(mob) <= distance or 150 and bp.__target.canEngage(mob) and S(list):contains(mob.name) then
+            if mob.valid_target and bp.__distance.get(mob) <= distance and (not height or bp.__distance.height(mob) <= height) and mob.name ~= "" and T(list):contains(mob.name) then
                 m:insert(mob)
             end
 
@@ -113,7 +172,7 @@ function library:new(bp)
     end
 
     -- Private Events.
-    windower.register_event('load','login','zone change', updateMobs)
+    windower.register_event('load','login','zone change', pm.updateMobs)
     windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
         
         if id == 0x00e then

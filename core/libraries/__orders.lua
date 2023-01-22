@@ -1,12 +1,13 @@
 local library = {}
 function library:new(bp)
     local bp = bp
+    local pm = {}
 
     -- Private Variables.
-    local methods   = {}
+    local __stagger = 0.75
 
     -- Private Methods.
-    methods.deliver = function(order)
+    pm.deliver = function(order)
 
         if order and order.player then
             windower.send_command(windower.convert_auto_trans(order.player))
@@ -18,7 +19,7 @@ function library:new(bp)
 
     end
 
-    methods['@'] = function(orders)
+    pm['@'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -33,11 +34,31 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['@*'] = function(orders)
+    pm['@@'] = function(orders)
+        local order = {player=false, others={}}
+        local delay = 0
+    
+        for account in bp.accounts:it() do
+
+            if account == bp.player.name then
+                order.player = string.format('wait %s; %s', delay, orders)
+    
+            else
+                table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
+                delay = (delay + __stagger)
+
+            end
+    
+        end
+        pm.deliver(order)
+    
+    end
+
+    pm['@*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -48,11 +69,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['@@*'] = function(orders)
+    pm['@@*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -60,16 +81,16 @@ function library:new(bp)
     
             if account ~= bp.player.name then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['r'] = function(orders)
+    pm['r'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -85,11 +106,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['rr'] = function(orders)
+    pm['rr'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -98,20 +119,20 @@ function library:new(bp)
     
             if account == bp.player.name then
                 order.player = string.format('wait %s; %s', delay, orders)
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             elseif target and bp.__distance.get(target) < 25 then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['r*'] = function(orders)
+    pm['r*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -123,11 +144,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['rr*'] = function(orders)
+    pm['rr*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -136,16 +157,16 @@ function library:new(bp)
     
             if target and account ~= bp.player.name and bp.__distance.get(target) < 25 then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['p'] = function(orders)
+    pm['p'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -160,11 +181,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['pp'] = function(orders)
+    pm['pp'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -172,21 +193,21 @@ function library:new(bp)
     
             if account == bp.player.name then
                 order.player = string.format('wait %s; %s', delay, orders)
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
     
             elseif bp.__party.isMember(account) then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['p*'] = function(orders)
+    pm['p*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -197,11 +218,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['pp*'] = function(orders)
+    pm['pp*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -209,16 +230,16 @@ function library:new(bp)
     
             if account ~= bp.player.name and bp.__party.isMember(account) then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['z'] = function(orders)
+    pm['z'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -233,11 +254,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
     
-    methods['zz'] = function(orders)
+    pm['zz'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -245,20 +266,20 @@ function library:new(bp)
     
             if account == bp.player.name then
                 order.player = string.format('wait %s; %s', delay, orders)
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             elseif account ~= bp.player.name and bp.__party.isInZone(account) then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
     
-    methods['z*'] = function(orders)
+    pm['z*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -269,11 +290,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
     
-    methods['zz*'] = function(orders)
+    pm['zz*'] = function(orders)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -281,16 +302,16 @@ function library:new(bp)
     
             if account ~= player.name and bp.__party.isInZone(account) then
                 table.insert(order.others, string.format('||%s wait %s; %s', account, delay, orders))
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    methods['j'] = function(orders, job)
+    pm['j'] = function(orders, job)
         local order = {player=false, others={}}
         local delay = 0
         
@@ -309,11 +330,11 @@ function library:new(bp)
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
     
-    methods['jj'] = function(orders, job)
+    pm['jj'] = function(orders, job)
         local order = {player=false, others={}}
         local delay = 0
     
@@ -321,25 +342,25 @@ function library:new(bp)
     
             if account == bp.player.name and bp.player.main_job:lower() == job then
                 order.player = string.format('wait %s; %s', delay, orders)
-                delay = (delay + stagger)
+                delay = (delay + __stagger)
     
             elseif account ~= bp.player.name then
                 local member = bp.__party.findMember(account)
 
                 if member then
                     table.insert(order.others, string.format('||%s:%s wait %s; %s', account, job, delay, orders))
-                    delay = (delay + stagger)
+                    delay = (delay + __stagger)
 
                 end
     
             end
     
         end
-        methods.deliver(order)
+        pm.deliver(order)
     
     end
 
-    -- Public Methods.
+    -- Public pm.
     self.deliver = function(t, order) windower.send_command(string.format("bp ord %s %s", t, order)) end
 
     -- Private Events.
@@ -347,14 +368,14 @@ function library:new(bp)
         local commands  = T{...}
         local command   = table.remove(commands, 1)
     
-        if bp and command and S{'ord','orders'}:contains(command:lower()) then
+        if bp and command and T{'ord','orders'}:contains(command:lower()) then
             local command = commands[1] and table.remove(commands, 1):lower() or false
 
             if #command >= 3 and S{'war','mnk','whm','blm','rdm','thf','pld','drk','bst','brd','rng','smn','sam','nin','drg','blu','cor','pup','dnc','sch','geo','run'}:contains(command:sub(1, 3)) then
-                methods[(command:sub(#command, #command) == '*') and 'jj' or 'j'](table.concat(commands, ' '), command:sub(1, 3))
+                pm[(command:sub(#command, #command) == '*') and 'jj' or 'j'](table.concat(commands, ' '), command:sub(1, 3))
 
-            elseif methods[command] then
-                methods[command](table.concat(commands, ' '))
+            elseif pm[command] then
+                pm[command](table.concat(commands, ' '))
 
             end
 
@@ -363,11 +384,11 @@ function library:new(bp)
     end)
 
     windower.register_event('ipc message', function(message)
-    
+
         if bp and bp.player and message then
 
             for order in T(message:split('||')):it() do
-                
+
                 if order:sub(1, (#bp.player.name)) == bp.player.name then
                     
                     if order:sub((#bp.player.name) + 1, (#bp.player.name) + 1) == ':' then

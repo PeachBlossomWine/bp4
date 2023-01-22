@@ -19,7 +19,7 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        pvt.save = function()
+        pvt.save = function(name)
             if (not bp or __flags.busy or not name) then return end
             local name = name:lower()
 

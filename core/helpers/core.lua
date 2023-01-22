@@ -41,7 +41,7 @@ local buildHelper = function(bp, hmt)
                     new.available      = bp.__actions.isAvailable
                     new.priority       = bp.helpers.priorities.get
 
-                end, 1)
+                end, 2)
             
             end
 
