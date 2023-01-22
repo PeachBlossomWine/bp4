@@ -92,12 +92,12 @@ local buildHelper = function(bp, hmt)
                         end
 
                     else
-                        local weapon = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
+                        local index, count, id, status, bag, resource = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
                         
-                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
-                            bp.core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
+                        if index and resource and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(resource.en) then
+                            bp.core.add(bp.__aftermath.weaponskill(resource.en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[id].en)))
 
-                        elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
+                        elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(resource.en) then
 
                             if bp.core.vitals.tp >= settings.ws.tp then
                                 bp.core.add(settings.ws.name, target, bp.core.priority(settings.ws.name))
@@ -126,12 +126,12 @@ local buildHelper = function(bp, hmt)
                         end
 
                     else
-                        local weapon = bp.__inventory.getByIndex(bp.__equipment.get(2).bag, bp.__equipment.get(2).index)
+                        local index, count, id, status, bag, resource = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
 
-                        if weapon and bp.res.items[weapon.id] and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
-                            bp.core.add(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
+                        if index and resource and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(resource.en) then
+                            bp.core.add(bp.__aftermath.weaponskill(resource.en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
 
-                        elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(bp.res.items[weapon.id].en) then
+                        elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(resource.en) then
 
                             if bp.core.vitals.tp >= settings.rws.tp then
                                 bp.core.add(settings.rws.name, target, bp.core.priority(settings.rws.name))
