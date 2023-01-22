@@ -94,7 +94,7 @@ function job:init(bp, settings, __getsub)
                 end
 
                 -- DEVOTION.
-                if settings.devotion and saettings.devotion.enabled and bp.core.ready("Devotion") then
+                if settings.devotion and settings.devotion.enabled and bp.core.ready("Devotion") then
                     local target, mpp = bp.core.getTarget(settings.devotion.enabled), settings.devotion.mpp
 
                     if target and bp.core.vitals.hpp >= 50 and target.mpp <= mpp and bp.__party.isMember(target) then
@@ -291,7 +291,7 @@ function job:init(bp, settings, __getsub)
                 end
 
                 -- DEVOTION.
-                if settings.devotion and saettings.devotion.enabled and bp.core.ready("Devotion") then
+                if settings.devotion and settings.devotion.enabled and bp.core.ready("Devotion") then
                     local target, mpp = bp.core.getTarget(settings.devotion.enabled), settings.devotion.mpp
 
                     if target and bp.core.vitals.hpp >= 50 and target.mpp <= mpp and bp.__party.isMember(target) then
