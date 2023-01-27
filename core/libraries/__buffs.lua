@@ -307,7 +307,7 @@ function library:new(bp)
 
         if bp and bp.player then
 
-            for buff in T(bp.player.buffs) do
+            for buff in T(bp.player.buffs):it() do
 
                 if v == 381 then
                     return 1
