@@ -31,53 +31,57 @@ local buildHelper = function(bp, hmt)
                 if bp and bp.player and __queue:length() > 0 then
 
                     for q, index in __queue:it() do
-                        local colors    = {english='0,153,204', attempts='255,255,255', name='102,225,051', cost='50,180,120'}
-                        local attempts  = q.attempts
-                        local english   = #q.action.en > 15 and string.format("%s...", q.action.en:sub(1,15)) or q.action.en
-                        local name      = #q.target.name > 15 and string.format("%s...", q.target.name:sub(1,15)) or q.target.name
-                        local cost      = 0
 
-                        if S{'/magic','/ninjutsu','/song'}:contains(q.action.prefix) then
-                            cost = q.action.mp_cost
+                        if q.attempts and q.action and q.target then
+                            local colors    = {english='0,153,204', attempts='255,255,255', name='102,225,051', cost='50,180,120'}
+                            local attempts  = q.attempts
+                            local english   = #q.action.en > 15 and string.format("%s...", q.action.en:sub(1,15)) or q.action.en
+                            local name      = #q.target.name > 15 and string.format("%s...", q.target.name:sub(1,15)) or q.target.name
+                            local cost      = 0
 
-                        elseif S{'/jobability','/pet'}:contains(q.action.prefix) then
-                            cost = q.action.tp_cost >= q.action.mp_cost and q.action.tp_cost or q.action.mp_cost
+                            if S{'/magic','/ninjutsu','/song'}:contains(q.action.prefix) then
+                                cost = q.action.mp_cost
 
-                        end
+                            elseif S{'/jobability','/pet'}:contains(q.action.prefix) then
+                                cost = q.action.tp_cost >= q.action.mp_cost and q.action.tp_cost or q.action.mp_cost
 
-                        if index <= settings.max then
+                            end
 
-                            if index == 1 then
-                                table.insert(update, string.format("\n%s[ ACTION QUEUE (%05.2f) ]%s\n", (''):lpad(' ', 25), __ready, (''):rpad(' ', 25)))
-                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s►%s\\cs(%s)%s\\cr",
-                                    (''):lpad(' ', 5),
-                                    colors.attempts,
-                                    attempts,
-                                    colors.cost,
-                                    cost,
-                                    colors.english,
-                                    english,
-                                    (''):rpad('-', 25-english:len()),
-                                    (''):rpad(' ', 2),
-                                    colors.name,
-                                    name
-                                ))
+                            if index <= settings.max then
 
-                            else
-                                table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s %s\\cs(%s)%s\\cr",
-                                    (''):lpad(' ', 5),
-                                    colors.attempts,
-                                    attempts,
-                                    colors.cost,
-                                    cost,
-                                    colors.english,
-                                    english,
-                                    (''):rpad(' ', 25-english:len()),
-                                    (''):rpad(' ', 2),
-                                    colors.name,
-                                    name
+                                if index == 1 then
+                                    table.insert(update, string.format("\n%s[ ACTION QUEUE (%05.2f) ]%s\n", (''):lpad(' ', 25), __ready, (''):rpad(' ', 25)))
+                                    table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s►%s\\cs(%s)%s\\cr",
+                                        (''):lpad(' ', 5),
+                                        colors.attempts,
+                                        attempts,
+                                        colors.cost,
+                                        cost,
+                                        colors.english,
+                                        english,
+                                        (''):rpad('-', 25-english:len()),
+                                        (''):rpad(' ', 2),
+                                        colors.name,
+                                        name
+                                    ))
 
-                                ))
+                                else
+                                    table.insert(update, string.format("%s<\\cs(%s)%02d\\cr> [ \\cs(%s)%03d\\cr ] \\cs(%s)%s \\cr%s %s\\cs(%s)%s\\cr",
+                                        (''):lpad(' ', 5),
+                                        colors.attempts,
+                                        attempts,
+                                        colors.cost,
+                                        cost,
+                                        colors.english,
+                                        english,
+                                        (''):rpad(' ', 25-english:len()),
+                                        (''):rpad(' ', 2),
+                                        colors.name,
+                                        name
+
+                                    ))
+
+                                end
 
                             end
 
