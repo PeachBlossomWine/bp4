@@ -7,13 +7,26 @@ function library:new(bp)
     local equipment = T{}
 
     -- Private Methods.
-    pm.update = function(id, original)
+    pm.outgoingUpdate = function(id, original)
         
         if id == 0x050 then
             local parsed = bp.packets.parse('outgoing', original)
 
             if parsed then
                 equipment[parsed['Equip Slot']] = {index=parsed['Item Index'], slot=parsed['Equip Slot'], bag=parsed['Bag']}
+            end
+
+        end
+
+    end
+
+    pm.incomingUpdate = function(id, original)
+        
+        if id == 0x050 then
+            local parsed = bp.packets.parse('incoming', original)
+
+            if parsed then
+                equipment[parsed['Equipment Slot']] = {index=parsed['Inventory Index'], slot=parsed['Equipment Slot'], bag=parsed['Inventory Bag']}
             end
 
         end
@@ -43,7 +56,8 @@ function library:new(bp)
     self.get = function(slot) return slot and equipment[slot] or equipment end
 
     -- Private Events.
-    windower.register_event('outgoing chunk', pm.update)
+    windower.register_event('outgoing chunk', pm.outgoingUpdate)
+    windower.register_event('incoming chunk', pm.incomingUpdate)
 
     return self
 
