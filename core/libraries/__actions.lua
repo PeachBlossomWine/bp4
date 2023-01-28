@@ -89,6 +89,25 @@ function library:new(bp)
 
     end
 
+    pm.block = function(_, act)
+        if act.category ~= 11 or not self.knockback then
+            return
+        end
+
+        for x = 1, act.target_count do
+
+            for n = 1, act.targets[x].action_count do
+                act.targets[x].actions[n].stagger = 0
+                act.targets[x].actions[n].knockback = 0
+
+            end
+
+        end
+        return act
+
+    end
+    ActionPacket.open_listener(pm.block)
+
     -- Public Functions.
     self.isMoving = function() return __moving end
 
@@ -880,19 +899,6 @@ function library:new(bp)
 
                 elseif category == 4 then
                     __anchor.__set, __anchor.__midcast = false, false
-
-                elseif category == 11 and self.knockback then
-
-                    for i=1, parsed['Target Count'] do
-
-                        for n=1, parsed[string.format("Target %s Action Count", i)] do
-                            parsed[string.format("Target %s Action %s Stagger", i, n)] = 0
-                            parsed[string.format("Target %s Action %s Knockback", i, n)] = 0
-
-                        end
-
-                    end
-                    return bp.packets.build(parsed)
 
                 end
 
