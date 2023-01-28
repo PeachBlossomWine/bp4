@@ -24,7 +24,7 @@ function library:new(bp)
     -- Private Methods.
     pm.handle = function(id, original)
         
-        if bp and id == 0x028 and bp.core.get('status') then
+        if bp and id == 0x028 and bp.core and bp.core.get('status') then
             local parsed    = bp.packets.parse('incoming', original)
             local actor     = windower.ffxi.get_mob_by_id(parsed['Actor'])
             local target    = windower.ffxi.get_mob_by_id(parsed['Target 1 ID'])
