@@ -40,12 +40,12 @@ local start = function()
         {'dring',       "bp dring"},
         {'hring',       "bp hring"},
         {'mring',       "bp mring"},
-        {'wrings',      "ord p bp wring"},
-        {'drings',      "ord p bp dring"},
-        {'hrings',      "ord p bp hring"},
-        {'mrings',      "ord p bp mring"},
+        {'wrings',      "bp ord p bp wring"},
+        {'drings',      "bp ord p bp dring"},
+        {'hrings',      "bp ord p bp hring"},
+        {'mrings',      "bp ord p bp mring"},
 
     })
 
 end
-start:schedule(0.75)
+start:schedule(1)
