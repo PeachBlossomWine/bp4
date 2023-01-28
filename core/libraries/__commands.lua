@@ -4,6 +4,12 @@ function library:new(bp)
     local pm = {}
 
     -- Private Methods.
+    pm['memory'] = function()
+        bp.memory = bp.memory ~= true and true or false
+        bp.popchat.pop(string.format('WATCH MEMORY: %s', tostring(bp.memory):upper()))
+
+    end
+
     pm['wring'] = function()
         bp.__actions.castItem("Warp Ring", 13)
         bp.popchat.pop("ATTEMPTING TO USE WARP RING...")
