@@ -56,9 +56,9 @@ switches['ws'] = function(bp, setting, commands)
 
             for i=1, #commands do
 
-                if id1 and id2 and skill then
-                    local options1 = bp.res.items[id1] and bp.res.items[id1].skill and T(bp.res.weapon_skills:skill(bp.res.items[id1].skill)):map(function(r) return r.en end) or T{}
-                    local options2 = bp.res.items[id2] and bp.res.items[id2].skill and T(bp.res.weapon_skills:skill(bp.res.items[id2].skill)):map(function(r) return r.en end) or T{}
+                if skill then
+                    local options1 = id1 and bp.res.items[id1] and bp.res.items[id1].skill and T(bp.res.weapon_skills:skill(bp.res.items[id1].skill)):map(function(r) return r.en end) or T{}
+                    local options2 = id2 and bp.res.items[id2] and bp.res.items[id2].skill and T(bp.res.weapon_skills:skill(bp.res.items[id2].skill)):map(function(r) return r.en end) or T{}
 
                     if options1 and options2 then
                         local options = options1:update(options2)
