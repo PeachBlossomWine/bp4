@@ -1,6 +1,5 @@
 local manager = dofile(string.format("%score/manager.lua", windower.addon_path))
 local bootstrap, mt = {}, {}
---local __bp = assert(package.loadlib(string.format("%s__buddypal.dll", windower.addon_path):gsub('\\', '/'), "luaopen_Buddypal"))()
 
 mt.__index = function(t, key)
     
@@ -16,6 +15,9 @@ end
 
 setmetatable(bootstrap, mt)
 function bootstrap:new()
+
+    -- Initialization functions.
+    local init = {}
 
     -- Class resources.
     self.res            = require('resources')
@@ -46,6 +48,7 @@ function bootstrap:new()
     self.delay          = 0.25
     self.enabled        = false
     self.authorized     = false
+    self.memory         = false
 
     -- Class Objects.
     self.helpers        = manager:new(self)
@@ -140,7 +143,7 @@ function bootstrap:new()
     end
 
     -- Setup all the libraries before building helpers.
-    local loadLibraries = function()
+    init.loadLibraries = function()
         local directory = string.format('"%s%s"', windower.addon_path, 'core/libraries/')
 
         for filename in io.popen(string.format('dir %s /b', directory)):lines() do 
@@ -164,12 +167,12 @@ function bootstrap:new()
             end
 
         end
+        init.loadHelpers()
 
     end
-    loadLibraries:schedule(0)
 
     -- Setup all the helper classes.
-    local loadHelpers = function()
+    init.loadHelpers = function()
         local directory = string.format('"%s%s"', windower.addon_path, 'core/helpers/')
 
         for filename in io.popen(string.format('dir %s /b', directory)):lines() do 
@@ -192,10 +195,10 @@ function bootstrap:new()
 
         -- Load user built libraries & helpers.
         self.usettings.loadLibraries:schedule(0.2)
-        self.usettings.loadHelpers:schedule(0.3)
+        self.usettings.loadHelpers:schedule(0.4)
 
     end
-    loadHelpers:schedule(0.1)
+    init.loadLibraries()
 
     -- Send helper data to client.
     self.helpers.updateSettings:schedule(5)
@@ -221,6 +224,7 @@ function bootstrap:new()
             self.pinger = os.clock()
             
         end
+        if self.memory then windower.send_command('lua memory bp4') end
 
     end)
 
