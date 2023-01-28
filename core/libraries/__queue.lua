@@ -101,7 +101,7 @@ function library:new(bp)
             local target = bp.__target.get(target)
             local vitals = bp.player['vitals']
             
-            if target and T{0,1}:contains(bp.player.status) and not bp.__buffs.silent() then
+            if target and action and T{0,1}:contains(bp.player.status) and not bp.__buffs.silent() then
                 local range     = bp.__queue.getRange(action)
                 local distance  = bp.__distance.get(target)
 
