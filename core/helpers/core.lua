@@ -212,9 +212,9 @@ local buildHelper = function(bp, hmt)
             local ammo = bp.__equipment.get(3)
 
             if bp.core.get('ra') and ranged and ammo and ranged.index > 0 and target then
-                local ranged = bp.__inventory.getByIndex(ranged.bag, ranged.index)
+                local index, count, id, status, bag, resource = bp.__inventory.getByIndex(ranged.bag, ranged.index)
                 
-                if ranged and bp.res.items[ranged.id] and T{25,26}:contains(bp.res.items[ranged.id].skill) and new.ready({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}) then
+                if resource and bp.res.items[id] and T{25,26}:contains(resource.skill) and new.ready({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}) then
                     bp.core.add({id=65536, en='Ranged', element=-1, prefix='/ra', type='Ranged', range=13, cast_delay=2}, target, 1)
                 end
 
