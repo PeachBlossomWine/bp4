@@ -49,12 +49,12 @@ local buildHelper = function(bp, hmt)
         pvt.updateDisplay = function(id)
             local update = {}
 
-            if id and id ~= 309 and bp.res.buffs[id] and bp.__rolls.list:contains(bp.res.buffs[id].en) then
+            if id and id ~= 309 and bp.res.buffs[id] and bp.core.get('rolls') and bp.core.get('rolls').list and bp.__rolls.list:contains(bp.res.buffs[id].en) then
 
-                if bp.core.get('rolls').list[1] == bp.res.buffs[id].en then
+                if bp.core.get('rolls').list[1] and bp.core.get('rolls').list[1] == bp.res.buffs[id].en then
                     __rolls[1] = 0
 
-                elseif bp.core.get('rolls').list[2] == bp.res.buffs[id].en then
+                elseif bp.core.get('rolls').list[2] and bp.core.get('rolls').list[2] == bp.res.buffs[id].en then
                     __rolls[2] = 0
 
                 end
