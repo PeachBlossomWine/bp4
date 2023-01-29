@@ -54,6 +54,30 @@ function library:new(bp)
 
     end
 
+    -- Private Methods.
+    pm.handleRecast = function(id, original)
+
+        if id == 0x028 and bp.core and bp.core.get('bubbles') and bp.core.get('bubbles').list then
+            local parsed = bp.packets.parse('incoming', original)
+
+            if parsed and parsed['Category'] == 4 then
+                local indicolure = bp.core.get('bubbles').list[1]
+                local geocolure = bp.core.get('bubbles').list[2]
+
+                if bp.res.spells[parsed['Param']].en == indicolure then
+                    __indirecast = false
+
+                elseif bp.res.spells[parsed['Param']].en == geocolure then
+                    __georecast = false
+
+                end
+
+            end
+
+        end
+
+    end
+
     -- Public Methods.
     self.active = function(id) return bp.__buffs and bp.__buffs.hasAura(id) or T{} end
     self.isGeocolure = function(name) return name and name:startswith("Geo-") or false end
@@ -71,6 +95,9 @@ function library:new(bp)
         end
 
     end
+
+    -- Private Events.
+    windower.register_event('incoming chunk', pm.handleRecast)
 
     return self
 
