@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local settings  = bp.__settings.new('init')
+    local settings  = bp.__settings.new('init', true)
 
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
@@ -45,18 +45,17 @@ local buildHelper = function(bp, hmt)
             settings.aliases    = settings.aliases or default_aliases
             settings.binds      = settings.binds or default_binds
 
+            do -- Initialize settings.
+                bp.accounts = T(settings.accounts)
+                bp.__keybinds.register(settings.binds)
+                bp.__alias.register(settings.aliases)
+
+            end
+
         end
 
         -- Save after all settings have been initialized.
-        settings:save()
-
-        -- All functions reegistered locally.
-        do
-            bp.accounts = T(settings.accounts)
-            bp.__keybinds.register(settings.binds)
-            bp.__alias.register(settings.aliases)
-
-        end
+        if settings.isNew() then settings:save() end
 
         return new
 
