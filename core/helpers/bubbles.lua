@@ -94,8 +94,6 @@ local buildHelper = function(bp, hmt)
         end
         
         -- Private Events.
-        helper('incoming chunk', pvt.handleRecast)
-        helper('outgoing chunk', pvt.cast)
         helper('prerender', pvt.render)
         helper('addon command', function(...)
             local commands  = T{...}
