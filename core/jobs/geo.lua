@@ -431,56 +431,60 @@ function job:init(bp, settings, __getsub)
 
                     if bp.core.canCast() then
 
-                        -- INDICOLURE BUFFS.
-                        if settings.indicolure and bp.core.ready(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
-                            bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
+                        if settings.bubbles and settings.bubbles.enabled then
 
-                        -- GEOCOLURE BUFFS.
-                        elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
-                            local spell = bp.MA[geocolure]
+                            -- INDICOLURE BUFFS.
+                            if settings.indicolure and bp.core.ready(indicolure) and bp.MA[indicolure] and (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
+                                bp.core.add(indicolure, bp.player, bp.core.priority(indicolure))
 
-                            if spell then
-                                local targets = T(spell.targets) 
+                            -- GEOCOLURE BUFFS.
+                            elseif settings.geocolure and bp.core.isReady(geocolure) and not bp.core.inQueue(geocolure) and (not pet or bp.__bubbles.geoRecast()) and target then
+                                local spell = bp.MA[geocolure]
 
-                                if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
+                                if spell then
+                                    local targets = T(spell.targets)
 
-                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
-                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
+                                    if targets:contains('Party') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
+
+                                        if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                            bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
+                                        end
+                                        bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
+
+                                    elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
+
+                                        if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                            bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
+                                        end
+                                        bp.core.add(geocolure, target, bp.core.priority(geocolure))
+
+                                    elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
+
+                                        if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                            bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
+                                        end
+                                        bp.core.add(geocolure, target, bp.core.priority(geocolure))
+
+                                    elseif targets:contains('Self') then
+
+                                        if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
+                                            bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
+                                        end
+                                        bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
+
                                     end
-                                    bp.core.add(geocolure, bp.__party.isMember(bp.bubbles.geocolureTarget()), bp.core.priority(geocolure))
-
-                                elseif targets:contains('Enemy') and bp.__target.isEnemy(target) then
-
-                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
-                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
-                                    end
-                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
-
-                                elseif targets:contains('Enemy') and bp.__party.isMember(bp.bubbles.geocolureTarget()) then
-
-                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
-                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
-                                    end
-                                    bp.core.add(geocolure, target, bp.core.priority(geocolure))
-
-                                elseif targets:contains('Self') then
-
-                                    if not pet and settings.ja and settings['blaze of glory'] and bp.core.isReady("Blaze of Glory") and not bp.core.searchQueue({"Bolster","Blaze of Glory"}) and not bp.core.buff({513,569}) and (not settings['1hr'] or settings['1hr'] and not bp.core.isReady("Bolster")) and bp.core.canAct() then
-                                        bp.core.add("Blaze of Glory", bp.player, bp.core.priority("Blaze of Glory"))
-                                    end
-                                    bp.core.add(geocolure, bp.player, bp.core.priority(geocolure))
 
                                 end
 
-                            end
+                            -- ENTRUST BUFFS.
+                            elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
+                                local member = bp.__party.isMember(bp.bubbles.entrustTarget())
 
-                        -- ENTRUST BUFFS.
-                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
-                            local member = bp.__party.isMember(bp.bubbles.entrustTarget())
+                                if spell and member and not bp.core.hasBuff(612, member.id) then
+                                    bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+                                    bp.core.add(entrust, member, bp.core.priority(entrust))
 
-                            if spell and member and not bp.core.hasBuff(612, member.id) then
-                                bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
-                                bp.core.add(entrust, member, bp.core.priority(entrust))
+                                end
 
                             end
 
