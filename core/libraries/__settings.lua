@@ -2,13 +2,21 @@ local library = {}
 function library:new(bp)
     local bp = bp
 
-    self.new = function(setting)
-        local settings, mt = {}, {}
+    self.new = function(setting, global)
+        local settings, mt, __file = {}, {}, nil
+
+        if global then
+            __file = string.format('core/settings/%s.lua', setting:lower())
+
+        else
+            __file = string.format('core/settings/%s/%s.lua', bp.player.name:lower(), setting:lower())
+
+        end
 
         -- Private Object Variables.
         local name = setting
-        local file = bp.files.new(string.format('core/settings/%s/%s.lua', bp.player.name:lower(), setting:lower()))
-        local data = file and file:exists() and dofile(string.format('%score/settings/%s/%s.lua', windower.addon_path, bp.player.name:lower(), setting:lower())) or {}
+        local file = bp.files.new(__file)
+        local data = file and file:exists() and dofile(string.format('%s%s', windower.addon_path, __file)) or {}
 
         -- Public Object Variables.
         settings.display    = false
