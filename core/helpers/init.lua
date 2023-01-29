@@ -55,7 +55,7 @@ local buildHelper = function(bp, hmt)
         end
 
         -- Save after all settings have been initialized.
-        if settings.isNew() then settings:save() end
+        if settings.isNew then settings:save() end
 
         return new
 
