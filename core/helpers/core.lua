@@ -57,6 +57,11 @@ local buildHelper = function(bp, hmt)
             if bp.player.status == 1 or (bp.player.status == 0 and target) then
                 local target = (bp.player.status == 1) and windower.ffxi.get_mob_by_target('t') or target or false
 
+                -- Handle Skillchains helper if accessible.
+                if bp.skillchains and bp.skillchains.isBusy() then
+                    return
+                end
+
                 -- Handle HP% Limiting weapon skills.
                 if settings.limit and settings.limit.enabled then
 
