@@ -225,7 +225,7 @@ local buildHelper = function(bp, hmt)
                     -- Buff songs.
                     if bp.core.get("ja") and bp.__songs.nitroReady() then
                         pvt.pushSVCC()
-                        pvt.pushNitro()        
+                        pvt.pushNitro()
                     end
 
                     -- Loop through build list and queue actions.
