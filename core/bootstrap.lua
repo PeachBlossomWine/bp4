@@ -66,6 +66,7 @@ function bootstrap:new()
         on          = string.format('%s,%s,%s', 020, 250, 020),
         off         = string.format('%s,%s,%s', 090, 090, 090),
         teal        = string.format('%s,%s,%s', 050, 160, 160),
+        red         = string.format('%s,%s,%s', 227, 041, 041),
 
     }
 
