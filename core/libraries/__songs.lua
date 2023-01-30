@@ -71,36 +71,13 @@ function library:new(bp)
     -- Public Variables.
     self.list = T(bp.res.spells):map(function(spell) return spell.type == "BardSong" and spell.en or nil end)
 
-    -- Private Methods.
-
     -- Public Methods.
     self.getComplex = function() return T(__complex):copy() end
     self.getSpecific = function(song) return __specific[song] end
     self.getDummies = function(mode) return __dummies[mode] end
-
-    self.nitroReady = function()
-        return (bp.__actions.isReady("Nightingale") and bp.__actions.isReady("Troubadour"))
-    end
-
-    self.svccReady = function()
-        return (bp.__actions.isReady("Soul Voice") and bp.__actions.isReady("Clarion Call"))
-    end
-
-    self.hasHonorMarch = function()
-        local bags = bp.__inventory.getBags('Everywhere', true)
-
-        for bag in bags:it() do
-            local match = T(bp.__inventory.findByName("Marsyas", bag.id))
-
-            if match and #match > 0 then
-                return match
-            end
-
-        end
-        return false
-
-    end
-
+    self.nitroReady = function() return (bp.__actions.isReady("Nightingale") and bp.__actions.isReady("Troubadour")) end
+    self.svccReady = function() return (bp.__actions.isReady("Soul Voice") and bp.__actions.isReady("Clarion Call")) end
+    self.hasHonorMarch = function() return bp.__inventory.canEquip("Marsyas") end
     self.getSongCount = function()
         local bags  = bp.__inventory.getBags('Everywhere', true)
         local items = T{}
@@ -134,8 +111,6 @@ function library:new(bp)
         return max
 
     end
-
-    -- Private Events.
 
     return self
 
