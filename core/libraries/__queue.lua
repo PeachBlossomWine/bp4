@@ -241,7 +241,7 @@ function library:new(bp)
                         end
 
                     elseif action.prefix == '/song' then
-                        print(action.en)
+                        pm.push(action, target, priority)
 
                     elseif action.prefix == '/trust' then
                         
@@ -283,7 +283,7 @@ function library:new(bp)
             local attempts  = __queue[1].attempts
             local vitals    = bp.player['vitals']
             
-            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish','Full Circle'}:contains(action.en)) then
+            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish','Full Circle','Deploy','Sic','Assault'}:contains(action.en)) then
                 local range     = bp.__queue.getRange(action)
                 local distance  = bp.__distance.get(target)
 
@@ -293,6 +293,7 @@ function library:new(bp)
                     if action.prefix == '/jobability' then
 
                         if action.en == 'Pianissimo' then
+                            pm.attempt(action.prefix, action, bp.player)
 
                         elseif S{'Full Circle','Ecliptic Attrition','Lasting Emanation','Radial Arcana','Mending Halation'}:contains(action.en) then
                             
@@ -411,6 +412,14 @@ function library:new(bp)
                         end
 
                     elseif action.prefix == '/song' then
+
+                        if attempts < 15 and (bp.__target.castable(target, action) or bp.__buffs.active(409)) then
+                            pm.attempt(action.prefix, action, target)
+
+                        else
+                            __queue:remove(1)
+
+                        end
 
                     end
 
