@@ -167,11 +167,13 @@ function job:init(bp, settings, __getsub)
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
-                            local member = bp.__party.isMember(bp.bubbles.entrustTarget())
-
-                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                        elseif settings.entrust and bp.core.canAct() and target then
+                            local member = bp.__party.getMember(bp.bubbles.entrustTarget())
+                            
+                            if bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) then
                                 bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+
+                            elseif entrust and member and bp.core.isReady(entrust) and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) and bp.__buffs.active(584) then
                                 bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
@@ -318,11 +320,13 @@ function job:init(bp, settings, __getsub)
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
-                            local member = bp.__party.isMember(bp.bubbles.entrustTarget())
-
-                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                        elseif settings.entrust and bp.core.canAct() and target then
+                            local member = bp.__party.getMember(bp.bubbles.entrustTarget())
+                            
+                            if bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) then
                                 bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+
+                            elseif entrust and member and bp.core.isReady(entrust) and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) and bp.__buffs.active(584) then
                                 bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
@@ -477,11 +481,13 @@ function job:init(bp, settings, __getsub)
                                 end
 
                             -- ENTRUST BUFFS.
-                            elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
-                                local member = bp.__party.isMember(bp.bubbles.entrustTarget())
-
-                                if spell and member and not bp.core.hasBuff(612, member.id) then
+                            elseif settings.entrust and bp.core.canAct() and target then
+                                local member = bp.__party.getMember(bp.bubbles.entrustTarget())
+                                
+                                if bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) then
                                     bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+
+                                elseif entrust and member and bp.core.isReady(entrust) and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) and bp.__buffs.active(584) then
                                     bp.core.add(entrust, member, bp.core.priority(entrust))
 
                                 end
@@ -630,11 +636,13 @@ function job:init(bp, settings, __getsub)
                             end
 
                         -- ENTRUST BUFFS.
-                        elseif settings.entrust and bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and bp.core.canAct() and target then
-                            local member = bp.__party.isMember(bp.bubbles.entrustTarget())
-
-                            if spell and member and not bp.core.hasBuff(612, member.id) then
+                        elseif settings.entrust and bp.core.canAct() and target then
+                            local member = bp.__party.getMember(bp.bubbles.entrustTarget())
+                            
+                            if bp.core.isReady("Entrust") and bp.core.isReady(entrust) and not bp.core.inQueue("Entrust") and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) then
                                 bp.core.add("Entrust", bp.player, bp.core.priority("Entrust"))
+
+                            elseif entrust and member and bp.core.isReady(entrust) and not bp.core.inQueue(entrust) and not bp.core.hasBuff(member.id, 612) and bp.__buffs.active(584) then
                                 bp.core.add(entrust, member, bp.core.priority(entrust))
 
                             end
