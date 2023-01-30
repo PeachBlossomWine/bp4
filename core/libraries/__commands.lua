@@ -11,21 +11,25 @@ function library:new(bp)
     end
 
     pm['wring'] = function()
+        bp.ping = (bp.pinger + 10)
         bp.__actions.castItem("Warp Ring", 13)
         bp.popchat.pop("ATTEMPTING TO USE WARP RING...")
     end
 
     pm['dring'] = function()
+        bp.ping = (bp.pinger + 10)
         bp.__actions.castItem("Dim. Ring (Dem)", 13)
         bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
     end
 
     pm['hring'] = function()
+        bp.ping = (bp.pinger + 10)
         bp.__actions.castItem("Dim. Ring (Holla)", 13)
         bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
     end
 
     pm['mring'] = function()
+        bp.ping = (bp.pinger + 10)
         bp.__actions.castItem("Dim. Ring (Mea)", 13)
         bp.popchat.pop("ATTEMPTING TO USE DIMENSIONAL RING...")
     end
@@ -33,7 +37,7 @@ function library:new(bp)
     pm['toggle'] = function()
         bp.enabled = bp.enabled ~= true and true or false
         bp.core.resetIdle()
-        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
         if not bp.enabled then
             bp.__queue.clear()
@@ -44,7 +48,7 @@ function library:new(bp)
     pm['on'] = function()
         bp.enabled = true
         bp.core.resetIdle()
-        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
 
@@ -52,7 +56,7 @@ function library:new(bp)
         bp.enabled = false
         bp.__queue.clear()
         bp.core.resetIdle()
-        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION ENABLED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
+        bp.popchat.pop(string.format('BUDDYPAL AUTOMATION: \\cs(%s)%s\\cr', bp.colors.setting, tostring(bp.enabled):upper()))
 
     end
 
