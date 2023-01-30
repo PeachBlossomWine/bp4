@@ -129,16 +129,16 @@ function library:new(bp)
     end
 
     self.findMember = function(player, alliance)
-        local player = bp.__target.get(player) and player.name or player
+        local player = bp.__target.get(player)
         
-        if bp and bp.party and player and type(player) == 'string' then
+        if bp and bp.party and player then
 
             for member, index in T(bp.party):it() do
 
-                if index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player:lower()) then
+                if index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player.name:lower()) then
                     return member
 
-                elseif alliance and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player:lower()) then
+                elseif alliance and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player.name:lower()) then
                     return member
 
                 end
