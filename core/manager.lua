@@ -4,7 +4,14 @@ function manager:new(bp)
     local mt = {}
 
     -- Private Variables.
-    local classes = {}
+    local classes   = {}
+    local status    = {
+
+        [0x01] = 'LOADING',
+        [0x02] = 'READY',
+        [0x03] = 'RELOADING',
+
+    }
 
     -- Private Methods.
     local getHelper = function(name) return classes and classes[name] and classes[name].helper or false end
@@ -52,26 +59,23 @@ function manager:new(bp)
 
     end
 
-    self.updateSettings = function()
-        local count = 1
+    self.getStatus = function(name)
+        local class = getClass(name)
 
-        if bp.__client and bp.__client.isConnected() then
-
-            for helper in self.active():it() do
-                local class = getClass(helper)
-
-                if class and class.updateClient then
-                    coroutine.schedule(function()
-                        class.updateClient(helper)
-
-                    end, (count * 0.25))
-                    count = (count + 1)
-
-                end
-                
-            end
-
+        if class and class.status then
+            return class.status
         end
+        return false
+
+    end
+
+    self.isReady = function(name)
+        local class = getClass(name)
+
+        if class and class.status and class.status == 0x02 then
+            return true
+        end
+        return false
 
     end
 
