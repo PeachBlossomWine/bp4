@@ -129,6 +129,7 @@ function library:new(bp)
     end
 
     self.findMember = function(player, alliance)
+        local player = bp.__target.get(player) and player.name or player
         
         if bp and bp.party and player and type(player) == 'string' then
 
