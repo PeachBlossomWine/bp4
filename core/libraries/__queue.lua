@@ -254,7 +254,7 @@ function library:new(bp)
                 -- WEAPON SKILLS.
                 elseif S{'/weaponskill'}:contains(action.prefix) then
 
-                    if vitals.tp >= 1000 and bp.__actions.isReady(action.en) and (distance - target.model_size) < range and not bp.__queue.inQueue(action, target) then
+                    if vitals.tp >= 1000 and bp.__actions.isReady(action.en) and (distance - target.model_size) < range and not bp.__queue.typeInQueue(action) then
                         pm.push(action, target, priority)
                     end
 
@@ -503,6 +503,27 @@ function library:new(bp)
 
     end
 
+    self.removeType = function(action)
+        local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
+
+        if bp and action and (action.prefix == '/weaponskill' or action.type) then
+
+            for act, index in __queue:it() do
+
+                if action.prefix == '/weaponskill' and act.action.prefix and act.action.prefix == action.prefix then
+                    __queue:remove(index)
+
+                elseif action.type and act.action.type and act.action.type == action.type then
+                    __queue:remove(index)
+
+                end
+
+            end
+
+        end
+
+    end
+
     self.inQueue = function(action, target)
         local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
 
@@ -538,12 +559,19 @@ function library:new(bp)
     self.typeInQueue = function(action)
         local action = type(action) == 'table' and action or bp.MA[action] or bp.JA[action] or bp.WS[action] or bp.IT[action] or false
 
-        if bp and action and __queue:length() > 0 and action.type then
+        if bp and action and __queue:length() > 0 and (action.type or action.prefix == '/weaponskill') then
 
             for act in __queue:it() do
 
-                if act.action.type == action.type then
+                if action.prefix and act.action.prefix and action.prefix == '/weaponskill' and act.action.prefix == '/weaponskill' then
                     return true
+
+                else
+
+                    if act.action.type == action.type then
+                        return true
+                    end
+
                 end
 
             end
