@@ -1,7 +1,7 @@
 local buildHelper = function(bp, hmt)
     local bp        = bp
     local helper    = setmetatable({events={}}, hmt)
-    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=true}, text={size=15, font='Segoe UI', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
+    local layout    = {pos={x=200, y=80}, bg={alpha=0, red=0, green=0, blue=0, visible=false}, flags={draggable=true, bold=true}, text={size=10, font='Segoe UI', alpha=255, red=245, green=200, blue=20, stroke={width=2, alpha=255, red=0, green=0, blue=0}}, padding=5}
     local settings  = bp.libs.__settings.new('bubbles')
 
     helper.new = function()
@@ -49,8 +49,8 @@ local buildHelper = function(bp, hmt)
 
                 do
                     updated[1] = string.format(" \\cs(%s)%s\\cr", itoggle and bp.colors.on or bp.colors.off, i)
-                    updated[3] = string.format(" \\cs(%s)%s → %s\\cr", gtoggle and bp.colors.on or bp.colors.off, g, __geocolure)
-                    updated[4] = string.format(" \\cs(%s)%s → %s\\cr", etoggle and bp.colors.on or bp.colors.off, e, __entrust)
+                    updated[3] = string.format(" \\cs(%s)%s\\cr → \\cs(%s)%s\\cr", gtoggle and bp.colors.on or bp.colors.off, g, bp.colors.setting, __geocolure or "")
+                    updated[4] = string.format(" \\cs(%s)%s\\cr → \\cs(%s)%s\\cr", etoggle and bp.colors.on or bp.colors.off, e, bp.colors.setting, __entrust or "")
 
                 end
                 settings.display:text(table.concat(updated, '\n'))
@@ -65,11 +65,19 @@ local buildHelper = function(bp, hmt)
         new.getEntrust = function() return bp.core.get('bubbles') and bp.core.get('bubbles').list[3] end
         new.entrustTarget = function(target)
             local target = bp.__party.findMember(target)
+            
+            if target then
 
-            if target and bp.player.name ~= target.name then
-                bp.popchat.pop(string.format("%s SET TO ENTRUST TARGET", target.name:upper()))
-                __entrust = target.name
-                return __entrust
+                if target and target.index ~= bp.player.index and bp.__party.isMember(target) then
+                    bp.popchat.pop(string.format("%s SET TO ENTRUST TARGET", target.name:upper()))
+                    __entrust = target.name
+                    return __entrust
+
+                elseif (target.index == bp.player.index or not bp.__party.isMember(target)) then
+                    __entrust = false
+                    return __entrust
+
+                end
 
             elseif not target then
                 return __entrust
@@ -110,11 +118,11 @@ local buildHelper = function(bp, hmt)
 
                 if command then
 
-                    if ("etarget"):startswith(command) and commands[1] then
-                        new.entrustTarget(commands[1])
+                    if ("etarget"):startswith(command) and (commands[1] or bp.__target.get('t')) then
+                        new.entrustTarget(commands[1] or bp.__target.get('t'))
 
-                    elseif ("gtarget"):startswith(command) and commands[1] then
-                        new.geocolureTarget(commands[1])
+                    elseif ("gtarget"):startswith(command) and (commands[1] or bp.__target.get('t')) then
+                        new.geocolureTarget(commands[1] or bp.__target.get('t'))
 
                     elseif ("visible"):startswith(command) then
                         settings.visible = (settings.visible ~= true) and true or false
