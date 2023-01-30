@@ -200,9 +200,6 @@ function bootstrap:new()
     end
     init.loadLibraries()
 
-    -- Send helper data to client.
-    self.helpers.updateSettings:schedule(5)
-
     -- Addon Events.
     windower.register_event('prerender', function()
         self.party  = windower.ffxi.get_party() or false
