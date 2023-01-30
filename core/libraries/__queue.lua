@@ -216,7 +216,7 @@ function library:new(bp)
 
                             elseif action.en:startswith("Indi-") then
 
-                                if (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
+                                if (bp.player.id == target.id and not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) or (bp.player.id ~= target.id and bp.__buffs.active(584) and not bp.core.hasBuff(target.id, 612) or bp.__bubbles.indiRecast()) then
                                     pm.push(action, target, priority)
                                 end
 
@@ -374,7 +374,7 @@ function library:new(bp)
 
                                 elseif action.en:startswith("Indi-") then
 
-                                    if (not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) then
+                                    if (bp.player.id == target.id and not bp.__buffs.active(612) or bp.__bubbles.indiRecast()) or (bp.player.id ~= target.id and bp.__buffs.active(584) and not bp.core.hasBuff(target.id, 612) or bp.__bubbles.indiRecast()) then
                                         pm.attempt(action.prefix, action, target)
 
                                     else
