@@ -3,12 +3,16 @@ local buildHelper = function(bp, hmt)
     local helper    = setmetatable({events={}}, hmt)
     local settings  = bp.__settings.new(string.format("jobs/%s", bp.player.main_job))
 
+    -- Helper Variables.
+    helper.status   = 0x01
+
     helper.new = function()
         local new = setmetatable({events={}}, hmt)
         local pvt = {}
 
         -- Private Variables.
-        local core = bp.__core.getJob(bp.player.main_job):init(bp, settings, true)
+        local core      = bp.__core.getJob(bp.player.main_job):init(bp, settings, true)
+        local __ready   = false
 
         do -- Private Settings.
             settings.core = T(settings.core) or bp.__core.newSettings()
@@ -40,6 +44,9 @@ local buildHelper = function(bp, hmt)
                     new.searchQueue    = bp.__queue.searchInQueue
                     new.available      = bp.__actions.isAvailable
                     new.priority       = bp.helpers.priorities.get
+
+                    -- Set the helper status to loaded.
+                    helper.status = 0x02
 
                 end, 2)
             
