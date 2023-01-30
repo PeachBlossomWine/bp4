@@ -45,7 +45,7 @@ function library:new(bp)
                     end
 
                 elseif not self.isConnected() and __flags.error then
-                    print(__flags.error)
+                    --print(__flags.error)
 
                 end
 
