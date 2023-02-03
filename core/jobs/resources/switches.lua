@@ -1273,10 +1273,10 @@ switches['rolls'] = function(bp, setting, commands)
 
             for roll in options:it() do
 
-                if (roll:lower():startswith(roll1) or bp.__rolls.getShort(roll1) == roll) then
+                if roll1 and (roll:lower():startswith(roll1) or bp.__rolls.getShort(roll1) == roll) and not T(setting.list):contains(roll) then
                     setting.list[1] = roll
 
-                elseif (roll:lower():startswith(roll2) or bp.__rolls.getShort(roll2) == roll) then
+                elseif roll2 and (roll:lower():startswith(roll2) or bp.__rolls.getShort(roll2) == roll) and not T(setting.list):contains(roll) then
                     setting.list[2] = roll
 
                 end
