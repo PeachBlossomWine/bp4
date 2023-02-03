@@ -10,7 +10,7 @@ function job:init(bp, settings, __getsub)
     self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
     self.__events   = {}
     self.__flags    = {}
-    self.__timers   = {hate=0, aoehate=0}
+    self.__timers   = {hate=0}
     self.__nukes    = T{}
 
     function self:useItems()
@@ -81,12 +81,36 @@ function job:init(bp, settings, __getsub)
     end
 
     function self:automate()
-        local spells = T(windower.ffxi.get_mjob_data().spells)
+        local spells = bp.__blu.getSpellSet()
         local target = bp.core.target()
 
         self:useItems()
         if bp.player.status == 1 then
             local target = bp.core.target() or windower.ffxi.get_mob_by_target('t') or false
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target and bp.core.canCast() then
+
+                if bp.__blu.hasHateSpells({"Blank Gaze"}) and bp.core.ready("Blank Gaze") then
+                    bp.core.add("Blank Gaze", target, bp.core.priority("Blank Gaze"))
+                    self.__timers.hate = os.clock()
+
+                elseif settings.hate.aoe and bp.__blu.hasHateSpells({"Geist Wall","Jettatura","Soporific","Sheep Song"}) then
+
+                    for spell in T{"Jettatura","Geist Wall","Soporific","Sheep Song"}:it() do
+
+                        if bp.core.ready(spell) then
+                            bp.core.add(spell, target, bp.core.priority(spell))
+                            self.__timers.hate = os.clock()
+                            break
+
+                        end
+
+                    end
+
+                end
+
+            end
 
             -- BUFFS.
             if settings.buffs then
@@ -131,6 +155,30 @@ function job:init(bp, settings, __getsub)
             self:castNukes(target)
 
         elseif bp.player.status == 0 then
+
+            -- HATE GENERATION.
+            if settings.hate and settings.hate.enabled and (os.clock()-self.__timers.hate) >= settings.hate.delay and target and bp.core.canCast() then
+
+                if bp.__blu.hasHateSpells({"Blank Gaze"}) and bp.core.ready("Blank Gaze") then
+                    bp.core.add("Blank Gaze", target, bp.core.priority("Blank Gaze"))
+                    self.__timers.hate = os.clock()
+
+                elseif settings.hate.aoe and bp.__blu.hasHateSpells({"Geist Wall","Jettatura","Soporific","Sheep Song"}) then
+
+                    for spell in T{"Jettatura","Geist Wall","Soporific","Sheep Song"}:it() do
+
+                        if bp.core.ready(spell) then
+                            bp.core.add(spell, target, bp.core.priority(spell))
+                            self.__timers.hate = os.clock()
+                            break
+
+                        end
+
+                    end
+
+                end
+
+            end
 
             -- BUFFS.
             if settings.buffs then
