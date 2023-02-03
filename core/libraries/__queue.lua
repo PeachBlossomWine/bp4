@@ -189,10 +189,13 @@ function library:new(bp)
                     elseif action.prefix == '/pet' then
                         
                         if action.type == 'Monster' then
-                            print(action.en)
+                            print('Monster actions not implemented!')
 
-                        elseif S{'BloodPactRage','BloodPactRage'}:contains(action.type) then
-                            print(action.en)
+                        elseif S{'BloodPactRage','BloodPactWard'}:contains(action.type) then
+
+                            if bp.__actions.isReady(action.en) and (bp.__distance.pet(target) - target.model_size) < range then
+                                pm.push(action, target, priority)
+                            end
 
                         elseif bp.__actions.isReady(action.en) and not bp.__queue.inQueue(action, target) then
                             pm.push(action, target, priority)
@@ -283,7 +286,7 @@ function library:new(bp)
             local attempts  = __queue[1].attempts
             local vitals    = bp.player['vitals']
             
-            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish','Full Circle','Deploy','Sic','Assault'}:contains(action.en)) then
+            if action and target and priority and attempts and (not bp.__actions.isMoving() or S{'Provoke','Flash','Stun','Chi Blast','Animated Flourish','Full Circle','Deploy','Fight','Sic','Assault','Avatar\'s Favor'}:contains(action.en)) then
                 local range     = bp.__queue.getRange(action)
                 local distance  = bp.__distance.get(target)
 
@@ -334,19 +337,54 @@ function library:new(bp)
 
                     elseif action.prefix == '/pet' then
 
-                        if action.type == 'Monster' then
+                        if pet then
 
-                        elseif S{'BloodPactRage','BloodPactRage'}:contains(action.type) then
+                            if action.type == 'Monster' then
 
-                        else
-                            
-                            if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
-                                pm.attempt(action.prefix, action, target)
+                            elseif S{"Assault","Deploy","Fight"}:contains(action.en) then
+
+                                if attempts < 15 and (distance - target.model_size) < range and bp.__actions.isReady(action.en) and bp.__target.isEnemy(target) and bp.__target.canEngage(target) then
+                                    pm.attempt(action.prefix, action, target)
+
+                                else
+                                    __queue:remove(1)
+
+                                end
+
+                            elseif action.en == "Avatar's Favor" then
+
+                                if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) and bp.__actions.isReady(action.en) then
+                                    pm.attempt(action.prefix, action, target)
+
+                                else
+                                    __queue:remove(1)
+
+                                end
+
+                            elseif S{'BloodPactRage','BloodPactWard'}:contains(action.type) then
+
+                                if attempts < 15 and (bp.__distance.pet(target) - target.model_size) < range and bp.__actions.isReady(action.en) and bp.__target.castable(target, action) and bp.__target.canEngage(target) then
+                                    pm.attempt(action.prefix, action, target)
+
+                                else
+                                    __queue:remove(1)
+
+                                end
 
                             else
-                                __queue:remove(1)
+                                
+                                if attempts < 15 and (distance - target.model_size) < range and bp.__target.castable(target, action) then
+                                    pm.attempt(action.prefix, action, target)
+
+                                else
+                                    __queue:remove(1)
+
+                                end
 
                             end
+
+                        else
+                            __queue:remove(1)
 
                         end
 
