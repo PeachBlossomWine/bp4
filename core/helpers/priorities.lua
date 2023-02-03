@@ -177,6 +177,10 @@ local buildHelper = function(bp, hmt)
                 ["Cure III"]            = 4,
                 ["Cure II"]             = 4,
                 ["Curaga II"]           = 4,
+                ["Avatar's Favor"]      = 4,
+                ["Apogee"]              = 2,
+                ["Mana Cede"]           = 2,
+                ["Elemental Siphon"]    = 2,
 
             }
 
@@ -185,20 +189,41 @@ local buildHelper = function(bp, hmt)
                 pvt.set(bp.res.job_abilities[action].en, 100)
             end
 
-            -- SELF-ENHANCING ABILITIES.
+            -- ABILITIES.
             for action in T(bp.res.job_abilities):it() do
 
-                if (action.targets:contains('Self') or action.targets:contains('Player') or action.targets:contains('Party') or action.targets:contains('Ally')) and action.status then
-                    pvt.set(action.en, 15)
+                -- PET COMMANDS.
+                if action.prefix == '/pet' then
+
+                    if S{'Assault','Retreat','Release','Fight','Heel','Stay','Activate','Deus Ex Automata','Deactivate','Deploy','Retrieve'}:contains(action.en) then
+                        pvt.set(action.en, 3)
+                    end
+
+                -- SELF-ENHANCING ABILITIES.
+                else
+
+                    if (action.targets:contains('Self') or action.targets:contains('Player') or action.targets:contains('Party') or action.targets:contains('Ally')) and action.status then
+                        pvt.set(action.en, 15)
+                    end
+
                 end
 
             end
 
-            -- ENHANCING SPELLS.
+            -- SPELLS.
             for action in T(bp.res.spells):it() do
 
-                if (action.targets:contains('Self') or action.targets:contains('Player') or action.targets:contains('Party') or action.targets:contains('Ally')) and action.status and T{34,37,39}:contains(action.skill) then
-                    pvt.set(action.en, 5)
+                -- SUMMONING SPELLS.
+                if action.type == 'SummonerPact' then
+                    pvt.set(action.en, 2)
+
+                -- ENHANCING SPELLS.
+                else
+
+                    if (action.targets:contains('Self') or action.targets:contains('Player') or action.targets:contains('Party') or action.targets:contains('Ally')) and action.status and T{34,37,39}:contains(action.skill) then
+                        pvt.set(action.en, 5)
+                    end
+
                 end
 
             end
