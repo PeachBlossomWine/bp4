@@ -83,11 +83,15 @@ function library:new(bp)
                 return false
             end
 
-            if target.hpp == 0 then
+            if target and target.hpp == 0 then
                 return false
             end
 
-            if not target.valid_target then
+            if target and T{2,3}:contains(target.status) then
+                return false
+            end
+
+            if target and not target.valid_target then
                 return false
             end
 
