@@ -55,9 +55,19 @@ local buildHelper = function(bp, hmt)
 
             if option and option >= 1 and option <= 3 then
                 settings.dummy = option
+                local dummies = T(bp.__songs.getDummies(settings.dummy)):map(function(song) return song and song.en or nil end)
+
+                if dummies then
+                    bp.popchat.pop(string.format("DUMMY SONGS: \\cs(%s)%s\\cr", bp.colors.setting, S(dummies):concat(string.format("\\cr, \\cs(%s)", bp.colors.setting))))
+                end
 
             else
                 settings.dummy = ((settings.dummy + 1) <= 3) and (settings.dummy + 1) or 1
+                local dummies = T(bp.__songs.getDummies(settings.dummy)):map(function(song) return song and song.en or nil end)
+
+                if dummies then
+                    bp.popchat.pop(string.format("DUMMY SONGS: \\cs(%s)%s\\cr", bp.colors.setting, S(dummies):concat(string.format("\\cr, \\cs(%s)", bp.colors.setting))))
+                end
 
             end
 
@@ -68,6 +78,7 @@ local buildHelper = function(bp, hmt)
 
             if value and value >= 30 and value <= 900 then
                 settings.delay = value
+                bp.popchat.pop(string.format("SONG DELAY: \\cs(%s)%s\\cr", bp.colors.setting, settings.delay))
             end
 
         end
@@ -271,10 +282,10 @@ local buildHelper = function(bp, hmt)
                 local command = commands[1] and commands[1]:lower() or false
 
                 if command == 'dummy' then
-                    pvt.setDummy(commands[1])
+                    pvt.setDummy(commands[2] or false)
 
                 elseif command == 'delay' then
-                    pvt.setDelay(commands[1])
+                    pvt.setDelay(commands[2] or false)
 
                 elseif command == 'loop' then
                     table.remove(commands, 1)
