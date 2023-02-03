@@ -65,7 +65,7 @@ local buildHelper = function(bp, hmt)
                 local target = (bp.player.status == 1) and windower.ffxi.get_mob_by_target('t') or target or false
 
                 -- Handle Skillchains helper if accessible.
-                if bp.skillchains and bp.skillchains.isBusy() then
+                if bp.skillchains and bp.skillchains.isEnabled() and bp.skillchains.isBusy() then
                     return
                 end
 
@@ -104,7 +104,7 @@ local buildHelper = function(bp, hmt)
                         end
 
                     else
-                        local index, count, id, status, bag, resource = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
+                        local index, count, id, status, bag, resource = bp.__aftermath.getWeapon()
                         
                         if index and resource and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(resource.en) then
                             bp.core.add(bp.__aftermath.weaponskill(resource.en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[id].en)))
@@ -120,7 +120,7 @@ local buildHelper = function(bp, hmt)
                     end
 
                 -- Handle ranged distance weapon skills.
-                elseif target and core.canAct() and settings.rws and settings.rws.enabled and not bp.__distance.canMelee(target) then
+                elseif target and bp.core.canAct() and settings.rws and settings.rws.enabled and not bp.__distance.canMelee(target) then
                     local range     = bp.core.range(settings.rws.name)
                     local distance  = bp.core.distance(target)
 
@@ -138,10 +138,10 @@ local buildHelper = function(bp, hmt)
                         end
 
                     else
-                        local index, count, id, status, bag, resource = bp.__inventory.getByIndex(bp.__equipment.get(0).bag, bp.__equipment.get(0).index)
+                        local index, count, id, status, bag, resource = bp.__aftermath.getWeapon()
 
                         if index and resource and settings.am and settings.am.enabled and bp.core.vitals.tp >= settings.am.tp and not bp.__aftermath.active() and bp.__aftermath.weaponskill(resource.en) then
-                            bp.core.add(bp.__aftermath.weaponskill(resource.en), target, bp.core.priority(bp.__aftermath.weaponskill(bp.res.items[weapon.id].en)))
+                            bp.core.add(bp.__aftermath.weaponskill(resource.en), target, bp.core.priority(bp.__aftermath.weaponskill(resource.en)))
 
                         elseif (settings.am and settings.am.enabled and bp.__aftermath.active()) or (settings.am and not settings.am.enabled) or not bp.__aftermath.weaponskill(resource.en) then
 
@@ -316,7 +316,7 @@ local buildHelper = function(bp, hmt)
 
         new.ready = function(action, buffs)
 
-            if action and bp.__queue.isReady(action) and not bp.__queue.inQueue(action) then
+            if action and bp.__actions.isReady(action) and not bp.__queue.inQueue(action) then
 
                 if buffs and not bp.__buffs.active(buffs) then
                     return true
