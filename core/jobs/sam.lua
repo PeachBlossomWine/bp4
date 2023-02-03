@@ -94,27 +94,37 @@ function job:init(bp, settings, __getsub)
                         bp.core.add("Hasso", bp.player, bp.core.priority("Hasso"))
 
                     -- SEIGAN.
-                    elseif settings.seigan and not settings.tank and bp.core.ready("Seigan", 354) then
+                    elseif settings.seigan and settings.tank and bp.core.ready("Seigan", 354) then
                         bp.core.add("Seigan", bp.player, bp.core.priority("Seigan"))
 
                     -- SEKKANOKI.
-                    elseif settings.sekkanoki and not settings.tank and bp.core.ready("Sekkanoki", 408) then
-                        bp.core.add("Sekkanoki", bp.player, bp.core.priority("Sekkanoki"))
+                    elseif settings.sekkanoki and bp.core.ready("Sekkanoki", 408) then
+
+                        if settings.am and settings.am.enabled then
+
+                            if bp.__aftermath.active() then
+                                bp.core.add("Sekkanoki", bp.player, bp.core.priority("Sekkanoki"))
+                            end
+
+                        elseif (not settings.am or (settings.am and not settings.am.enabled)) then
+                            bp.core.add("Sekkanoki", bp.player, bp.core.priority("Sekkanoki"))
+
+                        end
 
                     -- KONZEN-ITTAI.
-                    elseif settings["konzen-ittai"] and not settings.tank and bp.core.ready("Konzen-Ittai") then
+                    elseif settings["konzen-ittai"] and bp.core.ready("Konzen-Ittai") then
                         bp.core.add("Konzen-Ittai", bp.player, bp.core.priority("Konzen-Ittai"))
 
                     -- SENGIKORI.
-                    elseif settings.sengikori and not settings.tank and bp.core.ready("Sengikori", 440) then
+                    elseif settings.sengikori and bp.core.ready("Sengikori", 440) then
                         bp.core.add("Sengikori", bp.player, bp.core.priority("Sengikori"))
 
                     -- HAMANOHA.
-                    elseif settings.hamanoha and not settings.tank and bp.core.ready("Hamanoha", 465) then
+                    elseif settings.hamanoha and bp.core.ready("Hamanoha", 465) then
                         bp.core.add("Hamanoha", bp.player, bp.core.priority("Hamanoha"))
 
                     -- HAGAKURE.
-                    elseif settings.hagakure and not settings.tank and bp.core.ready("Hagakure", 483) then
+                    elseif settings.hagakure and bp.core.ready("Hagakure", 483) then
                         bp.core.add("Hagakure", bp.player, bp.core.priority("Hagakure"))
 
                     end
@@ -163,7 +173,7 @@ function job:init(bp, settings, __getsub)
                         bp.core.add("Hasso", bp.player, bp.core.priority("Hasso"))
 
                     -- SEIGAN.
-                    elseif settings.seigan and not settings.tank and bp.core.ready("Seigan", 354) then
+                    elseif settings.seigan and settings.tank and bp.core.ready("Seigan", 354) then
                         bp.core.add("Seigan", bp.player, bp.core.priority("Seigan"))
 
                     end
