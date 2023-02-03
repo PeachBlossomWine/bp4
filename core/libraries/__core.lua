@@ -212,6 +212,8 @@ function library:new(bp)
             ["assault"]             = false,
             ["rotate"]              = false,
             ["mbpact"]              = false,
+            ["astral flow"]         = false,
+            ["astral conduit"]      = false,
         },
 
         ["SAM"] = {
