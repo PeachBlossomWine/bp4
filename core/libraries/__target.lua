@@ -25,7 +25,7 @@ function library:new(bp)
                 return windower.ffxi.get_mob_by_target(target)
 
             elseif tonumber(target) == nil and #target > 1 then
-                local target = string.format("%s%s", target:sub(1,1):upper(), target:sub(2):lower())
+                local target = target:gsub("(%a)([%w_']*)", function(a,b) return string.upper(a)..b end)
 
                 if windower.ffxi.get_mob_by_name(target) then
                     return windower.ffxi.get_mob_by_name(target)
