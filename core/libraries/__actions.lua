@@ -753,16 +753,23 @@ function library:new(bp)
         if index and bag and slot and bp.res.items[id] then
             local item = bp.res.items[id]
 
-            if status == 0 then
-                bp.__actions.equipItem(index, slot, bag)
-                bp.__actions.useItem:schedule((item.cast_delay + 2), index, bp.player, bag)
+            if item and item.cast_delay then
 
-            elseif status == 5 then
-                bp.__actions.useItem(index, bp.player, bag)
+                if status == 0 then
+                    bp.__actions.equipItem(index, slot, bag)
+                    bp.__actions.useItem:schedule((item.cast_delay + 2), index, bp.player, bag)
+                    return (item.cast_delay + 2)
+
+                elseif status == 5 then
+                    bp.__actions.useItem(index, bp.player, bag)
+                    return (item.cast_delay + 2)
+
+                end
 
             end
 
         end
+        return 0
 
     end
 
