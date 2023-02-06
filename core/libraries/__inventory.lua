@@ -204,6 +204,19 @@ function library:new(bp)
 
     end
 
+    self.inInventory = function(search)
+
+        for item, index in T(windower.ffxi.get_items(0)):it() do
+                
+            if type(item) == 'table' and item.id and bp.res.items[item.id] and bp.res.items[item.id].en:lower():startswith(search:lower()) then
+                return true
+            end
+
+        end
+        return false
+
+    end
+
     self.canEquip = function(search)
 
         for bag in T(__bags.equippable):it() do
