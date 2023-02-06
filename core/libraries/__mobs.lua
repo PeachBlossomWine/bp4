@@ -27,7 +27,7 @@ function library:new(bp)
     end
 
     self.withName = function(name)
-        if tonumber(name) then return {} end
+        if (not name or tonumber(name)) then return {} end
         local map = {}
         
         for mob, index in T(mobs):it() do
