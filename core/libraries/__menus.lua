@@ -2,6 +2,9 @@ local library = {}
 function library:new(bp)
     local bp = bp
 
+    -- Public Varibles
+    self.done = {0, 16384, 0, false}
+
     -- Public Methods
     self.send = function(parsed, options, delay, success)
         local delay = (delay or 0)
