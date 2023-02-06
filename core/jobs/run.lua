@@ -10,7 +10,7 @@ function job:init(bp, settings, __getsub)
     self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
     self.__events   = {}
     self.__flags    = {}
-    self.__timers   = {hate=0, aoehate=0}
+    self.__timers   = {hate=0}
     self.__nukes    = T{}
 
     function self:useItems()
@@ -45,12 +45,12 @@ function job:init(bp, settings, __getsub)
                     -- FLASH.
                     if settings.flash and bp.core.ready("Flash") then
                         bp.core.add("Flash", target, bp.core.priority("Flash"))
-                        __timers.hate = os.clock()
+                        self.__timers.hate = os.clock()
 
                     -- FOIL.
                     elseif settings.foil and bp.core.ready("Foil") then
                         bp.core.add("Foil", target, bp.core.priority("Foil"))
-                        __timers.hate = os.clock()
+                        self.__timers.hate = os.clock()
 
                     end
 
@@ -254,12 +254,12 @@ function job:init(bp, settings, __getsub)
                     -- FLASH.
                     if settings.flash and bp.core.ready("Flash") then
                         bp.core.add("Flash", target, bp.core.priority("Flash"))
-                        __timers.hate = os.clock()
+                        self.__timers.hate = os.clock()
 
                     -- FOIL.
                     elseif settings.foil and bp.core.ready("Foil") then
                         bp.core.add("Foil", target, bp.core.priority("Foil"))
-                        __timers.hate = os.clock()
+                        self.__timers.hate = os.clock()
 
                     end
 

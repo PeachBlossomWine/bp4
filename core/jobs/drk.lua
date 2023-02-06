@@ -10,7 +10,7 @@ function job:init(bp, settings, __getsub)
     self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
     self.__events   = {}
     self.__flags    = {}
-    self.__timers   = {hate=0, aoehate=0}
+    self.__timers   = {hate=0}
     self.__nukes    = T{}
 
     function self:useItems()

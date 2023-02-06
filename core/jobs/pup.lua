@@ -91,7 +91,7 @@ function job:init(bp, settings, __getsub)
                         local current = bp.__maneuvers.active()
 
                         if #current < 3 then
-                            local maneuvers = bp.__maneuvers.getMissing(T(settings.maneuvers.list):copy())
+                            local maneuvers = bp.__maneuvers.getMissing()
 
                             if maneuvers:length() > 0 and not bp.core.searchQueue(maneuvers[1]) then
                                 bp.core.add(maneuvers[1], bp.player, bp.core.priority(maneuvers[1]))
@@ -151,7 +151,7 @@ function job:init(bp, settings, __getsub)
                     if settings.repair and settings.repair.enabled and bp.core.ready("Repair") and pet.hpp < settings.repair.hpp and target then
                         local oil = bp.__equipment.get(3)
 
-                        if oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
+                        if oil and oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
                             bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
                         end
 
@@ -162,11 +162,7 @@ function job:init(bp, settings, __getsub)
                         local current = bp.__maneuvers.active()
 
                         if #current < 3 then
-                            local maneuvers = bp.__maneuvers.getMissing(T(settings.maneuvers.list):copy())
-
-                            table.print(settings.maneuvers)
-                            print(current)
-                            print(maneuvers)
+                            local maneuvers = bp.__maneuvers.getMissing()
 
                             if maneuvers:length() > 0 and not bp.core.searchQueue(maneuvers[1]) then
                                 bp.core.add(maneuvers[1], bp.player, bp.core.priority(maneuvers[1]))
