@@ -268,4 +268,6 @@ return {{name="none", id=0, index=0},
 {name="Survival Guide", id=16822552, index=280},
 {name="", id=16822553, index=281},
 {name="Gloom Phantom", id=16822554, index=282},
+{name="Magh Bihu", id=16822555, index=283},
+{name="Dazbog", id=16822556, index=284},
 }

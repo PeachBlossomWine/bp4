@@ -204,4 +204,7 @@ return {{name="none", id=0, index=0},
 {name="Awoken Ariri Samariri", id=16830677, index=213},
 {name="Awoken Hildesvini", id=16830678, index=214},
 {name="Rakorok", id=16830679, index=215},
+{name="Magh Bihu", id=16830680, index=216},
+{name="Dazbog", id=16830681, index=217},
+{name="", id=16830682, index=218},
 }
