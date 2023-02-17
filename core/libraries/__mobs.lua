@@ -133,9 +133,9 @@ function library:new(bp)
         for m in T(self.withName(value)):it() do
             local mob = bp.__target.get(m.index)
 
-            if mob and (valid and mob.valid_target or not valid) then
+            if mob and ((valid and mob.valid_target) or not valid) then
 
-                if bp.__distance.get(mob) <= (distance or 7) then
+                if bp.__distance.get(mob) <= (distance or 50) then
                     table.insert(found, {name=mob.name, id=mob.id, index=mob.index, status=mob.status, x=mob.x, y=mob.y, z=mob.z, distance=bp.__distance.get(mob)})
                 end
 
@@ -149,12 +149,12 @@ function library:new(bp)
     self.inArrayByList = function(list, distance, height)
         if not list then return end
         local distance = (distance or 150)
-        local m = T{}
+        local m = {}
 
         for mob in T(windower.ffxi.get_mob_array()):it() do -- ADD HEIGHT CHECK!!!
 
-            if mob.valid_target and bp.__distance.get(mob) <= distance and (not height or bp.__distance.height(mob) <= height) and mob.name ~= "" and T(list):contains(mob.name) then
-                m:insert(mob)
+            if mob.valid_target and not bp.__target.isDead(mob) and bp.__distance.get(mob) <= distance and (not height or (bp.__distance.height(mob) <= height)) and mob.name ~= "" and T(list):contains(mob.name) then
+                table.insert(m, mob)
             end
 
         end
