@@ -21,10 +21,18 @@ local buildHelper = function(bp, hmt)
         settings:save()
 
         -- Private Methods.
-        pvt.render = function() bp.__ui.renderUI(settings.display) end
+        pvt.render = function()
+        
+            if __buffing and #__buffing > 0 then
+                bp.__ui.renderUI(settings.display, pvt.update)
+
+            end
+        
+        end
+
         pvt.update = function()
-            
-            if bp and #__buffing > 0 then
+
+            if __buffing and #__buffing > 0 then
                 local update = {}
     
                 for index, data in ipairs(__buffing) do
@@ -37,8 +45,8 @@ local buildHelper = function(bp, hmt)
     
                 end
                 settings.display:text(table.concat(update, '\n'))
-    
-            elseif settings.display:visible() then
+
+            elseif __buffing and #__buffing == 0 and settings.display:visible() then
                 settings.display:hide()
     
             end
