@@ -4,12 +4,15 @@ function library:new(bp)
     local pm = {}
 
     -- Private Variables.
+    local __timers      = {perform={}}
     local __anchor      = {__set=false, __midcast=false, __position={x=0, y=0, z=0}}
     local __unique      = {ranged = {id=65536,en='Ranged',element=-1,prefix='/ra',type='Ranged', range=13}}
+    local __death       = {last=0, delay=10}
     local __ftimer      = {last=0, delay=1}
     local __dtimer      = {last=0, delay=0.25}
     local __position    = {x=0, y=0, z=0}
     local __moving      = false
+    local __act_protect = {[0]=T{0},[2]=T{0},[3]=T{0,1},[4]=T{1},[5]=T{0,1},[7]=T{1},[9]=T{0,1},[11]=T{2,3},[12]=T{0,2},[13]=T{2,3},[14]=T{0},[15]=T{1},[16]=T{1},[18]=T{85},[19]=T{2,3},[26]=T{0}}
     local __actions     = {
 
         ['interact']    = 0,    ['engage']          = 2,    ['/magic']          = 3,    ['magic']           = 3,    ['/mount'] = 26,
@@ -124,17 +127,26 @@ function library:new(bp)
     self.perform = function(target, action, param, x, y, z)
         local target = bp.__target.get(target)
 
-        if target and action and __actions[action] and not windower.ffxi.get_info().mog_house then
-            bp.packets.inject(bp.packets.new('outgoing', 0x01A, {
-                ['Target Index']    = target.index,
-                ['Category']        = __actions[action],
-                ['Target']          = target.id,
-                ['Param']           = param or 0,
-                ['X Offset']        = x or 0,
-                ['Y Offset']        = y or 0,
-                ['Z Offset']        = z or 0,
+        if not __timers.perform.last or ((os.time()-__timers.perform.last) >= 1) then
 
-            }))
+            if target and action and __actions[action] and not windower.ffxi.get_info().mog_house and (os.clock()-__death.last) >= __death.delay then
+
+                if __act_protect[__actions[action]] and __act_protect[__actions[action]]:contains(bp.player.status) then
+                    __timers.perform.last = os.time()
+                    bp.packets.inject(bp.packets.new('outgoing', 0x01A, {
+                        ['Target Index']    = target.index,
+                        ['Category']        = __actions[action],
+                        ['Target']          = target.id,
+                        ['Param']           = param or 0,
+                        ['X Offset']        = x or 0,
+                        ['Y Offset']        = y or 0,
+                        ['Z Offset']        = z or 0,
+
+                    }))
+
+                end
+
+            end
 
         end
 
@@ -801,11 +813,11 @@ function library:new(bp)
 
                     if T{'!','#'}:contains(option) then
                         self.castlock = (option == '!')
-                        bp.popchat.pop(string.format('NO-INTTERUPT: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
+                        bp.popchat.pop(string.format('NO-INTERRUPT: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
 
                     else
                         self.castlock = self.castlock ~= true and true or false
-                        bp.popchat.pop(string.format('AUTO-DISTANCING: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
+                        bp.popchat.pop(string.format('NO-INTERRUPT: \\cs(%s)%s\\cr', bp.colors.setting, tostring(self.castlock):upper()))
 
                     end
 
@@ -927,6 +939,14 @@ function library:new(bp)
 
         end
         
+    end)
+
+    windower.register_event('status change', function(new, old)
+
+        if new == 0 and T{2,3}:contains(old) then
+            __death.last = os.clock()
+        end
+
     end)
 
     return self
