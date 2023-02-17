@@ -171,7 +171,7 @@ function library:new(bp)
         local delay = 0
     
         for account in bp.accounts:it() do
-    
+
             if account == bp.player.name then
                 order.player = string.format('wait %s; %s', delay, orders)
     
@@ -190,7 +190,7 @@ function library:new(bp)
         local delay = 0
     
         for account in bp.accounts:it() do
-    
+
             if account == bp.player.name then
                 order.player = string.format('wait %s; %s', delay, orders)
                 delay = (delay + __stagger)
