@@ -5,7 +5,7 @@ function library:new(bp)
     -- Public Methods.
     self.canMelee = function(target) return target and self.get(target) < (1.85 + target.model_size + bp.me.model_size) or false end
     self.get = function(target)
-        local t = (target and target.x and target.y and target.z) and target or bp.__target.get(target)
+        local t = (target and type(target) == 'table' and target.x and target.y and target.z) and target or bp.__target.get(target)
 
         if bp.me and t and t.x and t.y and t.z then
             return ((V{bp.me.x, bp.me.y, (bp.me.z*-1)} - V{t.x, t.y, (t.z*-1)}):length())
