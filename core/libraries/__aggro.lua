@@ -59,7 +59,7 @@ function library:new(bp)
     -- Public Methods.
     self.hasAggro = function() return #__aggro > 0 and true or false  end
     self.getCount = function() return #__aggro end
-    self.getAggro = function() return __aggro end
+    self.getAggro = function() return T(__aggro):copy() end
 
     -- Private Events.
     windower.register_event('incoming chunk', pm.update)
