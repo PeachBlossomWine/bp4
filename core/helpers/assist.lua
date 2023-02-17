@@ -96,8 +96,13 @@ local buildHelper = function(bp, hmt)
 
         end
 
-        new.set = function(target)
+        new.set = function(target, engage)
             __assist = bp.__target.get(target) and bp.__target.get(target).index or false
+
+            if engage then
+                __engage = engage and true or false
+                            
+            end
             pvt.updateDisplay()
         
         end
