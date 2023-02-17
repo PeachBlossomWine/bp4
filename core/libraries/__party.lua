@@ -107,16 +107,17 @@ function library:new(bp)
     end
 
     self.isMember = function(player, alliance)
+        local player = (player and type(player) == 'string') and player:lower() or bp.__target.get(player)
 
         if bp and player and bp.party then
-            local player = bp.__target.get(player)
+            local player = (type(player) == 'table' and player.name) and player.name:lower() or player
 
-            for index, member in pairs(bp.party) do
+            for member, index in T(bp.party):it() do
 
-                if player and index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and player.name:lower() == member.name:lower() then
+                if player and type(member) == 'table' and index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.name:lower():startswith(player) then
                     return true
 
-                elseif player and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and player.name:lower() == member.name:lower() then
+                elseif player and alliance and type(member) == 'table' and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.name:lower():startswith(player) then
                     return true
 
                 end
@@ -129,16 +130,17 @@ function library:new(bp)
     end
 
     self.findMember = function(player, alliance)
-        local player = bp.__target.get(player)
+        local player = (player and type(player) == 'string') and player:lower() or bp.__target.get(player)
         
         if bp and bp.party and player then
+            local player = (type(player) == 'table' and player.name) and player.name:lower() or player
 
             for member, index in T(bp.party):it() do
 
-                if index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player.name:lower()) then
+                if player and type(member) == 'table' and index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.name:lower():startswith(player) then
                     return member
 
-                elseif alliance and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.name and member.name:lower():startswith(player.name:lower()) then
+                elseif player and alliance and type(member) == 'table' and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.name:lower():startswith(player) then
                     return member
 
                 end
@@ -150,13 +152,21 @@ function library:new(bp)
 
     end
 
-    self.isInZone = function(target)
-        local member = self.getMember(target)
+    self.inZone = function(alliance)
+        local zone = bp.info.zone
 
-        if member and member.mob and member.zone == bp.info.zone then
-            return true
+        for member, index in T(bp.party):it() do
+
+            if type(member) == 'table' and index:sub(1,1) == "p" and tonumber(index:sub(2)) ~= nil and member.zone ~= zone then
+                return false
+
+            elseif alliance and type(member) == 'table' and index:sub(1,1) == "a" and tonumber(index:sub(2)) ~= nil and member.zone ~= zone then
+                return false
+
+            end
+
         end
-        return false
+        return true
 
     end
 
@@ -165,11 +175,11 @@ function library:new(bp)
 
         if bp and bp.party then
 
-            for index, member in pairs(bp.party) do
+            for member, index in T(bp.party):it() do
                 
-                if (index:sub(1,1) == "p" or index:sub(1,1) == "a") and tonumber(index:sub(2)) ~= nil and member.mob and not member.mob.is_npc then
+                if member and (index:sub(1,1) == "p" or index:sub(1,1) == "a") and tonumber(index:sub(2)) ~= nil and member.mob and not member.mob.is_npc then
                     
-                    if bp.__distance.get(v.mob) <= distance and member.zone == bp.info.zone then
+                    if bp.__distance.get(member.mob) <= distance and member.zone == bp.info.zone then
                         pass = (pass + 1)
                     end
 
@@ -179,7 +189,7 @@ function library:new(bp)
             return count == pass
 
         end
-        return 0
+        return false
 
     end
 
