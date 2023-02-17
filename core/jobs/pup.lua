@@ -80,8 +80,13 @@ function job:init(bp, settings, __getsub)
                     if settings.repair and settings.repair.enabled and bp.core.ready("Repair") and pet.hpp < settings.repair.hpp and target then
                         local oil = bp.__equipment.get(3)
 
-                        if oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
-                            bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                        if oil and oil.index > 0 then
+                            local index, count, id, status, bag, res = bp.__inventory.getByIndex(oil.bag, oil.index)
+
+                            if index and res and res.en:startswith("Automat") then
+                                bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                            end
+                            
                         end
 
                     end
@@ -151,8 +156,13 @@ function job:init(bp, settings, __getsub)
                     if settings.repair and settings.repair.enabled and bp.core.ready("Repair") and pet.hpp < settings.repair.hpp and target then
                         local oil = bp.__equipment.get(3)
 
-                        if oil and oil.index > 0 and bp.res.items[bp.__inventory.getByIndex(oil.bag, oil.index).id].en:startswith("Automat") then
-                            bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                        if oil and oil.index > 0 then
+                            local index, count, id, status, bag, res = bp.__inventory.getByIndex(oil.bag, oil.index)
+
+                            if index and res and res.en:startswith("Automat") then
+                                bp.core.add("Repair", bp.player, bp.core.priority("Repair"))
+                            end
+
                         end
 
                     end
