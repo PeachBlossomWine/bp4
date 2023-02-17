@@ -60,7 +60,7 @@ function library:new(bp)
         if id == 0x028 and bp.core and bp.core.get('bubbles') and bp.core.get('bubbles').list then
             local parsed = bp.packets.parse('incoming', original)
 
-            if parsed and parsed['Category'] == 4 then
+            if parsed and parsed['Category'] == 4 and parsed['Param'] and bp.res.spells[parsed['Param']] then
                 local indicolure = bp.core.get('bubbles').list[1]
                 local geocolure = bp.core.get('bubbles').list[2]
 
