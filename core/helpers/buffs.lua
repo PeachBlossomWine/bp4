@@ -28,7 +28,7 @@ local buildHelper = function(bp, hmt)
                 local update = {}
     
                 for index, data in ipairs(__buffing) do
-                    local player = bp.__target.get(data.player.id)
+                    local player = bp.__target.get(data.player)
     
                     if player and bp.__distance.get(player) < 30 and (bp.__distance.get(player) ~= 0 or bp.player.id == player.id) then
                         table.insert(update, string.format('%s%s → \\cs(%s)%s\\cr', player.name:sub(1,8), (' '):rpad(' ', (10-(player.name:sub(1,8):len()))), bp.colors.important, T(data.spells):keyset():map(function(id) return bp.res.spells[id] and bp.res.spells[id].en end):sort():tostring()))
@@ -72,7 +72,7 @@ local buildHelper = function(bp, hmt)
     
             for index, data in ipairs(__buffing) do
 
-                if data.player.id == id then
+                if data.player == id then
                     return index
                 end
 
@@ -89,7 +89,7 @@ local buildHelper = function(bp, hmt)
                 local index = pvt.getPlayerIndex(target.id)
     
                 if not index and bp.__target.castable(target, spell) then
-                    table.insert(__buffing, {player=target, spells={[spell.id] = {last=0, delay=3, status=spell.status}}})
+                    table.insert(__buffing, {player=target.id, spells={[spell.id] = {last=0, delay=3, status=spell.status}}})
     
                 elseif __buffing[index] and not __buffing[index].spells[spell.id] and bp.__target.castable(target, spell) then
                     __buffing[index].spells[spell.id] = {last=0, delay=3, status=spell.status}
@@ -130,15 +130,19 @@ local buildHelper = function(bp, hmt)
         new.cast = function()
             
             for data in T(__buffing):it() do
-                local target = data.player
+                local target = bp.__target.get(data.player)
 
-                for id, spell in pairs(data.spells) do
-                    
-                    if spell.last and spell.status and not bp.__buffs.hasBuff(target.id, spell.status) and (os.clock()-spell.last) > spell.delay then
+                if target then
+
+                    for id, spell in pairs(data.spells) do
                         
-                        if bp.res.spells[id] and not bp.__queue.inQueue(bp.res.spells[id], target) then
-                            bp.__queue.add(bp.res.spells[id], target, bp.priorities.get(bp.res.spells[id].en, true))
-                            spell.last = os.clock()
+                        if spell.last and spell.status and not bp.__buffs.hasBuff(target.id, spell.status) and (os.clock()-spell.last) > spell.delay then
+                            
+                            if bp.res.spells[id] and not bp.__queue.inQueue(bp.res.spells[id], target) then
+                                bp.__queue.add(bp.res.spells[id], target, bp.priorities.get(bp.res.spells[id].en, true))
+                                spell.last = os.clock()
+
+                            end
 
                         end
 
@@ -160,7 +164,7 @@ local buildHelper = function(bp, hmt)
                 local command = commands[1] and table.remove(commands, 1):lower() or false
 
                 if command then
-                    local target = commands[#commands] and bp.__party.isMember(commands[#commands]) and bp.__party.isMember(table.remove(commands, #commands)) or windower.ffxi.get_mob_by_target('t') or false
+                    local target = commands[#commands] and bp.__party.getMember(commands[#commands]) and bp.__party.getMember(table.remove(commands, #commands)).mob or windower.ffxi.get_mob_by_target('t') or false
 
                     if command == '+' then
                         new.add(target, commands)
@@ -189,7 +193,7 @@ local buildHelper = function(bp, hmt)
                 if parsed['Category'] == 4 and target then
             
                     if actor and bp.player and bp.player.id == actor.id and bp.res.spells[param] and bp.res.spells[param].type then
-                        local index = pvt.selferIndex(target.id)
+                        local index = pvt.getPlayerIndex(target.id)
                             
                         if index and spell and spell.id and __buffing[index] and __buffing[index].spells[spell.id] then
                             --- ???
