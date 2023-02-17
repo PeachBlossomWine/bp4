@@ -16,6 +16,9 @@ end
 setmetatable(bootstrap, mt)
 function bootstrap:new()
 
+    -- Addon Debug.
+    self.__debug = true
+
     -- Initialization functions.
     local init = {}
 
@@ -51,6 +54,7 @@ function bootstrap:new()
     self.memory         = false
 
     -- Class Objects.
+    self.server_time    = os.time()-1009810800+4017
     self.helpers        = manager:new(self)
     self.common         = {}
     self.JA             = {}
@@ -202,6 +206,7 @@ function bootstrap:new()
     init.loadLibraries()
 
     -- Addon Events.
+    windower.register_event('zone change', function() self.enabled = false end)
     windower.register_event('prerender', function()
         self.party  = windower.ffxi.get_party() or false
         self.player = windower.ffxi.get_player() or false
@@ -216,7 +221,6 @@ function bootstrap:new()
 
             elseif self.__zones:isInTown() then
                 self.__queue.handle()
-                
 
             end
             self.pinger = os.clock()
