@@ -36,7 +36,7 @@ local buildHelper = function(bp, hmt)
             '@. bp bubbles etarget',
             '@[ bp ord p bp on',
             '@] bp ord p bp off',
-            '@/ bp mode',
+            '@/ bp maint',
     
         }
 
@@ -49,6 +49,11 @@ local buildHelper = function(bp, hmt)
                 bp.accounts = T(settings.accounts)
                 bp.__keybinds.register(settings.binds)
                 bp.__alias.register(settings.aliases)
+
+                if settings.token then
+                    bp.token = settings.token
+
+                end
 
             end
 
