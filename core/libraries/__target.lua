@@ -136,7 +136,7 @@ function library:new(bp)
     self.isTrust = function(target)
         local target = self.get(target)
 
-        if target.entity_type == 8 and target.spawn_type == 14 and target.charmed == true then
+        if target and target.entity_type == 8 and target.spawn_type == 14 and target.charmed == true then
             return true
         end
         return false
