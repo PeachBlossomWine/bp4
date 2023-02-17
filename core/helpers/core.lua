@@ -70,12 +70,12 @@ local buildHelper = function(bp, hmt)
                 end
 
                 -- Handle HP% Limiting weapon skills.
-                if settings.limit and settings.limit.enabled then
+                if settings.limit and settings.limit.enabled and target and target.hpp then
 
-                    if settings.limit.option == '>' and target.hpp > settings.limit.hpp then
+                    if settings.limit.option == '>' and target.hpp < settings.limit.hpp then
                         return
 
-                    elseif settings.limit.option == '<' and target.hpp < settings.limit.hpp then
+                    elseif settings.limit.option == '<' and target.hpp > settings.limit.hpp then
                         return
 
                     end
