@@ -63,7 +63,9 @@ local buildHelper = function(bp, hmt)
         
                     end
     
-                elseif not command then                    
+                elseif not command then
+                    settings.enabled = settings.enabled ~= true and true or false
+                    bp.popchat.pop(string.format('SPEED: \\cs(%s)%s\\cr', bp.colors.setting, tostring(settings.enabled):upper()))
     
                 end
                 settings:save()
@@ -72,9 +74,9 @@ local buildHelper = function(bp, hmt)
     
         end)
 
-        helper('incoming', function(id, original)
+        helper('incoming chunk', function(id, original)
 
-            if bp and bp.player and enabled then
+            if bp and bp.player and settings.enabled then
     
                 if id == 0x037 then
                     local parsed = bp.packets.parse('incoming', original)
