@@ -19,7 +19,7 @@ local buildHelper = function(bp, hmt)
         
             ['Cure'] = {
     
-                {id=1,      priority=false, min=75},
+                {id=1,      priority=false, min=90},
                 {id=2,      priority=false, min=200},
                 {id=3,      priority=false, min=650},
                 {id=4,      priority=true,  min=900},
@@ -214,8 +214,9 @@ local buildHelper = function(bp, hmt)
                         local spell = bp.res.spells[cure.id]
     
                         if spell and bp.__actions.isReady(spell.en) and cure.id and cure.min and bp.player['vitals'].mp >= spell.mp_cost then
+                            local reduced = (cure.min / 2)
     
-                            if (cure.min + (cure.min * (settings.power / 100))) <= missing then
+                            if (reduced + (reduced * (settings.power / 100))) <= missing then
                                 estimate = spell
     
                             elseif missing > cure.min and percent < 85 and once then
