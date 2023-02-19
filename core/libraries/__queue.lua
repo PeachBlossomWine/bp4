@@ -18,14 +18,14 @@ function library:new(bp)
         if bp and bp.player and __queue and action and target and __queue[1] and __queue[1].attempts and (os.clock()-__protect) > 1 then
 
             if action.en == 'Ranged' then
+                __protect = os.clock()
                 windower.send_command(string.format('input %s', prefix))
                 __queue[1].attempts = (__queue[1].attempts + 1)
-                __protect = os.clock()
 
             else
+                __protect = os.clock()
                 windower.send_command(string.format('input %s "%s" %s', prefix, action.en, target.id))
                 __queue[1].attempts = (__queue[1].attempts + 1)
-                __protect = os.clock()
 
             end
 
@@ -85,7 +85,7 @@ function library:new(bp)
                 return (os.clock() + 2.50)
 
             elseif action.flags and action.flags:contains('Usable') then
-                return (os.clock() + action.cast_delay + 1.50)
+                return (os.clock() + (action.cast_delay or 1) + 2.50)
 
             end
             
@@ -698,10 +698,10 @@ function library:new(bp)
                 elseif category == 8 then
     
                     if param == 24931 and bp.res.spells[parsed['Target 1 Action 1 Param']] then
-                        __ready = (os.clock() + bp.res.spells[parsed['Target 1 Action 1 Param']].cast_time)
+                        __ready = (os.clock() + bp.res.spells[parsed['Target 1 Action 1 Param']].cast_time + 1)
 
-                    else
-                        __ready = (os.clock() + 1.50)
+                    elseif param == 28787 then
+                        __ready = (os.clock() + 2)
 
                     end
     
@@ -711,8 +711,8 @@ function library:new(bp)
                     if param == 24931 and bp.res.items[parsed['Target 1 Action 1 Param']] then
                         __ready = (os.clock() + bp.res.items[parsed['Target 1 Action 1 Param']].cast_time)
 
-                    else
-                        __ready = (os.clock() + 1.50)
+                    elseif param == 28787 then
+                        __ready = (os.clock() + 3)
 
                     end
     
