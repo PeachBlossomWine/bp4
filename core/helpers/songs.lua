@@ -34,7 +34,7 @@ local buildHelper = function(bp, hmt)
 
             bp.__ui.renderUI(settings.display, function()
 
-                if bp and bp.player and settings.display:text() == "" and bp.player.main_job == 'BRD' then
+                if bp and bp.player and bp.player.main_job and settings.display:text() == "" and bp.player.main_job == 'BRD' then
                     settings.display:text("♫")
 
                 elseif settings.display:visible() and bp.player.main_job ~= 'BRD' then
