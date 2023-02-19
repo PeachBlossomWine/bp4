@@ -25,7 +25,7 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.render = function()
 
-            if settings.visible and bp.player.main_job == 'GEO' then
+            if bp and bp.player and bp.player.main_job and settings.visible and bp.player.main_job == 'GEO' then
 
                 bp.__ui.renderUI(settings.display, function()
 
