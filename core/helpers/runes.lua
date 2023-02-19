@@ -36,7 +36,7 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.render = function()
 
-            if bp and settings.visible and (bp.player.main_job == 'RUN' or bp.player.sub_job == 'RUN') then
+            if bp and bp.player and bp.player.main_job and settings.visible and (bp.player.main_job == 'RUN' or bp.player.sub_job == 'RUN') then
 
                 bp.__ui.renderUI(settings.display, function()
 
