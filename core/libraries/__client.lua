@@ -20,7 +20,7 @@ function library:new(bp)
     end
 
     -- Private Methods.
-    pm.getData = function() return {upid=__upid, name=bp.player.name, main=bp.player.main_job, subj=bp.player.sub_job, party=bp.__party.getMemberList(), skills=__skills} end
+    pm.getData = function() return (bp and bp.player and bp.player.name) and {upid=__upid, name=bp.player.name, main=bp.player.main_job, subj=bp.player.sub_job, party=bp.__party.getMemberList(), skills=__skills} or nil end
     pm.connect = function(reconnect)
         local push = {}
 
@@ -45,7 +45,7 @@ function library:new(bp)
                     end
 
                 elseif not self.isConnected() and __flags.error then
-                    --print(__flags.error)
+                    bp.popchat.pop(string.format("Client Error: \\cs(%s)%s\\cr", bp.colors.setting, __flags.error))
 
                 end
 
@@ -79,7 +79,6 @@ function library:new(bp)
 
     end
 
-    local data
     pm.receive = function()
 
         if self.isConnected() and (os.clock()-__flags.receiveDelay) > 0.75 then
@@ -117,6 +116,21 @@ function library:new(bp)
         
         end, 0)
         
+    end
+
+    self.log = function(id, data)
+        if (not id or not data or not self.isConnected()) then
+            return
+        end
+
+        coroutine.schedule(function()
+
+            if bp and bp.player then
+                __socket:send(string.format("%s %s\n", tostring(id), data))
+            end
+        
+        end, 0)
+
     end
 
     -- Private Events.
