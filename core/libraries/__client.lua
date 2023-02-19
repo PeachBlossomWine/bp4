@@ -45,7 +45,7 @@ function library:new(bp)
                     end
 
                 elseif not self.isConnected() and __flags.error then
-                    bp.popchat.pop(string.format("Client Error: \\cs(%s)%s\\cr", bp.colors.setting, __flags.error))
+                    bp.popchat.pop(string.format("CLIENT ERROR: \\cs(%s)%s\\cr", bp.colors.setting, type(__flags.error) == 'string' and __flags.error:upper() or __flags.error))
 
                 end
 
