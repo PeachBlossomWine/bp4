@@ -57,7 +57,7 @@ function library:new(bp)
 
             if target and bp.me and (os.clock()-__dtimer.last) > __dtimer.delay then
                 local distance  = bp.__distance.get(target)
-                local dmaximum   = ((2.5 + target.model_size) - bp.me.model_size)
+                local dmaximum   = ((2.2 + target.model_size) - bp.me.model_size)
 
                 if distance > dmaximum then
                     self.move(target.x, target.y)
