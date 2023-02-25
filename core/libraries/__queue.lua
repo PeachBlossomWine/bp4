@@ -462,8 +462,9 @@ function library:new(bp)
                     end
 
                 elseif S{'/weaponskill'}:contains(action.prefix) then
+                    local t = bp.__target.get('t')
                     
-                    if vitals.tp >= 1000 and bp.__actions.isReady(action.en) and (distance - target.model_size) < range and bp.__target.castable(target, action) then
+                    if vitals.tp >= 1000 and bp.__actions.isReady(action.en) and (distance - target.model_size) < range and bp.__target.castable(target, action) and t and target.id == t.id then
                         pm.attempt(action.prefix, action, target)
 
                     else
