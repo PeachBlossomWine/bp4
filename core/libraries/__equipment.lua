@@ -54,6 +54,14 @@ function library:new(bp)
 
     -- Public Methods.
     self.get = function(slot) return slot and equipment[slot] or equipment end
+    self.remove = function(slot)
+        bp.packets.inject(bp.packets.new('outgoing', 0x050, {
+            ['Item Index'] = 0,
+            ['Equip Slot'] = slot,
+
+        }))
+
+    end
 
     -- Private Events.
     windower.register_event('outgoing chunk', pm.outgoingUpdate)
