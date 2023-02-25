@@ -6,6 +6,8 @@ function library:new(bp)
     -- Private Variables.
     local mobs      = {}
     local events    = {}
+    local block     = {}
+    local catch     = {}
     local waiting   = false
     local pinged    = false
 
@@ -41,12 +43,47 @@ function library:new(bp)
 
     end
 
-    self.ping = function(value, valid, callback)
-        local mob = self.find(value, valid or false)
+    self.ping = function(index, valid, callback)
+        
+        if index then
+            waiting = index
+            bp.packets.inject(bp.packets.new('outgoing', 0x016, {['Target Index']=index}))
 
-        if mob and mob.index then
-            waiting = mob.index
-            bp.packets.inject(bp.packets.new('outgoing', 0x016, {['Target Index']=mob.index}))
+            if not events.ping then
+                
+                events.ping = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
+            
+                    if id == 0x00e then
+                        local parsed = bp.packets.parse('incoming', original)
+
+                        if parsed and waiting and ((valid and check) or not valid) then
+                            local id, index, status, name = parsed['NPC'], parsed['Index'], parsed['Status'], parsed['Name']
+                            local check = bit.band(bit.rshift(parsed['_unknown2'], 1), 1) ~= 1
+            
+                            if waiting == index then
+
+                                for i=1, #mobs do
+
+                                    if mobs[i] and mobs[i].index == index then
+                                        mobs[i].x, mobs[i].y, mobs[i].z = parsed['X'], parsed['Y'], parsed['Z']
+                                        mobs[i].status = status
+                                        pinged = mobs[i]
+                                        break
+            
+                                    end
+            
+                                end
+                                waiting = false
+                                
+                            end
+        
+                        end
+        
+                    end
+        
+                end)
+
+            end
 
             if callback and type(callback) == 'function' then
                 coroutine.schedule(function()
@@ -55,46 +92,55 @@ function library:new(bp)
                     if pinged and pinged.x and pinged.y and pinged.z then
                         callback(pinged)
                     end
-
+        
                 end, 1)
-                
+
             end
-            return mob
 
         end
 
     end
 
-    self.pingAll = function(name, callback)
+    self.pingAll = function(name, valid, callback)
         local targets = T(bp.__mobs.withName(name)):map(function(mob) return mob.index end)
-        local catch = {}
 
-        events.catch = windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
-        
-            if id == 0x00e then
-                local parsed = bp.packets.parse('incoming', original)
+        if not events.pingAll then
+            
+            events.pingAll = windower.register_event('incoming chunk', function(id, original)
+            
+                if id == 0x00e then
+                    local parsed = bp.packets.parse('incoming', original)
 
-                if parsed and targets:contains(parsed['Index']) then
-                    table.insert(catch, {index=parsed['Index'], x=parsed['X'], y=parsed['Y'], z=parsed['Z']})
+                    if parsed and targets:contains(parsed['Index']) and not T(block):contains(parsed['Index']) then
+                        local check = bit.band(bit.rshift(parsed['_unknown2'], 1), 1) ~= 1
+
+                        if (valid and check) or not valid then
+                            table.insert(catch, {index=parsed['Index'], x=parsed['X'], y=parsed['Y'], z=parsed['Z']})
+                            table.insert(block, parsed['Index'])
+
+                        end
+
+                    end
+
                 end
 
-            end
+            end)
 
-        end)
+        end
 
         for index in targets:it() do
             bp.__mobs.ping(index)
         end
 
         coroutine.schedule(function()
-            windower.unregister_event(events.catch)
-            events.catch = nil
+            coroutine.schedule(function() catch, block = {}, {} end, 0.15)
             
             if callback and type(callback) == 'function' then
-                callback(table.sort(catch, function(a, b) return bp.__distance.get(a) < bp.__distance.get(b) end)[1])
+                callback(table.sort(catch, function(a, b) return bp.__distance.get(a) < bp.__distance.get(b) end))
+
             end
 
-        end, 1)
+        end, 0.5)
 
     end
 
@@ -173,39 +219,6 @@ function library:new(bp)
 
     -- Private Events.
     windower.register_event('load','login','zone change', pm.updateMobs)
-    windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
-        
-        if id == 0x00e then
-            local parsed = bp.packets.parse('incoming', original)
-
-            if parsed and waiting then
-                local id     = parsed['NPC']
-                local index  = parsed['Index']
-                local status = parsed['Status']
-                local name   = parsed['Name']
-
-                if waiting == index then
-
-                    for i=1, #mobs do
-
-                        if mobs[i] and mobs[i].index == index then
-                            mobs[i].x, mobs[i].y, mobs[i].z = parsed['X'], parsed['Y'], parsed['Z']
-                            mobs[i].status = status
-                            pinged = mobs[i]
-                            break
-
-                        end
-
-                    end
-                    waiting = false
-
-                end
-
-            end
-
-        end
-
-    end)
 
     return self
 
