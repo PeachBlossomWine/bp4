@@ -10,6 +10,10 @@ function library:new(bp)
 
     end
 
+    pm['music'] = function()
+        windower.send_command(('setbgm %s'):format(math.random(1,255)))
+    end
+
     pm['wring'] = function()
         bp.ping = (bp.pinger + 10)
         bp.__actions.castItem("Warp Ring", 13)
