@@ -89,6 +89,34 @@ function library:new(bp)
 
     end
 
+    -- Private Events.
+    windower.register_event('addon command', function(...)
+        local commands  = T{...}
+        local command   = table.remove(commands, 1)
+
+        if bp and bp.player and command and command:lower() == 'interact' then
+            local command = commands[1] and table.remove(commands, 1):lower() or false
+            
+            if command then
+
+                if ('poke'):startswith(command) and #commands > 0 then
+                    self.start(commands[1], false)
+
+                elseif ('start'):startswith(command) then
+                    local target = bp.__target.get('t')
+
+                    if target and target.id then
+                        windower.send_command(string.format('bp ord @@ bp interact poke %d', target.id))
+                    end
+
+                end
+
+            end
+
+        end
+
+    end)
+
     return self
 
 end
