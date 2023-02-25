@@ -430,6 +430,14 @@ local buildHelper = function(bp, hmt)
             pvt.autodrop()
     
         end
+
+        new.setAutoDrop = function(bool)
+
+            if __profile then
+                __profile.autodrop = bool
+            end
+
+        end
         
         -- Private Events.
         helper('incoming chunk', pvt.handle)
