@@ -160,6 +160,24 @@ function library:new(bp)
 
     end
 
+    self.findScrolls = function()
+        local scrolls = {}
+        
+        for item, index in T(windower.ffxi.get_items(0)):it() do
+                
+            if type(item) == 'table' and item.id and item.status and item.status == 0 and bp.res.items[item.id] and bp.res.items[item.id].flags then
+                
+                if bp.res.items[item.id].flags:contains('Scroll') and bp.MA[bp.res.items[item.id].en] and bp.MA[bp.res.items[item.id].en].levels[bp.player.main_job_id] then
+                    table.insert(scrolls, {index=index, count=item.count, status=item.status, bag=0, res=bp.res.items[item.id]})
+                end
+
+            end
+
+        end
+        return scrolls
+
+    end
+
     self.getAmount = function(search, bag)
         return T(windower.ffxi.get_items(bag or 0)):filter(function(item) return type(item) == 'table' and bp.res.items[item.id] and bp.res.items[item.id].en:lower():startswith(search:lower()) and item end):length()
     end
@@ -249,6 +267,24 @@ function library:new(bp)
 
     self.isEquippable = function(bag)
         return T(__bags.equippable):contains(bag)
+    end
+
+    self.equipItems = function(list)
+        local slots = {main=0,sub=1,range=2,ammo=3,head=4,body=5,hands=6,legs=7,feet=8,neck=9,waist=10,lear=11,rear=12,lring=13,rring=14,back=15}
+        
+        if list and type(list) == 'table' then
+
+            for slot, name in pairs(list) do
+                local index, count, id, status, bag, res = self.findByName(name)
+            
+                if index and status and bag and status == 0 and slots[slot] then
+                    windower.ffxi.set_equip(index, slots[slot], bag)
+                end
+
+            end
+
+        end
+
     end
 
     self.sellItems = function(list)
