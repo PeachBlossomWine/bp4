@@ -174,7 +174,8 @@ local buildHelper = function(bp, hmt)
                 elseif bp.__target.get('t') then
                     new.send(bp.__target.get('t').index)
 
-                end    
+                end  
+                settings:save()  
     
             end        
     
