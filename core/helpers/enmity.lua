@@ -17,13 +17,16 @@ local buildHelper = function(bp, hmt)
 
         end
 
+        -- Save after all settings have been initialized.
+        settings:save()
+
         -- Private Methods.
         pvt.render = function()
 
             bp.__ui.renderUI(settings.display, function()
                 local enmity = bp.__enmity.hasEnmity()
 
-                if bp.player and enmity and (not __last or (__last and enmity.name ~= __last)) then
+                if enmity and (not __last or (__last and enmity.name ~= __last) ) and bp.target.get() then
                     settings.display:text(string.format("→ \\cs(%s)%s\\cr ←", bp.colors.setting, enmity.name))
                     __last = enmity.name
 
@@ -49,6 +52,7 @@ local buildHelper = function(bp, hmt)
                 if ('position'):startswith(command) and #commands > 0 then
                     settings.display:pos(tonumber(commands[1]) or settings.display:pos_x(), tonumber(commands[2]) or settings.display:pos_y())
                 end
+                settings:save()
 
             end
     
