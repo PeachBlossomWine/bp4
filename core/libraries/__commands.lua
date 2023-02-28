@@ -76,7 +76,7 @@ function library:new(bp)
         bp.__actions.stop()
     end
 
-    pm['info'] = function()
+    pm['mytarget'] = function()
         local target = windower.ffxi.get_mob_by_target('t') or false
 
         if target then
@@ -86,6 +86,10 @@ function library:new(bp)
             --table.vprint(self.me)
         end
 
+    end
+
+    pm['mybuffs'] = function()
+        table.print(windower.ffxi.get_player().buffs)
     end
 
     pm['trade'] = function(commands)
