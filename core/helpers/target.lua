@@ -154,12 +154,6 @@ local buildHelper = function(bp, hmt)
                     elseif command == 't' then
                         new.set(commands[1], true)
 
-                    elseif command == 'p' then
-                        new.set(commands[1], true)
-
-                    elseif command == 'e' then
-                        new.set(commands[1], true)
-
                     elseif command == 'mode' and commands[1] then
                         new.setMode(commands[1])
         
