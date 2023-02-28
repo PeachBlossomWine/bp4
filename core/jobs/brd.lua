@@ -10,7 +10,7 @@ function job:init(bp, settings, __getsub)
     self.__subjob   = (__getsub and bp.__core.getJob(bp.player.sub_job):init(bp, settings, false))
     self.__events   = {}
     self.__flags    = {}
-    self.__timers   = {hate=0, aoehate=0}
+    self.__timers   = {hate=0, aoehate=0, lullaby=0}
     self.__nukes    = T{}
 
     function self:useItems()
@@ -58,8 +58,33 @@ function job:init(bp, settings, __getsub)
 
             if settings.buffs then
 
+                -- HANDLE SONGS.
                 if bp.core.canCast() then
                     bp.songs.handleSongs()
+                end
+
+            end
+
+            if settings.debuffs and bp.core.canCast() then
+
+                -- HANDLE HORDE LULLABIES.
+                if settings.lullaby and (os.time()-self.__timers.lullaby) > 12 then
+
+                    if bp.__aggro.getCount() > 3 then
+                        local sleep = bp.__aggro.getAggro()[1]
+
+                        if sleep and bp.core.ready("Horde Lullaby II") then
+                            bp.core.add("Horde Lullaby II", sleep, bp.core.priority("Horde Lullaby II"))
+                            self.__timers.lullaby = os.time()
+
+                        elseif sleep and bp.core.ready("Horde Lullaby") then
+                            bp.core.add("Horde Lullaby", sleep, bp.core.priority("Horde Lullaby"))
+                            self.__timers.lullaby = os.time()
+
+                        end
+
+                    end
+
                 end
 
             end
@@ -68,8 +93,33 @@ function job:init(bp, settings, __getsub)
 
             if settings.buffs then
 
+                -- HANDLE SONGS.
                 if bp.core.canCast() then
                     bp.songs.handleSongs()
+                end
+
+            end
+
+            if settings.debuffs and bp.core.canCast() then
+
+                -- HANDLE HORDE LULLABIES.
+                if settings.lullaby and (os.time()-self.__timers.lullaby) > 12 then
+
+                    if bp.__aggro.getCount() > 3 then
+                        local sleep = bp.__aggro.getAggro()[1]
+
+                        if sleep and bp.core.ready("Horde Lullaby II") then
+                            bp.core.add("Horde Lullaby II", sleep, bp.core.priority("Horde Lullaby II"))
+                            self.__timers.lullaby = os.time()
+
+                        elseif sleep and bp.core.ready("Horde Lullaby") then
+                            bp.core.add("Horde Lullaby", sleep, bp.core.priority("Horde Lullaby"))
+                            self.__timers.lullaby = os.time()
+
+                        end
+
+                    end
+
                 end
 
             end

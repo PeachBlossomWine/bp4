@@ -8,7 +8,7 @@ function library:new(bp)
     local timers    = {}
     local base      = {
 
-        ["__version"]               = {_addon.version},
+        ["__version"]               = _addon.version,
         ["am"]                      = {enabled=false, tp=3000},
         ["rws"]                     = {enabled=false, tp=1000, name="Hot Shot"},
         ["ws"]                      = {enabled=false, tp=1000, name="Combo"},
@@ -184,6 +184,10 @@ function library:new(bp)
             ["spur"]                = false,
             ["run wild"]            = false,
             ["unleash"]             = false,
+        },
+
+        ["BRD"] = {
+            ["lullaby"]             = false,
         },
 
         ["RNG"] = {
@@ -418,10 +422,11 @@ function library:new(bp)
     self.updateSettings = function(settings)
         local flagged = false
 
-        if settings and (not settings.__version or not _addon.version == settings.__version) then
+        if settings and (not settings.__version or not _addon.version == settings.__version) or (settings.__version and type(settings.__version) == 'table' and not _addon.version == settings.__version[1]) then
+
 
             for values, index in T(base):it() do
-                
+
                 if T{'WAR','MNK','WHM','BLM','RDM','THF','PLD','DRK','BST','BRD','RNG','SMN','SAM','NIN','DRG','BLU','COR','PUP','DNC','SCH','GEO','RUN'}:contains(index) then
 
                     if settings[index] == nil then
