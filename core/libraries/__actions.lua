@@ -57,12 +57,12 @@ function library:new(bp)
 
             if target and bp.me and (os.clock()-__dtimer.last) > __dtimer.delay then
                 local distance  = bp.__distance.get(target)
-                local dmaximum   = ((2.2 + target.model_size) - bp.me.model_size)
+                local dmaximum   = ((2.4 + target.model_size) - bp.me.model_size)
 
                 if distance > dmaximum then
                     self.move(target.x, target.y)
 
-                elseif distance <= (dmaximum - 1) then
+                elseif distance <= (dmaximum - 2) then
                     self.stop()
                     windower.send_command("setkey numpad2 down; wait 0.2; setkey numpad2 up")
 
@@ -113,7 +113,8 @@ function library:new(bp)
 
     -- Public Functions.
     self.isMoving = function() return __moving end
-
+    self.enterZone = function(zone) self.move:schedule(0.75, zone.x, zone.y) end
+    
     self.move = function(x, y)
             
         if bp and bp.me and x and y then
@@ -377,6 +378,19 @@ function library:new(bp)
 
     end
 
+    self.aboutFace = function()
+        windower.ffxi.turn(((bp.me.facing*-1)+math.pi)*-1)
+    end
+
+    self.toRadians = function(pos)
+
+        if bp and pos and bp.me and pos.x and pos.y then
+            return ((math.atan2((pos.y - bp.me.y), (pos.x - bp.me.x))*180/math.pi)*-1):radian()
+        end
+        return 0
+
+    end
+
     self.getFacing = function(target)
         local target = bp.__target.get(target)
 
@@ -388,6 +402,26 @@ function library:new(bp)
 
         end
         
+    end
+
+    self.getRotation = function()
+
+        if bp and bp.me then
+            return (((self.getFacing()*180)/math.pi)*256/360)
+        end
+        return 0
+
+    end
+
+    self.convertRotation = function(rot)
+        if not rot then return end
+        local rotation = rot
+
+        if bp and bp.me then
+            return ((bit.band(rot, 0xff) * math.tau) * 0.00390625)
+        end
+        return 0
+
     end
 
     self.keyCombo = function(combo, delay, wait)
@@ -643,20 +677,11 @@ function library:new(bp)
         
     end
 
-    self.getRotation = function()
-
-        if bp and bp.me then
-            return (((self.facing()*180)/math.pi)*256/360)
-        end
-        return 0
-
-    end
-
     self.isFacing = function(target)
         local target = bp.__target.get(target)
 
         if bp and bp.me and target then
-            local m_degrees = ((self.facing()*180)/math.pi)
+            local m_degrees = ((self.getFacing()*180)/math.pi)
             local t_degrees = ((((target.facing)*180)/math.pi) + 180) >= 360 and ((((target.facing)*180)/math.pi)-180) or ((((target.facing)*180)/math.pi)+180)
             local d = ((V{bp.me.x, bp.me.y, bp.me.z} - V{target.x, target.y, target.z}):length())
 
@@ -673,7 +698,7 @@ function library:new(bp)
         local target = bp.__target.get(target)
 
         if bp and bp.me and target then
-            local m_degrees = ((self.facing()*180)/math.pi)
+            local m_degrees = ((self.getFacing()*180)/math.pi)
             local t_degrees = (((target.facing)*180)/math.pi)
             local d = ((V{bp.me.x, bp.me.y, bp.me.z} - V{target.x, target.y, target.z}):length())
             
@@ -705,7 +730,7 @@ function library:new(bp)
         local target = bp.__target.get(target)
 
         if bp and bp.me and target then
-            local m_degrees = ((self.facing()*180)/math.pi)
+            local m_degrees = ((self.getFacing()*180)/math.pi)
             local t_degrees = ((((target.facing)*180)/math.pi) + 180) >= 360 and ((((target.facing)*180)/math.pi)-180) or ((((target.facing)*180)/math.pi)+180)
 
             if math.abs(m_degrees - t_degrees) <= 38 then
