@@ -106,12 +106,13 @@ function library:new(bp)
                         self.removal[index] = {id=member.id, list={}}
 
                         for buff in T(buffs):it() do
+                            local buff = tonumber(buff)
                             
                             if __removable:contains(buff) then
-                                table.insert(self.removal[index].list, tonumber(buff))
+                                table.insert(self.removal[index].list, buff)
 
                             else
-                                table.insert(self.current[index].list, tonumber(buff))
+                                table.insert(self.current[index].list, buff)
 
                             end
 
@@ -127,12 +128,13 @@ function library:new(bp)
                 table.insert(self.removal, {id=member.id, list={}})
 
                 for buff in T(buffs):it() do
+                    local buff = tonumber(buff)
 
-                    if __removable:contains(buff) then
-                        table.insert(self.removal[#self.removal].list, tonumber(buff))
+                    if __removable:contains(tonumber(buff)) then
+                        table.insert(self.removal[#self.removal].list, buff)
 
                     else
-                        table.insert(self.current[#self.current].list, tonumber(buff))
+                        table.insert(self.current[#self.current].list, buff)
                     
                     end
 
@@ -331,7 +333,7 @@ function library:new(bp)
     end
 
     -- Private Events.
-    --windower.register_event('time change', function() print(T(self.current)) end)
+    --windower.register_event('time change', function() print('BUFFS:', T(self.current)) end)
     windower.register_event('incoming chunk', pm.parsePlayer)
     windower.register_event('incoming chunk', pm.parseParty)
     windower.register_event('lose buff', pm.removeAura)
