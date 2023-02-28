@@ -8,6 +8,7 @@ local buildHelper = function(bp, hmt)
         local pvt = {}
 
         -- Private Variables.
+        local __debug       = false
         local __modes       = {'PARTY','ALLIANCE'}
         local __jobs        = {3,4,5,7,10,15,19,20,21}
         local __spells      = {1,2,3,4,5,6,7,8,9,10,11}
@@ -69,7 +70,7 @@ local buildHelper = function(bp, hmt)
         -- Private Methods.
         pvt.validSpell = function(id) return T(__spells):contains(id) end
         pvt.validAbility = function(id) return T(__abilities):contains(id) end
-        pvt.sort = function(t) table.sort(t, function(a, b) return a.missing > b.missing end) end
+        pvt.sort = function(t) return table.sort(t, function(a, b) return a.missing > b.missing end) end
         
         pvt.setMode = function(mode)
             local mode = tonumber(mode)
@@ -103,14 +104,15 @@ local buildHelper = function(bp, hmt)
 
         pvt.getWeight = function()
             local selected = {target=false, weight=0, count=0}
-            
-            for target in T(pvt.sort(__party)):it() do
+            local sorted = pvt.sort(__party)
+
+            for target in T(sorted):it() do
                 local target = bp.__target.get(target.id)
 
                 if target and bp.__distance.get(target) <= 21 then
                     local weight, n = 0, 0
 
-                    for _,m in ipairs(private.party) do
+                    for _,m in ipairs(sorted) do
                         local member = bp.__target.get(m.id)
                         
                         if member and (((target.x-member.x)^2 + (target.y-member.y)^2) <= 10^2) then
@@ -128,7 +130,9 @@ local buildHelper = function(bp, hmt)
                                 end
 
                                 if curaga then
-                                    weight, n = (weight + m.missing), (n + 1)
+                                    weight = (weight + m.missing)
+                                    n = (n + 1)
+
                                 end
 
                             elseif bp.player.main_job_level < 50 then
@@ -412,7 +416,7 @@ local buildHelper = function(bp, hmt)
                     end
 
                 elseif curaga then
-                    pvt.updateCure(curaga.en, curaga.target)
+                    pvt.updateCure(curaga, curaga.target.id)
 
                 end
     
@@ -472,7 +476,13 @@ local buildHelper = function(bp, hmt)
                 local cure = pvt.estimateCuraga(weight)
 
                 if cure and not bp.__queue.inQueue(cure.en) then
-                    return cure
+                    cure.target = weight.target
+                    cure.count  = weight.count
+
+                    if cure.target and cure.count then
+                        return cure
+                    end
+
                 end
 
             end
@@ -489,7 +499,7 @@ local buildHelper = function(bp, hmt)
                 if cure and target and not bp.__queue.inQueue(cure.en, target) then
                     
                     if (bp.__distance.get(target) - target.model_size) <= bp.__queue.getRange(cure.en) and not T{2,3}:contains(target.status) then
-                        pvt.updateCure(cure, target)
+                        pvt.updateCure(cure, target.id)
                     end
                 
                 end
@@ -582,7 +592,15 @@ local buildHelper = function(bp, hmt)
                     end
     
                 end
-    
+
+            elseif bp and id == 0x0df and __debug then
+                local parsed = bp.packets.parse('incoming', original)
+
+                if parsed and parsed['ID'] ~= bp.player.id then
+                    parsed['HPP'] = 33
+                    return bp.packets.build(parsed)
+                end
+
             end
     
         end)
