@@ -106,7 +106,7 @@ function library:new(bp)
                     local target = bp.__target.get('t')
 
                     if target and target.id then
-                        windower.send_command(string.format('bp ord @@ bp interact poke %d', target.id))
+                        windower.send_command(string.format('bp ord rr bp interact poke %d', target.id))
                     end
 
                 end
