@@ -176,7 +176,7 @@ function library:new(bp)
                         
                         for status in list:it() do
 
-                            if T(player.list):contains(status) and pm[category] and not bp.__auras.hasAura(status) then
+                            if T(player.list):contains(status) and pm[category] and not bp.__buffs.hasAura(status) then
                                 pm[category](player.id)
                             end
 
@@ -192,7 +192,7 @@ function library:new(bp)
 
                     for status in T(player.list):it() do
                         
-                        if T{3,4,5,6,7,8,134,135,186,13,21,146,147,148,149,167,174,175,217,223,404,557,558,559,560,561,562,563,564,11,12,128,129,130,131,132,133,136,137,138,139,140,141,142,567}:contains(status) and not bp.__auras.hasAura(status) then
+                        if T{3,4,5,6,7,8,134,135,186,13,21,146,147,148,149,167,174,175,217,223,404,557,558,559,560,561,562,563,564,11,12,128,129,130,131,132,133,136,137,138,139,140,141,142,567}:contains(status) and not bp.__buffs.hasAura(status) then
                             local target = bp.__target.get(player.id)
 
                             if target and bp.__party.isMember(target, false) and bp.__actions.isReady("Healing Waltz") and not bp.__queue.inQueue("Healing Waltz", target) then
