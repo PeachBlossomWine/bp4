@@ -17,7 +17,8 @@ setmetatable(bootstrap, mt)
 function bootstrap:new()
 
     -- Addon Debug.
-    self.__debug = true
+    self.__debug    = true
+    self.__libmode  = false
 
     -- Initialization functions.
     local init = {}
@@ -175,7 +176,10 @@ function bootstrap:new()
             end
 
         end
-        init.loadHelpers()
+
+        if not self.__libmode then
+            init.loadHelpers()
+        end
 
     end
 
@@ -208,38 +212,42 @@ function bootstrap:new()
     end
     init.loadLibraries()
 
-    -- Addon Events.
-    windower.register_event('zone change', function() self.enabled = false end)
-    windower.register_event('prerender', function()
-        self.party  = windower.ffxi.get_party() or false
-        self.player = windower.ffxi.get_player() or false
-        self.info   = windower.ffxi.get_info() or false
-        self.me     = windower.ffxi.get_mob_by_target('me') or false
-        self.pet    = windower.ffxi.get_mob_by_target('pet') or false
+    if not self.__libmode then
 
-        if self.player and self.enabled and not self.__zones:isInJail() and (os.clock() - self.pinger) > self.delay and not self.__buffs.silent() then
+        -- Addon Events.
+        windower.register_event('zone change', function() self.enabled = false end)
+        windower.register_event('prerender', function()
+            self.party  = windower.ffxi.get_party() or false
+            self.player = windower.ffxi.get_player() or false
+            self.info   = windower.ffxi.get_info() or false
+            self.me     = windower.ffxi.get_mob_by_target('me') or false
+            self.pet    = windower.ffxi.get_mob_by_target('pet') or false
 
-            if not self.__zones:isInTown() and self.core then
-                self.core:automate()
+            if self.player and self.enabled and not self.__zones:isInJail() and (os.clock() - self.pinger) > self.delay and not self.__buffs.silent() then
 
-            elseif self.__zones:isInTown() then
-                self.__queue.handle()
+                if not self.__zones:isInTown() and self.core then
+                    self.core:automate()
 
+                elseif self.__zones:isInTown() then
+                    self.__queue.handle()
+
+                end
+                self.pinger = os.clock()
+                
             end
-            self.pinger = os.clock()
-            
-        end
-        if self.memory then windower.send_command('lua memory bp4') end
+            if self.memory then windower.send_command('lua memory bp4') end
 
-    end)
+        end)
 
-    windower.register_event('unhandled command', function(command, ...)
-    
-        if command:sub(1,1) == '/' then
-            windower.send_command(string.format('bp %s %s', command:sub(2), table.concat(T{...}, ' ')))
-        end
+        windower.register_event('unhandled command', function(command, ...)
+        
+            if command:sub(1,1) == '/' then
+                windower.send_command(string.format('bp %s %s', command:sub(2), table.concat(T{...}, ' ')))
+            end
 
-    end)
+        end)
+
+    end
 
     return self
 

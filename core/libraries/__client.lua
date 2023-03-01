@@ -44,7 +44,7 @@ function library:new(bp)
 
                     end
 
-                elseif not self.isConnected() and __flags.error then
+                elseif not self.isConnected() and __flags.error and bp and bp.popchat then
                     bp.popchat.pop(string.format("CLIENT ERROR: \\cs(%s)%s\\cr", bp.colors.setting, type(__flags.error) == 'string' and __flags.error:upper() or __flags.error))
 
                 end
@@ -118,15 +118,16 @@ function library:new(bp)
         
     end
 
-    self.log = function(id, data)
-        if (not id or not data or not self.isConnected()) then
+    self.outgoing = function(id, original)
+        if (not id or not original or not self.isConnected()) then
             return
         end
 
         coroutine.schedule(function()
+            local parsed = bp.packets.parse('outgoing', original)
 
             if bp and bp.player then
-                __socket:send(string.format("%s %s\n", tostring(id), data))
+                __socket:send(string.format("<< %s %s\n", tostring(id), original))
             end
         
         end, 0)
@@ -134,6 +135,7 @@ function library:new(bp)
     end
 
     -- Private Events.
+    --windower.register_event('outgoing chunk', self.outgoing)
     windower.register_event('prerender', pm.receive)
     windower.register_event('time change', pm.heartbeat)
     windower.register_event('load', function() pm.connect:schedule(0.8) end)
